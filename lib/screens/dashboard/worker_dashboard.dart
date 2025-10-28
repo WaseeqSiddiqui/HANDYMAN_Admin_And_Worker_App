@@ -6,6 +6,7 @@ import '/worker/service_detail_screen.dart';
 import '/worker/wallet_screen.dart';
 import '/worker/credit_screen.dart';
 import '/worker/worker_profile_screen.dart';
+import '/worker/completed_services_screen.dart';
 
 class WorkerDashboardScreen extends StatefulWidget {
   final String phoneNumber;
@@ -804,6 +805,25 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B5B9A),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CompletedServicesScreen()),
+              );
+            },
+            icon: const Icon(Icons.check_circle, color: Colors.white),
+            label: const Text(
+              'View Completed Services',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
@@ -974,6 +994,18 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CreditScreen()),
+                    );
+                  },
+                  textColor,
+                ),
+                _buildDrawerItem(
+                  Icons.check_circle_outline,
+                  'Completed Services',
+                      () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CompletedServicesScreen()),
                     );
                   },
                   textColor,

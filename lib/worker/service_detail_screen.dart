@@ -147,6 +147,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       case 'Completed':
         statusColor = Colors.green;
         break;
+      case 'Postponed':
+        statusColor = Colors.red;
+        break;
       default:
         statusColor = Colors.grey;
     }
@@ -595,37 +598,168 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   }
 
   void _postponeService() {
+    String? selectedReason;
+    final TextEditingController otherReasonController = TextEditingController();
+
+    // Predefined postpone reasons
+    final List<String> postponeReasons = [
+      'Customer not available',
+      'Customer requested reschedule',
+      'Wrong address provided',
+      'Tools/parts not available',
+      'Weather conditions',
+      'Emergency situation',
+      'Traffic/transportation issue',
+      'Customer not ready',
+      'Other',
+    ];
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Postpone Service'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Reason for postponement',
-                border: OutlineInputBorder(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.schedule, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Postpone Service'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select reason for postponement:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      hint: const Text('Choose a reason'),
+                      value: selectedReason,
+                      icon: const Icon(Icons.arrow_drop_down),
+                      items: postponeReasons.map((String reason) {
+                        return DropdownMenuItem<String>(
+                          value: reason,
+                          child: Text(
+                            reason,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setDialogState(() {
+                          selectedReason = newValue;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                if (selectedReason == 'Other') ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: otherReasonController,
+                    decoration: const InputDecoration(
+                      labelText: 'Please specify reason',
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter your reason here...',
+                    ),
+                    maxLines: 3,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Admin will be notified about the postponement',
+                          style: TextStyle(fontSize: 11, color: Colors.orange),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                otherReasonController.dispose();
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (selectedReason == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select a reason'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                if (selectedReason == 'Other' && otherReasonController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please specify the reason'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                final finalReason = selectedReason == 'Other'
+                    ? otherReasonController.text.trim()
+                    : selectedReason!;
+
+                setState(() {
+                  _service['status'] = 'Postponed';
+                  _service['postponeReason'] = finalReason;
+                });
+
+                otherReasonController.dispose();
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Service postponed: $finalReason'),
+                    backgroundColor: Colors.orange,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
               ),
-              maxLines: 3,
+              child: const Text('Confirm Postpone'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Service postponed')),
-              );
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
       ),
     );
   }
