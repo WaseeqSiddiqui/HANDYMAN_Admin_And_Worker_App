@@ -11,24 +11,31 @@ class ServiceManagementScreen extends StatefulWidget {
 class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
   final List<Map<String, dynamic>> _categories = [
     {
       'id': 'cat1',
       'name': 'AC Services',
+      'nameArabic': 'خدمات التكييف',
       'icon': Icons.ac_unit,
-      'subcategories': ['Repair', 'Installation', 'Maintenance']
+      'subcategories': ['Repair', 'Installation', 'Maintenance'],
+      'subcategoriesArabic': ['إصلاح', 'تركيب', 'صيانة'],
     },
     {
       'id': 'cat2',
       'name': 'Appliances',
+      'nameArabic': 'الأجهزة المنزلية',
       'icon': Icons.kitchen,
-      'subcategories': ['Washing Machine', 'Refrigerator', 'Microwave']
+      'subcategories': ['Washing Machine', 'Refrigerator', 'Microwave'],
+      'subcategoriesArabic': ['غسالة', 'ثلاجة', 'ميكروويف'],
     },
     {
       'id': 'cat3',
       'name': 'Plumbing',
+      'nameArabic': 'السباكة',
       'icon': Icons.plumbing,
-      'subcategories': ['Leak Repair', 'Installation', 'Drain Cleaning']
+      'subcategories': ['Leak Repair', 'Installation', 'Drain Cleaning'],
+      'subcategoriesArabic': ['إصلاح التسريبات', 'تركيب', 'تنظيف المصارف'],
     },
   ];
 
@@ -36,8 +43,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     {
       'id': 'srv1',
       'name': 'AC Repair',
+      'nameArabic': 'إصلاح التكييف',
       'category': 'AC Services',
+      'categoryArabic': 'خدمات التكييف',
       'subcategory': 'Repair',
+      'subcategoryArabic': 'إصلاح',
       'basePrice': 450.0,
       'commission': 10.0,
       'vat': 5.0,
@@ -46,8 +56,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     {
       'id': 'srv2',
       'name': 'Washing Machine Service',
+      'nameArabic': 'صيانة الغسالة',
       'category': 'Appliances',
+      'categoryArabic': 'الأجهزة المنزلية',
       'subcategory': 'Washing Machine',
+      'subcategoryArabic': 'غسالة',
       'basePrice': 300.0,
       'commission': 10.0,
       'vat': 5.0,
@@ -56,8 +69,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     {
       'id': 'srv3',
       'name': 'Refrigerator Repair',
+      'nameArabic': 'إصلاح الثلاجة',
       'category': 'Appliances',
+      'categoryArabic': 'الأجهزة المنزلية',
       'subcategory': 'Refrigerator',
+      'subcategoryArabic': 'ثلاجة',
       'basePrice': 550.0,
       'commission': 10.0,
       'vat': 5.0,
@@ -141,17 +157,32 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ),
               child: Icon(category['icon'], color: const Color(0xFF6B5B9A)),
             ),
-            title: Text(
-              category['name'],
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: textColor,
-              ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category['name'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: textColor,
+                  ),
+                ),
+                Text(
+                  category['nameArabic'],
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: textColor.withOpacity(0.7),
+                  ),
+                ),
+              ],
             ),
-            subtitle: Text(
-              '${category['subcategories'].length} subcategories',
-              style: TextStyle(color: textColor.withOpacity(0.6)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${category['subcategories'].length} subcategories',
+                style: TextStyle(color: textColor.withOpacity(0.6)),
+              ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -182,34 +213,55 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
       itemCount: _categories.length,
       itemBuilder: (context, catIndex) {
         final category = _categories[catIndex];
+        final subcats = category['subcategories'] as List<String>;
+        final subcatsArabic = category['subcategoriesArabic'] as List<String>;
+
         return Card(
           color: cardColor,
           margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ExpansionTile(
-            title: Text(
-              category['name'],
-              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category['name'],
+                  style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+                ),
+                Text(
+                  category['nameArabic'],
+                  style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6)),
+                ),
+              ],
             ),
-            children: (category['subcategories'] as List<String>).map((subcat) {
+            children: List.generate(subcats.length, (index) {
               return ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                title: Text(subcat, style: TextStyle(color: textColor)),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(subcats[index], style: TextStyle(color: textColor)),
+                    Text(
+                      subcatsArabic[index],
+                      style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6)),
+                    ),
+                  ],
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, color: Color(0xFF6B5B9A), size: 20),
-                      onPressed: () {},
+                      onPressed: () => _showEditSubcategoryDialog(category, index),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                      onPressed: () => _confirmDelete('subcategory', subcat),
+                      onPressed: () => _confirmDelete('subcategory', subcats[index]),
                     ),
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ),
         );
       },
@@ -249,12 +301,26 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                               color: textColor,
                             ),
                           ),
+                          Text(
+                            service['nameArabic'],
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             '${service['category']} > ${service['subcategory']}',
                             style: TextStyle(
                               fontSize: 12,
                               color: textColor.withOpacity(0.6),
+                            ),
+                          ),
+                          Text(
+                            '${service['categoryArabic']} > ${service['subcategoryArabic']}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: textColor.withOpacity(0.5),
                             ),
                           ),
                         ],
@@ -374,15 +440,36 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
   void _showAddCategoryDialog() {
     final nameController = TextEditingController();
+    final nameArabicController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Category'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Category Name',
-            border: OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Category Name (English)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.abc),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameArabicController,
+                decoration: const InputDecoration(
+                  labelText: 'Category Name (Arabic)',
+                  hintText: 'اسم الفئة بالعربية',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.language),
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
           ),
         ),
         actions: [
@@ -392,16 +479,24 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
                 setState(() {
                   _categories.add({
                     'id': 'cat${_categories.length + 1}',
                     'name': nameController.text,
+                    'nameArabic': nameArabicController.text,
                     'icon': Icons.category,
                     'subcategories': [],
+                    'subcategoriesArabic': [],
                   });
                 });
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Category added successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -418,42 +513,67 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
   void _showAddSubcategoryDialog() {
     String? selectedCategory;
     final nameController = TextEditingController();
+    final nameArabicController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: const Text('Add Subcategory'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Select Category',
-                  border: OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Select Category',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _categories.map((cat) {
+                    return DropdownMenuItem<String>(
+                      value: cat['id'],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(cat['name']),
+                          Text(
+                            cat['nameArabic'],
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setDialogState(() {
+                      selectedCategory = value;
+                    });
+                  },
                 ),
-                items: _categories.map((cat) {
-                  return DropdownMenuItem<String>(
-                    value: cat['id'],
-                    child: Text(cat['name']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setDialogState(() {
-                    selectedCategory = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Subcategory Name',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Subcategory Name (English)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.abc),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextField(
+                  controller: nameArabicController,
+                  decoration: const InputDecoration(
+                    labelText: 'Subcategory Name (Arabic)',
+                    hintText: 'اسم الفئة الفرعية بالعربية',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.language),
+                  ),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -462,14 +582,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
             ElevatedButton(
               onPressed: () {
-                if (selectedCategory != null && nameController.text.isNotEmpty) {
+                if (selectedCategory != null &&
+                    nameController.text.isNotEmpty &&
+                    nameArabicController.text.isNotEmpty) {
                   setState(() {
                     final category = _categories.firstWhere(
                           (cat) => cat['id'] == selectedCategory,
                     );
                     (category['subcategories'] as List).add(nameController.text);
+                    (category['subcategoriesArabic'] as List).add(nameArabicController.text);
                   });
                   Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ Subcategory added successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -486,156 +615,230 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
   void _showAddServiceDialog() {
     final nameController = TextEditingController();
+    final nameArabicController = TextEditingController();
     final priceController = TextEditingController();
     final commissionController = TextEditingController();
     final vatController = TextEditingController();
     String? selectedCategory;
-    String? selectedSubcategory;
+    int? selectedSubcategoryIndex;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add Service'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Service Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _categories.map((cat) {
-                    return DropdownMenuItem<String>(
-                      value: cat['id'],
-                      child: Text(cat['name']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setDialogState(() {
-                      selectedCategory = value;
-                      selectedSubcategory = null;
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (selectedCategory != null)
-                  DropdownButtonFormField<String>(
-                    value: selectedSubcategory,
+        builder: (context, setDialogState) {
+          final selectedCat = selectedCategory != null
+              ? _categories.firstWhere((cat) => cat['id'] == selectedCategory)
+              : null;
+
+          return AlertDialog(
+            title: const Text('Add Service'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Subcategory',
+                      labelText: 'Service Name (English)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.abc),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameArabicController,
+                    decoration: const InputDecoration(
+                      labelText: 'Service Name (Arabic)',
+                      hintText: 'اسم الخدمة بالعربية',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.language),
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedCategory,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
                       border: OutlineInputBorder(),
                     ),
-                    items: (_categories.firstWhere(
-                          (cat) => cat['id'] == selectedCategory,
-                    )['subcategories'] as List<String>)
-                        .map((subcat) {
+                    items: _categories.map((cat) {
                       return DropdownMenuItem<String>(
-                        value: subcat,
-                        child: Text(subcat),
+                        value: cat['id'],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(cat['name']),
+                            Text(
+                              cat['nameArabic'],
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
                       setDialogState(() {
-                        selectedSubcategory = value;
+                        selectedCategory = value;
+                        selectedSubcategoryIndex = null;
                       });
                     },
                   ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: priceController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Base Price (SAR)',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 12),
+                  if (selectedCat != null)
+                    DropdownButtonFormField<int>(
+                      value: selectedSubcategoryIndex,
+                      decoration: const InputDecoration(
+                        labelText: 'Subcategory',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: List.generate(
+                        (selectedCat['subcategories'] as List).length,
+                            (index) {
+                          return DropdownMenuItem<int>(
+                            value: index,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(selectedCat['subcategories'][index]),
+                                Text(
+                                  selectedCat['subcategoriesArabic'][index],
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedSubcategoryIndex = value;
+                        });
+                      },
+                    ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: priceController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Base Price (SAR)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.attach_money),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: commissionController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Commission (%)',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: commissionController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Commission (%)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.percent),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: vatController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'VAT (%)',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: vatController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'VAT (%)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.receipt_long),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty &&
-                    selectedCategory != null &&
-                    selectedSubcategory != null &&
-                    priceController.text.isNotEmpty &&
-                    commissionController.text.isNotEmpty &&
-                    vatController.text.isNotEmpty) {
-                  setState(() {
-                    _services.add({
-                      'id': 'srv${_services.length + 1}',
-                      'name': nameController.text,
-                      'category': _categories
-                          .firstWhere((cat) => cat['id'] == selectedCategory)['name'],
-                      'subcategory': selectedSubcategory,
-                      'basePrice': double.parse(priceController.text),
-                      'commission': double.parse(commissionController.text),
-                      'vat': double.parse(vatController.text),
-                      'isActive': true,
-                    });
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6B5B9A),
-                foregroundColor: Colors.white,
+                ],
               ),
-              child: const Text('Add'),
             ),
-          ],
-        ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameController.text.isNotEmpty &&
+                      nameArabicController.text.isNotEmpty &&
+                      selectedCategory != null &&
+                      selectedSubcategoryIndex != null &&
+                      priceController.text.isNotEmpty &&
+                      commissionController.text.isNotEmpty &&
+                      vatController.text.isNotEmpty) {
+
+                    final category = _categories.firstWhere((cat) => cat['id'] == selectedCategory);
+
+                    setState(() {
+                      _services.add({
+                        'id': 'srv${_services.length + 1}',
+                        'name': nameController.text,
+                        'nameArabic': nameArabicController.text,
+                        'category': category['name'],
+                        'categoryArabic': category['nameArabic'],
+                        'subcategory': category['subcategories'][selectedSubcategoryIndex!],
+                        'subcategoryArabic': category['subcategoriesArabic'][selectedSubcategoryIndex!],
+                        'basePrice': double.parse(priceController.text),
+                        'commission': double.parse(commissionController.text),
+                        'vat': double.parse(vatController.text),
+                        'isActive': true,
+                      });
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Service added successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B5B9A),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   void _showEditCategoryDialog(Map<String, dynamic> category) {
     final nameController = TextEditingController(text: category['name']);
+    final nameArabicController = TextEditingController(text: category['nameArabic']);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Category'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Category Name',
-            border: OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Category Name (English)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.abc),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameArabicController,
+                decoration: const InputDecoration(
+                  labelText: 'Category Name (Arabic)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.language),
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
           ),
         ),
         actions: [
@@ -645,11 +848,86 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
                 setState(() {
                   category['name'] = nameController.text;
+                  category['nameArabic'] = nameArabicController.text;
                 });
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Category updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B5B9A),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditSubcategoryDialog(Map<String, dynamic> category, int index) {
+    final subcats = category['subcategories'] as List<String>;
+    final subcatsArabic = category['subcategoriesArabic'] as List<String>;
+
+    final nameController = TextEditingController(text: subcats[index]);
+    final nameArabicController = TextEditingController(text: subcatsArabic[index]);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Subcategory'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Subcategory Name (English)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.abc),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameArabicController,
+                decoration: const InputDecoration(
+                  labelText: 'Subcategory Name (Arabic)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.language),
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+                setState(() {
+                  subcats[index] = nameController.text;
+                  subcatsArabic[index] = nameArabicController.text;
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Subcategory updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -665,6 +943,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
   void _showEditServiceDialog(Map<String, dynamic> service) {
     final nameController = TextEditingController(text: service['name']);
+    final nameArabicController = TextEditingController(text: service['nameArabic']);
     final priceController = TextEditingController(text: service['basePrice'].toString());
     final commissionController = TextEditingController(text: service['commission'].toString());
     final vatController = TextEditingController(text: service['vat'].toString());
@@ -680,9 +959,20 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Service Name',
+                  labelText: 'Service Name (English)',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.abc),
                 ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameArabicController,
+                decoration: const InputDecoration(
+                  labelText: 'Service Name (Arabic)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.language),
+                ),
+                textDirection: TextDirection.rtl,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -691,6 +981,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 decoration: const InputDecoration(
                   labelText: 'Base Price (SAR)',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.attach_money),
                 ),
               ),
               const SizedBox(height: 12),
@@ -700,6 +991,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 decoration: const InputDecoration(
                   labelText: 'Commission (%)',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.percent),
                 ),
               ),
               const SizedBox(height: 12),
@@ -709,6 +1001,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 decoration: const InputDecoration(
                   labelText: 'VAT (%)',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.receipt_long),
                 ),
               ),
             ],
@@ -721,13 +1014,22 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() {
-                service['name'] = nameController.text;
-                service['basePrice'] = double.parse(priceController.text);
-                service['commission'] = double.parse(commissionController.text);
-                service['vat'] = double.parse(vatController.text);
-              });
-              Navigator.pop(context);
+              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+                setState(() {
+                  service['name'] = nameController.text;
+                  service['nameArabic'] = nameArabicController.text;
+                  service['basePrice'] = double.parse(priceController.text);
+                  service['commission'] = double.parse(commissionController.text);
+                  service['vat'] = double.parse(vatController.text);
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Service updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6B5B9A),
@@ -753,11 +1055,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              // Handle deletion
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('$type deleted successfully'),
+                  content: Text('✅ $type deleted successfully'),
                   backgroundColor: Colors.green,
                 ),
               );

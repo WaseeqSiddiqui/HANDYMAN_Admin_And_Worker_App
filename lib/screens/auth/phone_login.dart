@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
+import '/services/worker_auth_service.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   final String role;
@@ -17,20 +18,71 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   void _sendOTP() {
     if (_phoneController.text.length == 10) {
-      setState(() => _isLoading = true);
-      
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _isLoading = false);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPVerificationScreen(
-              phoneNumber: '+966${_phoneController.text}',
-              role: widget.role,
+      // ✅ Format phone number consistently
+      String phoneInput = _phoneController.text.trim();
+      final fullPhoneNumber = '+966$phoneInput';
+
+      debugPrint('🔍 Login attempt: $fullPhoneNumber for role: ${widget.role}');
+
+      // ✅ CHECK WORKER REGISTRATION BEFORE SENDING OTP
+      if (widget.role == 'Worker') {
+        final authService = WorkerAuthService();
+
+        // Debug log all registered workers
+        final allWorkers = authService.getAllWorkers();
+        debugPrint('📋 Total registered workers: ${allWorkers.length}');
+        for (var w in allWorkers) {
+          debugPrint('   ✓ ${w.phone} - ${w.name} (${w.status})');
+        }
+
+        if (!authService.isWorkerRegistered(fullPhoneNumber)) {
+          debugPrint('❌ Worker NOT registered: $fullPhoneNumber');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '⚠️ Worker not registered!\n\n'
+                    'Phone: $fullPhoneNumber\n\n'
+                    'Please contact admin to register your account.',
+                style: const TextStyle(fontSize: 13),
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
             ),
-          ),
-        );
+          );
+          return;
+        }
+
+        final worker = authService.getWorkerByPhone(fullPhoneNumber);
+        debugPrint('✅ Found worker: ${worker?.name} - Status: ${worker?.status}');
+
+        if (worker?.status != 'Active') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ Account Blocked!\n\nYour account has been blocked. Contact admin.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
+      }
+
+      // ✅ IF ALL CHECKS PASS, SEND OTP
+      setState(() => _isLoading = true);
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OTPVerificationScreen(
+                phoneNumber: fullPhoneNumber,
+                role: widget.role,
+              ),
+            ),
+          );
+        }
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +118,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo
               Center(
                 child: Container(
                   width: 100,
@@ -118,7 +169,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               const SizedBox(height: 48),
 
-              // Phone Number Input
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -165,9 +215,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             ),
                             child: Row(
                               children: [
-                                Text(
+                                const Text(
                                   '🇸🇦',
-                                  style: const TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: 20),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -210,7 +260,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Send OTP Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -225,26 +274,25 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
                       : const Text(
-                          'Send OTP',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    'Send OTP',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Info Box
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -264,7 +312,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'We will send you a one-time password to verify your account',
+                        widget.role == 'Worker'
+                            ? 'Workers must be registered by admin before login'
+                            : 'We will send you a one-time password to verify your account',
                         style: TextStyle(
                           fontSize: 13,
                           color: subtitleColor,

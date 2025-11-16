@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '/providers/app_state_provider.dart';
 import 'add_extra_items_screen.dart';
 import 'generate_invoice_screen.dart';
+import 'credit_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -13,30 +16,8 @@ class ServiceDetailScreen extends StatefulWidget {
 }
 
 class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
-  late Map<String, dynamic> _service;
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _service = Map<String, dynamic>.from(widget.service);
-  }
-
-  // Calculate required credit
-  double get _requiredCredit {
-    double total = _service['price'] + (_service['extraCharges'] ?? 0.0);
-    double commission = _service['commission'];
-    double vat = _service['vat'];
-    return commission + vat;
-  }
-
-  // Get current worker credit (Replace with actual Firebase call)
-  double get _currentCredit => 250.0; // From dashboard state
-
-  // Check if worker can accept service
-  bool get _canAcceptService => _currentCredit >= _requiredCredit;
-
-  // Format date safely
   String _formatDate(dynamic dateValue) {
     try {
       DateTime dateTime;
@@ -55,646 +36,86 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
+    return Consumer<AppStateProvider>(
+      builder: (context, appState, child) {
+        // Get live service data from provider
+        final service = appState.getServiceById(widget.service['id']) ?? widget.service;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text(_service['service']),
-        backgroundColor: const Color(0xFF6B5B9A),
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        // LIVE CALCULATION
+        final totalPrice = (service['price'] as num).toDouble() +
+            ((service['extraCharges'] ?? 0.0) as num).toDouble();
+        final commission = totalPrice * 0.20;
+        final vat = totalPrice * 0.15;
+        final requiredCredit = commission + vat;
+        final workerEarnings = totalPrice - requiredCredit;
+        final hasEnoughCredit = appState.creditBalance >= requiredCredit;
+
+        return WillPopScope(
+          onWillPop: () async {
+            Navigator.pop(context, true);
+            return false;
+          },
+          child: Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
+            appBar: AppBar(
+              title: Text(service['service']),
+              backgroundColor: const Color(0xFF6B5B9A),
+              foregroundColor: Colors.white,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ),
+            body: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildCustomerInfo(service),
+                  const SizedBox(height: 16),
+                  _buildPriceBreakdown(service, totalPrice, commission, vat, workerEarnings),
+                  const SizedBox(height: 16),
+                  _buildCreditValidation(appState, requiredCredit, hasEnoughCredit),
+                  const SizedBox(height: 24),
+                  _buildActionButtons(context, appState, service, hasEnoughCredit, requiredCredit),
+                  const SizedBox(height: 100),  // ✅ Extra space for scrolling
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomerInfo(Map<String, dynamic> service) {
+    return Card(
+      elevation: 3,
+      color: Colors.grey.shade900, // Dark background
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildServiceHeader(cardColor, textColor),
-            const SizedBox(height: 16),
-            _buildCustomerInfo(cardColor, textColor),
-            const SizedBox(height: 16),
-            _buildPriceBreakdown(cardColor, textColor),
-            const SizedBox(height: 16),
-            _buildCreditValidation(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServiceHeader(Color cardColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _service['id'],
-                style: const TextStyle(
-                  color: Color(0xFF6B5B9A),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              _buildStatusBadge(),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _service['service'],
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _formatDate(_service['date']),
-            style: TextStyle(
-              color: textColor.withOpacity(0.6),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    Color statusColor;
-    switch (_service['status']) {
-      case 'Pending':
-        statusColor = Colors.orange;
-        break;
-      case 'In Progress':
-        statusColor = Colors.blue;
-        break;
-      case 'Completed':
-        statusColor = Colors.green;
-        break;
-      case 'Postponed':
-        statusColor = Colors.red;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor),
-      ),
-      child: Text(
-        _service['status'],
-        style: TextStyle(
-          color: statusColor,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCustomerInfo(Color cardColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Customer Information',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildInfoRow(Icons.person, 'Name', _service['customer'], textColor),
-          _buildInfoRow(Icons.phone, 'Phone', _service['phone'], textColor),
-          _buildInfoRow(Icons.location_on, 'Address', _service['address'], textColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value, Color textColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFF6B5B9A)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: textColor.withOpacity(0.6),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceBreakdown(Color cardColor, Color textColor) {
-    double extraCharges = _service['extraCharges'] ?? 0.0;
-    double total = _service['price'] + extraCharges;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Price Breakdown',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildPriceRow('Base Price', _service['price'], textColor),
-          if (extraCharges > 0)
-            _buildPriceRow('Extra Items', extraCharges, textColor, color: Colors.orange),
-          const Divider(height: 24),
-          _buildPriceRow('Commission (10%)', _service['commission'], textColor, color: Colors.red),
-          _buildPriceRow('VAT (5%)', _service['vat'], textColor, color: Colors.red),
-          const Divider(height: 24),
-          _buildPriceRow('Total Amount', total, textColor, isTotal: true),
-          _buildPriceRow('Your Earnings', total - _requiredCredit, textColor, color: Colors.green),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceRow(String label, double amount, Color textColor, {Color? color, bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              color: color ?? textColor,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          Text(
-            'SAR ${amount.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: isTotal ? 18 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-              color: color ?? textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCreditValidation(Color cardColor, Color textColor) {
-    bool hasEnoughCredit = _canAcceptService;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: hasEnoughCredit
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasEnoughCredit ? Colors.green : Colors.red,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                hasEnoughCredit ? Icons.check_circle : Icons.error,
-                color: hasEnoughCredit ? Colors.green : Colors.red,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Credit Validation',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: hasEnoughCredit ? Colors.green : Colors.red,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Required Credit:',
-                style: TextStyle(color: textColor.withOpacity(0.7)),
-              ),
-              Text(
-                'SAR ${_requiredCredit.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Credit:',
-                style: TextStyle(color: textColor.withOpacity(0.7)),
-              ),
-              Text(
-                'SAR ${_currentCredit.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: hasEnoughCredit ? Colors.green : Colors.red,
-                ),
-              ),
-            ],
-          ),
-          if (!hasEnoughCredit) ...[
-            const SizedBox(height: 12),
-            Text(
-              '⚠️ Insufficient credit! Please top-up to accept this service.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.red[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        if (_service['status'] == 'Pending') ...[
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _canAcceptService ? _acceptService : _showCreditError,
-              icon: const Icon(Icons.check_circle),
-              label: const Text('Accept Service'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _canAcceptService ? Colors.green : Colors.grey,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: _rejectService,
-              icon: const Icon(Icons.cancel),
-              label: const Text('Reject Service'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-        if (_service['status'] == 'In Progress') ...[
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _addExtraItems,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Extra Items'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _canAcceptService ? _generateInvoice : _showCreditError,
-              icon: const Icon(Icons.receipt_long),
-              label: const Text('Generate Invoice'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _canAcceptService ? const Color(0xFF6B5B9A) : Colors.grey,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: _postponeService,
-              icon: const Icon(Icons.schedule),
-              label: const Text('Postpone Service'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.orange,
-                side: const BorderSide(color: Colors.orange),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  void _showCreditError() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Insufficient Credit'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Required Credit: SAR ${_requiredCredit.toStringAsFixed(2)}'),
-            Text('Your Credit: SAR ${_currentCredit.toStringAsFixed(2)}'),
-            const SizedBox(height: 12),
-            const Text(
-              'Please top-up your credit to accept this service and cover the VAT + Commission.',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Navigate to credit screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Redirecting to Credit Top-up...')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
-            ),
-            child: const Text('Top-up Now'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _acceptService() async {
-    setState(() => _isLoading = true);
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _service['status'] = 'In Progress';
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Service accepted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-  }
-
-  void _rejectService() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reject Service?'),
-        content: const Text('Are you sure you want to reject this service?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Service rejected')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Reject'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _addExtraItems() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddExtraItemsScreen(
-          service: _service,
-          onItemsAdded: (extraCharges) {
-            setState(() {
-              _service['extraCharges'] = extraCharges;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  void _generateInvoice() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GenerateInvoiceScreen(service: _service),
-      ),
-    );
-  }
-
-  void _postponeService() {
-    String? selectedReason;
-    final TextEditingController otherReasonController = TextEditingController();
-
-    // Predefined postpone reasons
-    final List<String> postponeReasons = [
-      'Customer not available',
-      'Customer requested reschedule',
-      'Wrong address provided',
-      'Tools/parts not available',
-      'Weather conditions',
-      'Emergency situation',
-      'Traffic/transportation issue',
-      'Customer not ready',
-      'Other',
-    ];
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.schedule, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Postpone Service'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Select reason for postponement:',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      hint: const Text('Choose a reason'),
-                      value: selectedReason,
-                      icon: const Icon(Icons.arrow_drop_down),
-                      items: postponeReasons.map((String reason) {
-                        return DropdownMenuItem<String>(
-                          value: reason,
-                          child: Text(
-                            reason,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setDialogState(() {
-                          selectedReason = newValue;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                if (selectedReason == 'Other') ...[
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: otherReasonController,
-                    decoration: const InputDecoration(
-                      labelText: 'Please specify reason',
-                      border: OutlineInputBorder(),
-                      hintText: 'Enter your reason here...',
-                    ),
-                    maxLines: 3,
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                  ),
-                  child: const Row(
+                const Icon(Icons.person, color: Color(0xFF6B5B9A), size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Admin will be notified about the postponement',
-                          style: TextStyle(fontSize: 11, color: Colors.orange),
+                      const Text('Customer',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      Text(
+                        service['customer'],
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white, // Light text on dark background
                         ),
                       ),
                     ],
@@ -702,65 +123,431 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                otherReasonController.dispose();
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (selectedReason == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please select a reason'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                if (selectedReason == 'Other' && otherReasonController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please specify the reason'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                final finalReason = selectedReason == 'Other'
-                    ? otherReasonController.text.trim()
-                    : selectedReason!;
-
-                setState(() {
-                  _service['status'] = 'Postponed';
-                  _service['postponeReason'] = finalReason;
-                });
-
-                otherReasonController.dispose();
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Service postponed: $finalReason'),
-                    backgroundColor: Colors.orange,
-                    duration: const Duration(seconds: 3),
+            const Divider(height: 24, color: Colors.grey),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on, color: Color(0xFF6B5B9A), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Address',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      Text(
+                        service['address'],
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70, // Light text
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-              ),
-              child: const Text('Confirm Postpone'),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceBreakdown(Map<String, dynamic> service, double totalPrice,
+      double commission, double vat, double workerEarnings) {
+    final basePrice = (service['price'] as num).toDouble();
+    final extraCharges = ((service['extraCharges'] ?? 0.0) as num).toDouble();
+    final extraItems = (service['extraItems'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+
+    return Card(
+      elevation: 3,
+      color: Colors.grey.shade900, // Dark background
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Price Breakdown',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                )),
+            const Divider(height: 24, color: Colors.grey),
+            _buildRow('Base Price', basePrice),
+
+            // Show detailed extra items
+            if (extraItems.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Extra Items:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...extraItems.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 16, bottom: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            item['type'] == 'Service' ? Icons.build : Icons.inventory,
+                            size: 16,
+                            color: item['type'] == 'Service' ? Colors.blue : Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${item['name']} (${item['type']})',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      'SAR ${(item['price'] as num).toDouble().toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+              const SizedBox(height: 8),
+              _buildRow('Total Extra', extraCharges, color: Colors.orange),
+            ],
+
+            const Divider(height: 24, color: Colors.grey),
+            _buildRow('Total Amount', totalPrice, isBold: true, color: const Color(0xFF6B5B9A), fontSize: 20),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.4)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Commission (20%)',
+                          style: TextStyle(color: Colors.redAccent)),
+                      Text('SAR ${commission.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.redAccent)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('VAT (15%)',
+                          style: TextStyle(color: Colors.redAccent)),
+                      Text('SAR ${vat.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.redAccent)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Your Earnings',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.white,
+                      )),
+                  Text('SAR ${workerEarnings.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.greenAccent)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(String label, double value,
+      {bool isBold = false, Color? color, double? fontSize}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color ?? Colors.white70,
+              fontSize: fontSize ?? 14,
+            ),
+          ),
+          Text(
+            'SAR ${value.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+              color: color ?? Colors.white,
+              fontSize: fontSize ?? 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditValidation(AppStateProvider appState, double requiredCredit, bool hasEnoughCredit) {
+    final hasInsufficientCredit = !hasEnoughCredit;
+
+    return Card(
+      elevation: 3,
+      color: hasInsufficientCredit ? Colors.red.shade900 : Colors.green.shade900,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(hasInsufficientCredit ? Icons.warning : Icons.check_circle,
+                    color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent, size: 28),
+                const SizedBox(width: 12),
+                Text(hasInsufficientCredit ? 'Insufficient Credit' : 'Credit Validation',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent)),
+              ],
+            ),
+            const Divider(height: 24, color: Colors.white30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Required Credit:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    )),
+                Text('SAR ${requiredCredit.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Your Credit:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    )),
+                Text('SAR ${appState.creditBalance.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.greenAccent)),
+              ],
+            ),
+            if (hasInsufficientCredit) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                          'Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context, AppStateProvider appState,
+      Map<String, dynamic> service, bool hasEnoughCredit,
+      double requiredCredit) {
+    if (service['status'] == 'Pending') {
+      return const SizedBox.shrink();
+    } else if (service['status'] == 'In Progress') {
+      return Column(
+        children: [
+          ElevatedButton.icon(
+            onPressed: () => _addExtraItems(context, appState, service),
+            icon: const Icon(Icons.add_circle),
+            label: const Text('Add Extra Items'),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange, minimumSize: const Size(double.infinity, 50)),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: hasEnoughCredit ? () => _generateInvoice(context, appState, service) : null,
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6B5B9A),
+                minimumSize: const Size(double.infinity, 50),
+                disabledBackgroundColor: Colors.grey),
+            child: Text(hasEnoughCredit
+                ? 'Generate Invoice'
+                : 'Insufficient Credit - Top-up Required'),
+          ),
+          if (!hasEnoughCredit) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => const CreditScreen())),
+              icon: const Icon(Icons.add_circle),
+              label: const Text('Top-up Credit'),
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF6B5B9A),
+                  minimumSize: const Size(double.infinity, 50)),
+            ),
+          ],
+        ],
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  void _addExtraItems(BuildContext context, AppStateProvider appState, Map<String, dynamic> service) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddExtraItemsScreen(
+          service: service,
+          onItemsAdded: (extraCharges, extraItems) {
+            // Update service in provider with both charges and detailed items
+            appState.addExtraCharges(service['id'], extraCharges);
+            appState.addExtraItems(service['id'], extraItems);
+          },
+        ),
+      ),
+    );
+
+    // Show updated info
+    if (mounted) {
+      final updatedService = appState.getServiceById(service['id']);
+      if (updatedService != null) {
+        final newTotal = (updatedService['price'] as num).toDouble() +
+            ((updatedService['extraCharges'] ?? 0.0) as num).toDouble();
+        final newRequired = newTotal * 0.35; // 20% + 15%
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('✅ Extra items updated!',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('New Total: SAR ${newTotal.toStringAsFixed(2)}'),
+                Text('Required Credit: SAR ${newRequired.toStringAsFixed(2)}'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _generateInvoice(BuildContext context, AppStateProvider appState, Map<String, dynamic> service) {
+    final requiredCredit = appState.getRequiredCredit(service);
+
+    if (!appState.hasEnoughCredit(service)) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Cannot Generate Invoice')
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Insufficient credit to generate invoice.',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Text('Required: SAR ${requiredCredit.toStringAsFixed(2)}'),
+              Text('Available: SAR ${appState.creditBalance.toStringAsFixed(2)}'),
+              Text('Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)}',
+                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('Please top-up your credit to continue.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => const CreditScreen()));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6B5B9A)),
+              child: const Text('Top-up Credit'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GenerateInvoiceScreen(service: service)),
     );
   }
 }

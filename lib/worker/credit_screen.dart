@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
 
 class CreditScreen extends StatefulWidget {
   const CreditScreen({super.key});
@@ -11,33 +13,6 @@ class _CreditScreenState extends State<CreditScreen> {
   final TextEditingController _amountController = TextEditingController();
   bool _isLoading = false;
 
-  // Mock data - Replace with actual Firebase data
-  double _walletBalance = 5420.0;
-  double _creditBalance = 250.0;
-
-  final List<Map<String, dynamic>> _transactions = [
-    {
-      'type': 'topup_wallet',
-      'amount': 100.0,
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'status': 'completed',
-    },
-    {
-      'type': 'topup_stc',
-      'amount': 150.0,
-      'date': DateTime.now().subtract(const Duration(days: 5)),
-      'status': 'completed',
-      'txnId': 'STC123456',
-    },
-    {
-      'type': 'service_deduction',
-      'amount': -67.5,
-      'date': DateTime.now().subtract(const Duration(days: 7)),
-      'status': 'completed',
-      'serviceId': '#SRV001',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -45,30 +20,34 @@ class _CreditScreenState extends State<CreditScreen> {
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: const Text('Credit Management'),
-        backgroundColor: const Color(0xFF6B5B9A),
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBalanceCards(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildTopupSection(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildTransactionHistory(cardColor, textColor),
-          ],
-        ),
-      ),
+    return Consumer<AppStateProvider>(
+      builder: (context, appState, child) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          appBar: AppBar(
+            title: const Text('Credit Management'),
+            backgroundColor: const Color(0xFF6B5B9A),
+            foregroundColor: Colors.white,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBalanceCards(cardColor, textColor, appState),
+                const SizedBox(height: 24),
+                _buildTopupSection(cardColor, textColor, appState),
+                const SizedBox(height: 24),
+                _buildTransactionHistory(cardColor, textColor, appState),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildBalanceCards(Color cardColor, Color textColor) {
+  Widget _buildBalanceCards(Color cardColor, Color textColor, AppStateProvider appState) {
     return Row(
       children: [
         Expanded(
@@ -101,7 +80,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'SAR ${_creditBalance.toStringAsFixed(2)}',
+                  'SAR ${appState.creditBalance.toStringAsFixed(2)}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -143,7 +122,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'SAR ${_walletBalance.toStringAsFixed(2)}',
+                  'SAR ${appState.walletBalance.toStringAsFixed(2)}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -158,7 +137,7 @@ class _CreditScreenState extends State<CreditScreen> {
     );
   }
 
-  Widget _buildTopupSection(Color cardColor, Color textColor) {
+  Widget _buildTopupSection(Color cardColor, Color textColor, AppStateProvider appState) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -176,7 +155,7 @@ class _CreditScreenState extends State<CreditScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Top-up Credit',
+            'Top-up Credit from Wallet',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -189,6 +168,7 @@ class _CreditScreenState extends State<CreditScreen> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: 'Amount (SAR)',
+              hintText: 'Min. 1 SAR', // ✅ Show minimum
               prefixIcon: const Icon(Icons.attach_money),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -200,39 +180,15 @@ class _CreditScreenState extends State<CreditScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'Choose Top-up Method:',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Option 1: From Wallet (Virtual)
           _buildTopupOption(
             icon: Icons.account_balance_wallet,
             title: 'Transfer from Wallet',
-            subtitle: 'Virtual transfer • Available: SAR ${_walletBalance.toStringAsFixed(2)}',
+            subtitle: 'Available: SAR ${appState.walletBalance.toStringAsFixed(2)}',
             color: Colors.green,
-            onTap: _topupFromWallet,
+            onTap: () => _topupFromWallet(appState),
           ),
-
-          const SizedBox(height: 12),
-
-          // Option 2: STC Pay (Real)
-          _buildTopupOption(
-            icon: Icons.payment,
-            title: 'Pay via STC Pay',
-            subtitle: 'Real money transfer • Instant confirmation',
-            color: const Color(0xFF6B5B9A),
-            onTap: _topupViaSTC,
-          ),
-
           const SizedBox(height: 16),
-
-          // Info box
+          // ✅ Updated info banner
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -240,18 +196,39 @@ class _CreditScreenState extends State<CreditScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
-            child: Row(
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Credit is used to cover VAT + Commission when you accept services',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textColor.withOpacity(0.7),
+                Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Important Information',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• Minimum top-up amount: 1 SAR',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '• Credit is required for service commissions and VAT',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '• Topped-up credit cannot be withdrawn',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
                 ),
               ],
             ),
@@ -283,10 +260,10 @@ class _CreditScreenState extends State<CreditScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(10),
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -295,102 +272,115 @@ class _CreditScreenState extends State<CreditScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: color,
+                      fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[400]
-                          : Colors.grey[600],
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: color, size: 16),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTransactionHistory(Color cardColor, Color textColor) {
+  Widget _buildTransactionHistory(Color cardColor, Color textColor, AppStateProvider appState) {
+    final transactions = appState.transactions
+        .where((t) => t['type'] == 'transfer_wallet_to_credit' || t['type'] == 'credit_topup')
+        .take(5)
+        .toList();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Transaction History',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Transactions',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigate to full transaction history
+                },
+                child: const Text('View All'),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          ..._transactions.map((txn) => _buildTransactionItem(txn, textColor)),
+          const SizedBox(height: 12),
+          if (transactions.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_long, size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No transactions yet',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...transactions.map((txn) => _buildTransactionItem(txn, textColor)).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionItem(Map<String, dynamic> txn, Color textColor) {
-    IconData icon;
-    Color color;
-    String title;
-
-    switch (txn['type']) {
-      case 'topup_wallet':
-        icon = Icons.arrow_circle_up;
-        color = Colors.green;
-        title = 'Top-up from Wallet';
-        break;
-      case 'topup_stc':
-        icon = Icons.payment;
-        color = Colors.blue;
-        title = 'Top-up via STC Pay';
-        break;
-      case 'service_deduction':
-        icon = Icons.arrow_circle_down;
-        color = Colors.red;
-        title = 'Service Deduction';
-        break;
-      default:
-        icon = Icons.receipt;
-        color = Colors.grey;
-        title = 'Transaction';
-    }
+  Widget _buildTransactionItem(Map<String, dynamic> transaction, Color textColor) {
+    final amount = (transaction['amount'] as num).toDouble();
+    final date = transaction['date'] as DateTime;
+    final description = transaction['description'] as String;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0F172A)
-            : Colors.grey[50],
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: const Icon(Icons.arrow_upward, color: Colors.green, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -398,36 +388,29 @@ class _CreditScreenState extends State<CreditScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  description,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: textColor,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  _formatDate(txn['date']),
+                  _formatDate(date),
                   style: TextStyle(
                     fontSize: 12,
-                    color: textColor.withOpacity(0.6),
+                    color: Colors.grey.shade600,
                   ),
                 ),
-                if (txn['txnId'] != null)
-                  Text(
-                    'ID: ${txn['txnId']}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: textColor.withOpacity(0.5),
-                    ),
-                  ),
               ],
             ),
           ),
           Text(
-            '${txn['amount'] > 0 ? '+' : ''}SAR ${txn['amount'].abs().toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 16,
+            '+${amount.toStringAsFixed(2)} SAR',
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: txn['amount'] > 0 ? Colors.green : Colors.red,
+              color: Colors.green,
+              fontSize: 16,
             ),
           ),
         ],
@@ -450,15 +433,16 @@ class _CreditScreenState extends State<CreditScreen> {
     }
   }
 
-  void _topupFromWallet() async {
+  void _topupFromWallet(AppStateProvider appState) async {
     double amount = double.tryParse(_amountController.text) ?? 0;
 
-    if (amount <= 0) {
-      _showError('Please enter a valid amount');
+    // ✅ Minimum credit top-up = 1 SAR
+    if (amount < 1) {
+      _showError('Minimum top-up amount is 1 SAR');
       return;
     }
 
-    if (amount > _walletBalance) {
+    if (amount > appState.walletBalance) {
       _showError('Insufficient wallet balance');
       return;
     }
@@ -509,12 +493,11 @@ class _CreditScreenState extends State<CreditScreen> {
               Navigator.pop(context);
               setState(() => _isLoading = true);
 
-              // Simulate API call
               await Future.delayed(const Duration(seconds: 2));
 
+              appState.transferWalletToCredit(amount);
+
               setState(() {
-                _walletBalance -= amount;
-                _creditBalance += amount;
                 _isLoading = false;
                 _amountController.clear();
               });
@@ -525,125 +508,6 @@ class _CreditScreenState extends State<CreditScreen> {
               backgroundColor: Colors.green,
             ),
             child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _topupViaSTC() async {
-    double amount = double.tryParse(_amountController.text) ?? 0;
-
-    if (amount <= 0) {
-      _showError('Please enter a valid amount');
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.payment, color: Color(0xFF6B5B9A)),
-            SizedBox(width: 8),
-            Text('STC Pay Top-up'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
-            const SizedBox(height: 8),
-            const Text(
-              'You will be redirected to STC Pay to complete the payment.',
-              style: TextStyle(fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 16),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Real money transfer • Instant confirmation',
-                      style: TextStyle(fontSize: 11, color: Colors.green),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() => _isLoading = true);
-
-              // Simulate STC Pay API call
-              await Future.delayed(const Duration(seconds: 3));
-
-              String txnId = 'STC${DateTime.now().millisecondsSinceEpoch}';
-
-              setState(() {
-                _creditBalance += amount;
-                _isLoading = false;
-                _amountController.clear();
-              });
-
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Payment Successful'),
-                    ],
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
-                      const SizedBox(height: 8),
-                      Text('Transaction ID: $txnId'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Your credit has been topped up successfully!',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6B5B9A),
-                      ),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
-            ),
-            child: const Text('Pay Now'),
           ),
         ],
       ),

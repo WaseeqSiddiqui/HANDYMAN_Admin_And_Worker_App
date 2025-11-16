@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//import '../dashboard/admin_dashboard.dart';
 import '../dashboard/complete_admin_dashboard.dart';
 import '../dashboard/worker_dashboard.dart';
+import '/services/worker_auth_service.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -21,7 +21,7 @@ class OTPVerificationScreen extends StatefulWidget {
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final List<TextEditingController> _otpControllers = List.generate(
     6,
-    (index) => TextEditingController(),
+        (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
   bool _isLoading = false;
@@ -47,29 +47,35 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   void _verifyOTP() {
     String otp = _otpControllers.map((c) => c.text).join();
-    
+
     if (otp.length == 6) {
       setState(() => _isLoading = true);
-      
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
+
+      Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() => _isLoading = false);
-          
-          // Navigate based on role
-          if (widget.role == 'Admin') {
+
+          // ✅ Navigate based on role (worker already verified in phone_login)
+          if (widget.role == 'Worker') {
+            final authService = WorkerAuthService();
+            final worker = authService.getWorkerByPhone(widget.phoneNumber);
+
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (context) => AdminDashboardScreen(phoneNumber: widget.phoneNumber),
+                builder: (context) => WorkerDashboardScreen(
+                  phoneNumber: widget.phoneNumber,
+                  workerName: worker!.name,
+                ),
               ),
-              (route) => false,
+                  (route) => false,
             );
           } else {
+            // ✅ Navigate to Admin Dashboard
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (context) => WorkerDashboardScreen(phoneNumber: widget.phoneNumber),
+                builder: (context) => AdminDashboard(phoneNumber: widget.phoneNumber),
               ),
-              (route) => false,
+                  (route) => false,
             );
           }
         }
@@ -91,7 +97,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         _resendTimer = 60;
       });
       _startResendTimer();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('OTP sent successfully'),
@@ -125,7 +131,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo
               Center(
                 child: Container(
                   width: 100,
@@ -177,7 +182,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
               const SizedBox(height: 48),
 
-              // OTP Input Fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(6, (index) {
@@ -232,7 +236,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Verify Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -247,26 +250,25 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
                       : const Text(
-                          'Verify & Continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    'Verify & Continue',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Resend OTP
               Center(
                 child: TextButton(
                   onPressed: _canResend ? _resendOTP : null,

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
+import '../services/financial_service.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -9,51 +12,8 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   final TextEditingController _withdrawalController = TextEditingController();
+  final _financialService = FinancialService();
   bool _isLoading = false;
-
-  // Mock data
-  double _walletBalance = 5420.0;
-  double _availableForWithdrawal = 4200.0;
-  double _pendingClearance = 1220.0;
-
-  final List<Map<String, dynamic>> _earnings = [
-    {
-      'serviceId': '#SRV047',
-      'amount': 420.0,
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'status': 'pending', // < 7 days
-      'availableDate': DateTime.now().add(const Duration(days: 5)),
-    },
-    {
-      'serviceId': '#SRV046',
-      'amount': 350.0,
-      'date': DateTime.now().subtract(const Duration(days: 8)),
-      'status': 'available',
-      'availableDate': DateTime.now().subtract(const Duration(days: 1)),
-    },
-    {
-      'serviceId': '#SRV045',
-      'amount': 500.0,
-      'date': DateTime.now().subtract(const Duration(days: 15)),
-      'status': 'available',
-      'availableDate': DateTime.now().subtract(const Duration(days: 8)),
-    },
-  ];
-
-  final List<Map<String, dynamic>> _withdrawals = [
-    {
-      'amount': 2000.0,
-      'date': DateTime.now().subtract(const Duration(days: 10)),
-      'status': 'completed',
-      'txnId': 'WD123456',
-    },
-    {
-      'amount': 1500.0,
-      'date': DateTime.now().subtract(const Duration(days: 25)),
-      'status': 'completed',
-      'txnId': 'WD123455',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -62,32 +22,217 @@ class _WalletScreenState extends State<WalletScreen> {
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: const Text('Wallet'),
-        backgroundColor: const Color(0xFF4CAF50),
-        foregroundColor: Colors.white,
+    return Consumer<AppStateProvider>(
+      builder: (context, appState, child) {
+        // ✅ Check if 7 days have passed since last service
+        final canWithdraw = appState.canWithdraw();
+        final daysRemaining = appState.getDaysUntilWithdrawal();
+
+        return Scaffold(
+          backgroundColor: bgColor,
+          appBar: AppBar(
+            title: const Text('Wallet'),
+            backgroundColor: const Color(0xFF4CAF50),
+            foregroundColor: Colors.white,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBalanceCard(cardColor, textColor, appState),
+                const SizedBox(height: 24),
+
+                // ✅ Show 7-day restriction banner
+                if (!canWithdraw)
+                  _buildWithdrawalRestrictionBanner(daysRemaining),
+                if (!canWithdraw) const SizedBox(height: 16),
+
+                _buildWithdrawalSection(
+                    cardColor,
+                    textColor,
+                    appState,
+                    canWithdraw,
+                    daysRemaining
+                ),
+                const SizedBox(height: 24),
+
+                // ✅ Show pending withdrawal requests
+                _buildPendingRequests(cardColor, textColor, appState),
+                const SizedBox(height: 24),
+
+                _buildEarningsBreakdown(cardColor, textColor, appState),
+                const SizedBox(height: 24),
+                _buildWithdrawalHistory(cardColor, textColor, appState),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ 7-Day Restriction Banner
+  Widget _buildWithdrawalRestrictionBanner(int daysRemaining) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade300, width: 2),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBalanceCard(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildWithdrawalSection(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildEarningsBreakdown(cardColor, textColor),
-            const SizedBox(height: 24),
-            _buildWithdrawalHistory(cardColor, textColor),
-          ],
-        ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.schedule, color: Colors.orange, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Withdrawal Restricted',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'You can request withdrawal after $daysRemaining day${daysRemaining > 1 ? 's' : ''} from your last service payment',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBalanceCard(Color cardColor, Color textColor) {
+  // ✅ Show Pending Withdrawal Requests
+  Widget _buildPendingRequests(Color cardColor, Color textColor, AppStateProvider appState) {
+    final pendingRequests = _financialService.getWithdrawalRequests(status: 'Pending')
+        .where((req) => req.workerId == appState.workerId)
+        .toList();
+
+    if (pendingRequests.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.pending_actions, color: Colors.orange, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Pending Withdrawal Requests',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...pendingRequests.map((req) => _buildPendingRequestTile(req)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingRequestTile(WithdrawalRequest request) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.schedule, color: Colors.orange, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Withdrawal Request',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                Text(
+                  'Request ID: ${request.id}',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                Text(
+                  _formatDate(request.requestDate),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'SAR ${request.amount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.orange,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'PENDING',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(Color cardColor, Color textColor, AppStateProvider appState) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -98,8 +243,8 @@ class _WalletScreenState extends State<WalletScreen> {
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF4CAF50).withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -111,10 +256,7 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               const Text(
                 'Total Balance',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -126,100 +268,33 @@ class _WalletScreenState extends State<WalletScreen> {
                   children: [
                     Icon(Icons.account_balance_wallet, color: Colors.white, size: 16),
                     SizedBox(width: 4),
-                    Text(
-                      'Virtual',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('Wallet', style: TextStyle(color: Colors.white, fontSize: 12)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            'SAR ${_walletBalance.toStringAsFixed(2)}',
+            'SAR ${appState.walletBalance.toStringAsFixed(2)}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 40,
+              fontSize: 36,
               fontWeight: FontWeight.bold,
             ),
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Available',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'SAR ${_availableForWithdrawal.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Pending',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Tooltip(
-                          message: 'Available after 7 days',
-                          child: Icon(
-                            Icons.info_outline,
-                            color: Colors.white70,
-                            size: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'SAR ${_pendingClearance.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWithdrawalSection(Color cardColor, Color textColor) {
+  Widget _buildWithdrawalSection(
+      Color cardColor,
+      Color textColor,
+      AppStateProvider appState,
+      bool canWithdraw,
+      int daysRemaining,
+      ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -237,7 +312,7 @@ class _WalletScreenState extends State<WalletScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Withdraw to STC Account',
+            'Request Withdrawal',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -248,44 +323,68 @@ class _WalletScreenState extends State<WalletScreen> {
           TextField(
             controller: _withdrawalController,
             keyboardType: TextInputType.number,
+            enabled: canWithdraw,
             decoration: InputDecoration(
               labelText: 'Amount (SAR)',
-              prefixIcon: const Icon(Icons.money),
-              suffixIcon: TextButton(
-                onPressed: () {
-                  _withdrawalController.text = _availableForWithdrawal.toStringAsFixed(2);
-                },
-                child: const Text('MAX'),
+              hintText: canWithdraw ? 'Min. 100 SAR' : 'Withdrawal restricted',
+              prefixIcon: Icon(
+                Icons.money,
+                color: canWithdraw ? Colors.green : Colors.grey,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.red.withOpacity(0.3), width: 2),
+              ),
               filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF0F172A)
-                  : Colors.grey[100],
+              fillColor: canWithdraw
+                  ? Colors.grey.shade50
+                  : Colors.red.withOpacity(0.05),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.schedule, color: Colors.orange, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Earnings are available for withdrawal after 7 days',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textColor.withOpacity(0.7),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Withdrawal Policy',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• Minimum withdrawal: 100 SAR',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+                Text(
+                  '• Request after 7 days from last service',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+                Text(
+                  '• Admin will process within 24-48 hours',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
                 ),
               ],
             ),
@@ -293,16 +392,34 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _requestWithdrawal,
-              icon: const Icon(Icons.send),
-              label: const Text('Request Withdrawal'),
+            child: ElevatedButton(
+              onPressed: (_isLoading || !canWithdraw)
+                  ? null
+                  : () => _createWithdrawalRequest(appState),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4CAF50),
-                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey.shade300,
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : Text(
+                canWithdraw
+                    ? 'Send Withdrawal Request'
+                    : 'Available in $daysRemaining day${daysRemaining > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -312,18 +429,25 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildEarningsBreakdown(Color cardColor, Color textColor) {
+  Widget _buildEarningsBreakdown(Color cardColor, Color textColor, AppStateProvider appState) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recent Earnings',
+            'Earnings Summary',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -331,101 +455,78 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ..._earnings.map((earning) => _buildEarningItem(earning, textColor)),
+          _buildEarningRow(
+            'Total Services',
+            '${appState.totalServicesCompleted}',
+            Icons.build,
+            Colors.blue,
+          ),
+          _buildEarningRow(
+            'Total Earnings',
+            'SAR ${appState.totalEarnings.toStringAsFixed(2)}',
+            Icons.attach_money,
+            Colors.green,
+          ),
+          _buildEarningRow(
+            'Avg per Service',
+            'SAR ${appState.averagePerService.toStringAsFixed(2)}',
+            Icons.trending_up,
+            Colors.orange,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEarningItem(Map<String, dynamic> earning, Color textColor) {
-    bool isAvailable = earning['status'] == 'available';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0F172A)
-            : Colors.grey[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isAvailable
-              ? Colors.green.withOpacity(0.3)
-              : Colors.orange.withOpacity(0.3),
-        ),
-      ),
+  Widget _buildEarningRow(String label, String value, IconData icon, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isAvailable
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.orange.withOpacity(0.1),
+              color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              isAvailable ? Icons.check_circle : Icons.schedule,
-              color: isAvailable ? Colors.green : Colors.orange,
-              size: 20,
-            ),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Service ${earning['serviceId']}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
-                  ),
-                ),
-                Text(
-                  isAvailable
-                      ? 'Available for withdrawal'
-                      : 'Available on ${_formatDate(earning['availableDate'])}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isAvailable ? Colors.green : Colors.orange,
-                  ),
-                ),
-                Text(
-                  'Earned ${_formatDate(earning['date'])}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: textColor.withOpacity(0.5),
-                  ),
-                ),
-              ],
-            ),
+            child: Text(label, style: const TextStyle(fontSize: 14)),
           ),
           Text(
-            'SAR ${earning['amount'].toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isAvailable ? Colors.green : textColor,
-            ),
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWithdrawalHistory(Color cardColor, Color textColor) {
+  Widget _buildWithdrawalHistory(Color cardColor, Color textColor, AppStateProvider appState) {
+    final withdrawals = _financialService.getWithdrawalRequests()
+        .where((req) => req.workerId == appState.workerId && req.status == 'Approved')
+        .toList();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Withdrawal History',
+            'Approved Withdrawals',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -433,21 +534,37 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ..._withdrawals.map((withdrawal) => _buildWithdrawalItem(withdrawal, textColor)),
+          if (withdrawals.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Icon(Icons.account_balance_wallet_outlined,
+                        size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No approved withdrawals yet',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...withdrawals.take(5).map((w) => _buildWithdrawalTile(w)),
         ],
       ),
     );
   }
 
-  Widget _buildWithdrawalItem(Map<String, dynamic> withdrawal, Color textColor) {
+  Widget _buildWithdrawalTile(WithdrawalRequest withdrawal) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0F172A)
-            : Colors.grey[50],
-        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
@@ -457,44 +574,56 @@ class _WalletScreenState extends State<WalletScreen> {
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.check_circle, color: Colors.green, size: 20),
+            child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Withdrawal',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
-                  ),
+                const Text(
+                  'Withdrawal Approved',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  _formatDate(withdrawal['date']),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: textColor.withOpacity(0.6),
-                  ),
+                  _formatDate(withdrawal.processedDate ?? withdrawal.requestDate),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 Text(
-                  'TXN: ${withdrawal['txnId']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: textColor.withOpacity(0.5),
-                  ),
+                  'ID: ${withdrawal.id}',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
           ),
-          Text(
-            'SAR ${withdrawal['amount'].toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'SAR ${withdrawal.amount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.green,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'COMPLETED',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -506,157 +635,66 @@ class _WalletScreenState extends State<WalletScreen> {
     final diff = now.difference(date);
 
     if (diff.inDays == 0) {
-      return 'Today';
+      if (diff.inHours == 0) return 'Just now';
+      return '${diff.inHours}h ago';
     } else if (diff.inDays == 1) {
       return 'Yesterday';
     } else if (diff.inDays < 7) {
       return '${diff.inDays} days ago';
-    } else if (diff.inDays < 0) {
-      return 'in ${-diff.inDays} days';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
   }
 
-  void _requestWithdrawal() async {
-    double amount = double.tryParse(_withdrawalController.text) ?? 0;
+  // ✅ Create Withdrawal Request (sends to admin)
+  void _createWithdrawalRequest(AppStateProvider appState) async {
+    final amount = double.tryParse(_withdrawalController.text) ?? 0;
 
-    if (amount <= 0) {
-      _showError('Please enter a valid amount');
+    // Validate minimum amount
+    if (amount < 100) {
+      _showError('Minimum withdrawal amount is 100 SAR');
       return;
     }
 
-    if (amount > _availableForWithdrawal) {
-      _showError('Amount exceeds available balance');
+    // Validate sufficient balance
+    if (amount > appState.walletBalance) {
+      _showError('Insufficient balance');
       return;
     }
 
-    // Check 7-day rule
-    DateTime oldestAvailable = _earnings
-        .where((e) => e['status'] == 'available')
-        .map((e) => e['availableDate'] as DateTime)
-        .reduce((a, b) => a.isBefore(b) ? a : b);
+    // Check 7-day restriction
+    if (!appState.canWithdraw()) {
+      final days = appState.getDaysUntilWithdrawal();
+      _showError('You can withdraw in $days day${days > 1 ? 's' : ''}');
+      return;
+    }
 
-    if (oldestAvailable.isAfter(DateTime.now())) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.schedule, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Withdrawal Pending'),
-            ],
-          ),
-          content: Text(
-              'Your earliest earnings will be available for withdrawal on ${_formatDate(oldestAvailable)}.\n\n'
-                  'This 7-day waiting period ensures payment security for completed services.'
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+    setState(() => _isLoading = true);
+
+    try {
+      // ✅ Create withdrawal request (goes to admin)
+      final requestId = _financialService.createWithdrawalRequest(
+        workerId: appState.workerId,
+        workerName: appState.workerName,
+        amount: amount,
       );
-      return;
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      setState(() {
+        _isLoading = false;
+        _withdrawalController.clear();
+      });
+
+      _showSuccess(
+          'Withdrawal request submitted!\n'
+              'Request ID: $requestId\n'
+              'Admin will process within 24-48 hours'
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showError('Failed to create withdrawal request: $e');
     }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Withdrawal'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
-            const SizedBox(height: 8),
-            const Text(
-              'The amount will be transferred to your STC account.',
-              style: TextStyle(fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Transfer typically completes within 1-2 hours',
-                style: TextStyle(fontSize: 11, color: Colors.green),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() => _isLoading = true);
-
-              // Simulate STC API call
-              await Future.delayed(const Duration(seconds: 2));
-
-              String txnId = 'WD${DateTime.now().millisecondsSinceEpoch}';
-
-              setState(() {
-                _walletBalance -= amount;
-                _availableForWithdrawal -= amount;
-                _isLoading = false;
-                _withdrawalController.clear();
-              });
-
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Withdrawal Successful'),
-                    ],
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
-                      const SizedBox(height: 8),
-                      Text('Transaction ID: $txnId'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'The amount has been transferred to your STC account.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4CAF50),
-                      ),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4CAF50),
-            ),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showError(String message) {
@@ -664,6 +702,17 @@ class _WalletScreenState extends State<WalletScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 4),
       ),
     );
   }

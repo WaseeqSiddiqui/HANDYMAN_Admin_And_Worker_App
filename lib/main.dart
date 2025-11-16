@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/app_state_provider.dart';
 import 'screens/auth/role_selection.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AdminWorkerApp());
 }
 
@@ -10,27 +13,30 @@ class AdminWorkerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aidea Admin & Worker Panel',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B5B9A),
-          brightness: Brightness.light,
+    return ChangeNotifierProvider(
+      create: (context) => AppStateProvider(),
+      child: MaterialApp(
+        title: 'Aidea Admin & Worker Panel',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF6B5B9A),
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B5B9A),
-          brightness: Brightness.dark,
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF6B5B9A),
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFF0F172A),
         ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        themeMode: ThemeMode.system,
+        home: const RoleSelectionScreen(),
       ),
-      themeMode: ThemeMode.system,
-      home: const RoleSelectionScreen(),
     );
   }
 }

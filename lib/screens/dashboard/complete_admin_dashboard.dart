@@ -1,132 +1,629 @@
+// complete_admin_dashboard.dart - FIXED VERSION
+
+import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
-import '../auth/role_selection.dart';
+import 'package:provider/provider.dart';
+import '/services/financial_service.dart';
+import '/providers/app_state_provider.dart';
 
-// Admin screens imports
-import '../../admin/service_management_screen.dart';
-import '../../admin/worker_management_screen.dart';
-import '../../admin/customer_management_screen.dart';
-import '../../admin/service_requests_screen.dart';
-import '../../admin/invoice_management_screen.dart';
-import '../../admin/financial_reports_screen.dart';
-import '../../admin/credit_wallet_logs_screen.dart';
-import '../../admin/complaints_screen.dart';
-import '../../admin/notifications_screen.dart';
-import '../../admin/admin_wallet_screen.dart';
-import '../../admin/vat_management_screen.dart';
-import '../../admin/commission_management_screen.dart';
+// Import admin screens
+import '/admin/admin_wallet_screen.dart';
+import '/admin/commission_management_screen.dart';
+import '/admin/vat_management_screen.dart';
+import '/admin/financial_reports_screen.dart';
+import '/admin/service_requests_screen.dart';
+import '/admin/withdrawl_requests_screen.dart';
+import '/admin/worker_management_screen.dart';
+import '/admin/customer_management_screen.dart';
+import '/admin/service_management_screen.dart';
+import '/admin/invoice_management_screen.dart';
+import '/admin/reviews_screen.dart';
+import '/admin/notifications_screen.dart';
 
-class AdminDashboardScreen extends StatefulWidget {
+class AdminDashboard extends StatefulWidget {
   final String phoneNumber;
 
-  const AdminDashboardScreen({super.key, required this.phoneNumber});
+  const AdminDashboard({
+    super.key,
+    required this.phoneNumber,
+  });
 
   @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+  State<AdminDashboard> createState() => AdminDashboardState();
 }
 
-class _AdminDashboardScreenState extends State<AdminDashboardScreen>
-    with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late AnimationController _animationController;
-
-  final List<Map<String, dynamic>> _dashboardStats = [
-    {
-      'title': 'Total Services',
-      'value': '1,247',
-      'icon': Icons.build_circle,
-      'color': const Color(0xFF2196F3),
-      'change': '+12%',
-      'trend': 'up',
-    },
-    {
-      'title': 'Active Workers',
-      'value': '156',
-      'icon': Icons.people,
-      'color': const Color(0xFF4CAF50),
-      'change': '+8%',
-      'trend': 'up',
-    },
-    {
-      'title': 'VAT Collected',
-      'value': 'SAR 24.5K',
-      'icon': Icons.account_balance_wallet,
-      'color': const Color(0xFFFF9800),
-      'change': '+15%',
-      'trend': 'up',
-    },
-    {
-      'title': 'Commission',
-      'value': 'SAR 18.2K',
-      'icon': Icons.money,
-      'color': const Color(0xFF9C27B0),
-      'change': '+10%',
-      'trend': 'up',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _recentActivities = [
-    {
-      'title': 'New service request',
-      'subtitle': 'AC Repair - Ahmed Ali',
-      'time': '2 min ago',
-      'icon': Icons.assignment_outlined,
-      'color': Colors.blue,
-    },
-    {
-      'title': 'Worker joined',
-      'subtitle': 'Mohammed Hassan',
-      'time': '15 min ago',
-      'icon': Icons.person_add_outlined,
-      'color': Colors.green,
-    },
-    {
-      'title': 'Service completed',
-      'subtitle': 'Refrigerator Repair',
-      'time': '1 hour ago',
-      'icon': Icons.check_circle_outline,
-      'color': Colors.orange,
-    },
-  ];
+class AdminDashboardState extends State<AdminDashboard> {
+  final _financialService = FinancialService();
 
   @override
   void initState() {
     super.initState();
-    _animationController =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _financialService.addListener(_onFinancialUpdate);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _financialService.removeListener(_onFinancialUpdate);
     super.dispose();
+  }
+
+  void _onFinancialUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
+    // Get proper summary object instead of Map
+    final report = _financialService.getReportSummary();
+
+    // Safe access with default values
+    final totalRevenue = report.totalRevenue;
+    final totalCommission = report.totalCommission;
+    final totalVAT = report.totalVAT;
+
+    // ✅ FIXED: Active Services = Requested + Postponed (not including In Progress)
+    final appState = Provider.of<AppStateProvider>(context, listen: false);
+    final activeServices = appState.adminRequestedServices.length +
+        appState.adminPostponedServices.length;
+
+    final completedServices = _financialService.getCompletedServices().length;
 
     return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: backgroundColor,
-      drawer: _buildDrawer(),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildAppBar(),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildStatsGrid(),
-                  const SizedBox(height: 24),
-                  _buildQuickActions(),
-                  const SizedBox(height: 24),
-                  _buildRecentActivities(),
-                  const SizedBox(height: 24),
-                  _buildManagementGrid(),
-                ]),
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: const Text('Admin Dashboard'),
+        backgroundColor: const Color(0xFF6B5B9A),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                ),
               ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '5',
+                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => setState(() {}),
+          ),
+        ],
+      ),
+      drawer: _buildDrawer(),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {});
+          await Future.delayed(const Duration(seconds: 1));
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFinancialOverview(totalRevenue, totalCommission, totalVAT),
+              const SizedBox(height: 20),
+              _buildQuickStats(activeServices, completedServices),
+              const SizedBox(height: 20),
+              _buildQuickAccessGrid(),
+              const SizedBox(height: 20),
+              _buildRecentActivity(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF6B5B9A), Color(0xFF4A3B7A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.admin_panel_settings, size: 32, color: Color(0xFF6B5B9A)),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Admin Panel',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.phoneNumber,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Scrollable content
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerSection('Financial', [
+                  _buildDrawerItem(Icons.account_balance_wallet, 'Wallet', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen()));
+                  }),
+                  _buildDrawerItem(Icons.money, 'Commission', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen()));
+                  }),
+                  _buildDrawerItem(Icons.receipt_long, 'VAT', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen()));
+                  }),
+                  _buildDrawerItem(Icons.analytics, 'Reports', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen()));
+                  }),
+                ]),
+                const Divider(height: 1),
+                _buildDrawerSection('Operations', [
+                  _buildDrawerItem(Icons.assignment, 'Service Requests', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen()));
+                  }),
+                  _buildDrawerItem(Icons.account_balance, 'Withdrawals', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => const WithdrawalRequestsScreen()));
+                  }),
+                  _buildDrawerItem(Icons.build, 'Service Management', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen()));
+                  }),
+                  _buildDrawerItem(Icons.people, 'Workers', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen()));
+                  }),
+                  _buildDrawerItem(Icons.person, 'Customers', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerManagementScreen()));
+                  }),
+                  _buildDrawerItem(Icons.receipt, 'Invoices', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const InvoiceManagementScreen()));
+                  }),
+                ]),
+                const Divider(height: 1),
+                _buildDrawerSection('Support', [
+                  _buildDrawerItem(Icons.rate_review, 'Reviews', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ReviewsScreen()));
+                  }),
+                  _buildDrawerItem(Icons.notifications, 'Notifications', () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
+                  }),
+                ]),
+              ],
+            ),
+          ),
+
+          // Simple Logout button at bottom
+          const Divider(height: 1),
+          SafeArea(
+            top: false,
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text(
+                'Logout',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onTap: _handleLogout,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerSection(String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        ...items,
+      ],
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, size: 22, color: const Color(0xFF6B5B9A)),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 15),
+      ),
+      onTap: onTap,
+      dense: true,
+    );
+  }
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.logout, color: Colors.red, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Text('Logout'),
+          ],
+        ),
+        content: const Text('Are you sure you want to logout from Admin Panel?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+                    (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinancialOverview(double totalRevenue, double totalCommission, double totalVAT) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6B5B9A), Color(0xFF4A3B7A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6B5B9A).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.account_balance_wallet, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Financial Overview',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildFinancialMetric(
+            'Total Revenue',
+            'SAR ${totalRevenue.toStringAsFixed(2)}',
+            Icons.trending_up,
+            Colors.greenAccent,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildFinancialMetric(
+                  'Commission',
+                  'SAR ${totalCommission.toStringAsFixed(2)}',
+                  Icons.money,
+                  Colors.amberAccent,
+                  isCompact: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildFinancialMetric(
+                  'VAT',
+                  'SAR ${totalVAT.toStringAsFixed(2)}',
+                  Icons.receipt,
+                  Colors.orangeAccent,
+                  isCompact: true,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinancialMetric(String label, String value, IconData icon, Color iconColor,
+      {bool isCompact = false}) {
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 12 : 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: isCompact ? 20 : 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: isCompact ? 11 : 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isCompact ? 14 : 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStats(int activeServices, int completedServices) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            'Active Services',
+            activeServices.toString(),
+            Icons.pending_actions,
+            Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            'Completed',
+            completedServices.toString(),
+            Icons.check_circle,
+            Colors.green,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quick Access',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.1,
+          children: [
+            _buildQuickAccessCard(
+              'Wallet',
+              Icons.account_balance_wallet,
+              Colors.blue,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen())),
+            ),
+            _buildQuickAccessCard(
+              'Commission',
+              Icons.money,
+              Colors.purple,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen())),
+            ),
+            _buildQuickAccessCard(
+              'VAT',
+              Icons.receipt_long,
+              Colors.orange,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen())),
+            ),
+            _buildQuickAccessCard(
+              'Reports',
+              Icons.analytics,
+              Colors.green,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen())),
+            ),
+            _buildQuickAccessCard(
+              'Services',
+              Icons.assignment,
+              Colors.red,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen())),
+            ),
+            _buildQuickAccessCard(
+              'Workers',
+              Icons.people,
+              Colors.teal,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen())),
+            ),
+            _buildQuickAccessCard(
+              'Service Mgmt',
+              Icons.build,
+              Colors.deepPurple,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen())),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickAccessCard(String label, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -134,273 +631,125 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  // AppBar
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      pinned: true,
-      backgroundColor: const Color(0xFF6B5B9A),
-      leading: IconButton(
-        icon: const Icon(Icons.menu, color: Colors.white),
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-      ),
-      flexibleSpace: const FlexibleSpaceBar(
-        title: Text(
-          'Admin Dashboard',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Stack(
-            children: [
-              const Icon(Icons.notifications_outlined, color: Colors.white),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration:
-                  const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                ),
+  Widget _buildRecentActivity() {
+    final recentServices = _financialService.getCompletedServices().take(5).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Recent Services',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FinancialReportsScreen()),
               ),
-            ],
-          ),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-          ),
+              child: const Text('View All'),
+            ),
+          ],
         ),
+        const SizedBox(height: 12),
+        if (recentServices.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No recent services',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...recentServices.map((service) => _buildServiceCard(service)).toList(),
       ],
     );
   }
 
-  // Stats grid
-  Widget _buildStatsGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.4,
-      ),
-      itemCount: _dashboardStats.length,
-      itemBuilder: (context, index) => _buildStatCard(_dashboardStats[index]),
-    );
-  }
-
-  Widget _buildStatCard(Map<String, dynamic> stat) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-
+  Widget _buildServiceCard(FinancialTransaction service) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Icon(stat['icon'], color: stat['color']),
-            Text(stat['change'],
-                style: const TextStyle(
-                    color: Colors.green, fontWeight: FontWeight.bold)),
-          ]),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(stat['value'],
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              Text(stat['title'], style: const TextStyle(fontSize: 13)),
-            ],
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-
-  // Quick Actions
-  Widget _buildQuickActions() {
-    return Container(); // (keeping this as-is for now)
-  }
-
-  // Recent Activities
-  Widget _buildRecentActivities() {
-    return Container(); // (keeping this as-is for now)
-  }
-
-  // Management Section — now includes Commission, VAT & Admin Wallet
-  // Management Section — now includes Commission, VAT, Admin Wallet, Wallet Logs & Complaints
-  Widget _buildManagementGrid() {
-    final List<Map<String, dynamic>> sections = [
-      {
-        'title': 'Services',
-        'icon': Icons.build_circle,
-        'color': const Color(0xFF2196F3),
-        'route': const ServiceManagementScreen(),
-      },
-      {
-        'title': 'Workers',
-        'icon': Icons.construction,
-        'color': const Color(0xFF4CAF50),
-        'route': const WorkerManagementScreen(),
-      },
-      {
-        'title': 'Customers',
-        'icon': Icons.people,
-        'color': const Color(0xFFFF9800),
-        'route': const CustomerManagementScreen(),
-      },
-      {
-        'title': 'Requests',
-        'icon': Icons.assignment,
-        'color': const Color(0xFF9C27B0),
-        'route': const ServiceRequestsScreen(),
-      },
-      {
-        'title': 'Invoices',
-        'icon': Icons.receipt_long,
-        'color': const Color(0xFF00BCD4),
-        'route': const InvoiceManagementScreen(),
-      },
-      {
-        'title': 'Reports',
-        'icon': Icons.analytics,
-        'color': const Color(0xFFF44336),
-        'route': const FinancialReportsScreen(),
-      },
-      {
-        'title': 'Admin Wallet',
-        'icon': Icons.account_balance_wallet,
-        'color': const Color(0xFF4CAF50),
-        'route': const AdminWalletScreen(),
-      },
-      {
-        'title': 'Wallet Logs',
-        'icon': Icons.history,
-        'color': const Color(0xFF607D8B),
-        'route': const CreditWalletLogsScreen(),
-      },
-      {
-        'title': 'Complaints',
-        'icon': Icons.report_problem,
-        'color': const Color(0xFFE91E63),
-        'route': const ComplaintsScreen(),
-      },
-      {
-        'title': 'VAT Management',
-        'icon': Icons.receipt_long,
-        'color': const Color(0xFFFF9800),
-        'route': const VATManagementScreen(),
-      },
-      {
-        'title': 'Commission',
-        'icon': Icons.monetization_on,
-        'color': const Color(0xFF9C27B0),
-        'route': const CommissionManagementScreen(),
-      },
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 1.3),
-      itemCount: sections.length,
-      itemBuilder: (context, index) => InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => sections[index]['route']),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(color: sections[index]['color'].withOpacity(0.2), blurRadius: 8)
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(sections[index]['icon'], color: sections[index]['color'], size: 36),
-              const SizedBox(height: 12),
-              Text(sections[index]['title'],
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  // Drawer — fixed logout + added Admin Wallet / VAT / Commission
-  Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Row(
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Color(0xFF6B5B9A), Color(0xFF7C3AED)]),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.admin_panel_settings,
-                        color: Color(0xFF6B5B9A), size: 36)),
-                const SizedBox(height: 12),
-                Text(widget.phoneNumber,
-                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                Text(
+                  service.serviceName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${service.workerName} • ${service.customerName}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ],
             ),
           ),
-          _drawerItem(Icons.account_balance_wallet, 'Admin Wallet',
-                  () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const AdminWalletScreen()))),
-          _drawerItem(Icons.receipt_long, 'VAT Management',
-                  () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const VATManagementScreen()))),
-          _drawerItem(Icons.monetization_on, 'Commission Management',
-                  () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const CommissionManagementScreen()))),
-          const Divider(),
-          _drawerItem(Icons.logout, 'Logout', () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
-                  (route) => false,
-            );
-          }, color: Colors.red),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'SAR ${service.totalAmount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: Color(0xFF6B5B9A),
+                ),
+              ),
+              Text(
+                '${service.completionDate.day}/${service.completionDate.month}/${service.completionDate.year}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String title, VoidCallback onTap,
-      {Color color = Colors.black87}) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(title, style: TextStyle(color: color)),
-      onTap: onTap,
     );
   }
 }
