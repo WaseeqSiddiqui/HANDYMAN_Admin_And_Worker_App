@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/services/worker_auth_service.dart';
+import '/models/worker_data_model.dart';
 
 class WorkerManagementScreen extends StatefulWidget {
   const WorkerManagementScreen({super.key});

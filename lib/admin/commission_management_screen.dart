@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
+import '../models/commission_record_model.dart';
 
 class CommissionManagementScreen extends StatefulWidget {
   const CommissionManagementScreen({super.key});

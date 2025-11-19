@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
+import '/models/service_request_model.dart';
+import '/models/service_invoice_model.dart';
+import '/services/invoice_service.dart';
 import 'add_extra_items_screen.dart';
 import 'generate_invoice_screen.dart';
 import 'credit_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
-  final Map<String, dynamic> service;
+  final ServiceRequest service;
 
   const ServiceDetailScreen({super.key, required this.service});
 
@@ -18,16 +21,8 @@ class ServiceDetailScreen extends StatefulWidget {
 class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   bool _isLoading = false;
 
-  String _formatDate(dynamic dateValue) {
+  String _formatDate(DateTime dateTime) {
     try {
-      DateTime dateTime;
-      if (dateValue is DateTime) {
-        dateTime = dateValue;
-      } else if (dateValue is String) {
-        dateTime = DateTime.parse(dateValue);
-      } else {
-        return 'N/A';
-      }
       return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
     } catch (e) {
       return 'N/A';
@@ -38,17 +33,19 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   Widget build(BuildContext context) {
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
-        // Get live service data from provider
-        final service = appState.getServiceById(widget.service['id']) ?? widget.service;
+        final service = appState.getServiceById(widget.service.id) ?? widget.service;
 
-        // LIVE CALCULATION
-        final totalPrice = (service['price'] as num).toDouble() +
-            ((service['extraCharges'] ?? 0.0) as num).toDouble();
-        final commission = totalPrice * 0.20;
-        final vat = totalPrice * 0.15;
-        final requiredCredit = commission + vat;
+        // ✅ CHECK: Has invoice been generated?
+        final invoiceService = InvoiceService();
+        final invoice = invoiceService.getInvoiceByServiceId(service.id);
+        final hasInvoice = invoice != null;
+
+        final totalPrice = service.totalPrice;
+        final commission = service.totalCommission;
+        final vat = service.totalVAT;
+        final requiredCredit = service.totalDeduction;
         final workerEarnings = totalPrice - requiredCredit;
-        final hasEnoughCredit = appState.creditBalance >= requiredCredit;
+        final hasEnoughCredit = appState.hasEnoughCredit(service);
 
         return WillPopScope(
           onWillPop: () async {
@@ -58,7 +55,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           child: Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
-              title: Text(service['service']),
+              title: Text(service.serviceName),
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
               leading: IconButton(
@@ -78,9 +75,23 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   _buildPriceBreakdown(service, totalPrice, commission, vat, workerEarnings),
                   const SizedBox(height: 16),
                   _buildCreditValidation(appState, requiredCredit, hasEnoughCredit),
+
+                  // ✅ SHOW INVOICE STATUS
+                  if (service.status == ServiceRequestStatus.inProgress) ...[
+                    const SizedBox(height: 16),
+                    _buildInvoiceStatus(hasInvoice, invoice),
+                  ],
+
                   const SizedBox(height: 24),
-                  _buildActionButtons(context, appState, service, hasEnoughCredit, requiredCredit),
-                  const SizedBox(height: 100),  // ✅ Extra space for scrolling
+                  _buildActionButtons(
+                    context,
+                    appState,
+                    service,
+                    hasEnoughCredit,
+                    requiredCredit,
+                    hasInvoice, // ✅ Pass invoice status
+                  ),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -90,10 +101,181 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
-  Widget _buildCustomerInfo(Map<String, dynamic> service) {
+  // ✅ NEW: Show invoice generation status
+  Widget _buildInvoiceStatus(bool hasInvoice, ServiceInvoice? invoice) {
     return Card(
       elevation: 3,
-      color: Colors.grey.shade900, // Dark background
+      color: hasInvoice ? Colors.green.shade900 : Colors.orange.shade900,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  hasInvoice ? Icons.check_circle : Icons.receipt_long,
+                  color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    hasInvoice ? 'Invoice Generated' : 'Invoice Required',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (hasInvoice && invoice != null) ...[
+              const Divider(height: 24, color: Colors.white30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Invoice Number:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    invoice.invoiceNumber,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.greenAccent,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // ✅ FIX: Show actual payment method from invoice
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Payment Method:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        invoice.paymentMethod == 'Cash'
+                            ? Icons.money
+                            : Icons.account_balance,
+                        color: Colors.greenAccent,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        invoice.paymentMethod == 'unknown'
+                            ? 'Not Set'
+                            : invoice.paymentMethod,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: invoice.paymentMethod == 'unknown'
+                              ? Colors.orangeAccent
+                              : Colors.greenAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // ✅ Show STC account if payment is via STC/Bank
+              if (invoice.paymentMethod == 'STC/Bank') ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: Colors.lightBlueAccent, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'STC Account: ${InvoiceService.ADMIN_STC_ACCOUNT}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.lightBlueAccent,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total Amount:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'SAR ${invoice.totalAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.greenAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const Divider(height: 24, color: Colors.white30),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'You must generate an invoice before completing this service',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerInfo(ServiceRequest service) {
+    return Card(
+      elevation: 3,
+      color: Colors.grey.shade900,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -111,11 +293,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                           style: TextStyle(fontSize: 12, color: Colors.grey)),
                       const SizedBox(height: 4),
                       Text(
-                        service['customer'],
+                        service.customerName,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white, // Light text on dark background
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -137,10 +319,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                           style: TextStyle(fontSize: 12, color: Colors.grey)),
                       const SizedBox(height: 4),
                       Text(
-                        service['address'],
+                        service.address,
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.white70, // Light text
+                          color: Colors.white70,
                         ),
                       ),
                     ],
@@ -154,15 +336,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
-  Widget _buildPriceBreakdown(Map<String, dynamic> service, double totalPrice,
+  Widget _buildPriceBreakdown(ServiceRequest service, double totalPrice,
       double commission, double vat, double workerEarnings) {
-    final basePrice = (service['price'] as num).toDouble();
-    final extraCharges = ((service['extraCharges'] ?? 0.0) as num).toDouble();
-    final extraItems = (service['extraItems'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+    final basePrice = service.basePrice;
+    final extraCharges = service.totalExtraPrice;
+    final extraItems = service.extraItems;
 
     return Card(
       elevation: 3,
-      color: Colors.grey.shade900, // Dark background
+      color: Colors.grey.shade900,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -177,7 +359,6 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             const Divider(height: 24, color: Colors.grey),
             _buildRow('Base Price', basePrice),
 
-            // Show detailed extra items
             if (extraItems.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Text(
@@ -198,14 +379,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       child: Row(
                         children: [
                           Icon(
-                            item['type'] == 'Service' ? Icons.build : Icons.inventory,
+                            item.type == 'Service' ? Icons.build : Icons.inventory,
                             size: 16,
-                            color: item['type'] == 'Service' ? Colors.blue : Colors.orange,
+                            color: item.type == 'Service' ? Colors.blue : Colors.orange,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              '${item['name']} (${item['type']})',
+                              '${item.name} (${item.type})',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Colors.white70,
@@ -216,7 +397,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       ),
                     ),
                     Text(
-                      'SAR ${(item['price'] as num).toDouble().toStringAsFixed(2)}',
+                      'SAR ${item.price.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -411,12 +592,17 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, AppStateProvider appState,
-      Map<String, dynamic> service, bool hasEnoughCredit,
-      double requiredCredit) {
-    if (service['status'] == 'Pending') {
+  Widget _buildActionButtons(
+      BuildContext context,
+      AppStateProvider appState,
+      ServiceRequest service,
+      bool hasEnoughCredit,
+      double requiredCredit,
+      bool hasInvoice, // ✅ NEW parameter
+      ) {
+    if (service.status == ServiceRequestStatus.pending) {
       return const SizedBox.shrink();
-    } else if (service['status'] == 'In Progress') {
+    } else if (service.status == ServiceRequestStatus.inProgress) {
       return Column(
         children: [
           ElevatedButton.icon(
@@ -427,16 +613,44 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 backgroundColor: Colors.orange, minimumSize: const Size(double.infinity, 50)),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: hasEnoughCredit ? () => _generateInvoice(context, appState, service) : null,
-            style: ElevatedButton.styleFrom(
+
+          // ✅ GENERATE INVOICE BUTTON (if not generated yet)
+          if (!hasInvoice) ...[
+            ElevatedButton.icon(
+              onPressed: hasEnoughCredit
+                  ? () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GenerateInvoiceScreen(serviceId: service.id),
+                ),
+              ).then((_) => setState(() {})) // ✅ Refresh on return
+                  : null,
+              icon: const Icon(Icons.receipt_long),
+              label: const Text('Generate Invoice'),
+              style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6B5B9A),
                 minimumSize: const Size(double.infinity, 50),
-                disabledBackgroundColor: Colors.grey),
-            child: Text(hasEnoughCredit
-                ? 'Generate Invoice'
-                : 'Insufficient Credit - Top-up Required'),
-          ),
+                disabledBackgroundColor: Colors.grey,
+              ),
+            ),
+          ],
+
+          // ✅ COMPLETE SERVICE BUTTON (only if invoice generated)
+          if (hasInvoice) ...[
+            ElevatedButton.icon(
+              onPressed: hasEnoughCredit
+                  ? () => _completeService(context, appState, service)
+                  : null,
+              icon: const Icon(Icons.check_circle),
+              label: const Text('Complete Service'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: const Size(double.infinity, 50),
+                disabledBackgroundColor: Colors.grey,
+              ),
+            ),
+          ],
+
           if (!hasEnoughCredit) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -455,28 +669,24 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     return const SizedBox.shrink();
   }
 
-  void _addExtraItems(BuildContext context, AppStateProvider appState, Map<String, dynamic> service) async {
+  void _addExtraItems(BuildContext context, AppStateProvider appState, ServiceRequest service) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddExtraItemsScreen(
           service: service,
           onItemsAdded: (extraCharges, extraItems) {
-            // Update service in provider with both charges and detailed items
-            appState.addExtraCharges(service['id'], extraCharges);
-            appState.addExtraItems(service['id'], extraItems);
+            appState.addExtraItems(service.id, extraItems);
           },
         ),
       ),
     );
 
-    // Show updated info
     if (mounted) {
-      final updatedService = appState.getServiceById(service['id']);
+      final updatedService = appState.getServiceById(service.id);
       if (updatedService != null) {
-        final newTotal = (updatedService['price'] as num).toDouble() +
-            ((updatedService['extraCharges'] ?? 0.0) as num).toDouble();
-        final newRequired = newTotal * 0.35; // 20% + 15%
+        final newTotal = updatedService.totalPrice;
+        final newRequired = updatedService.totalDeduction;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -498,7 +708,21 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     }
   }
 
-  void _generateInvoice(BuildContext context, AppStateProvider appState, Map<String, dynamic> service) {
+  void _completeService(BuildContext context, AppStateProvider appState, ServiceRequest service) async {
+    // ✅ Get invoice to check payment method
+    final invoiceService = InvoiceService();
+    final invoice = invoiceService.getInvoiceByServiceId(service.id);
+
+    if (invoice == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Invoice not found. Please generate invoice first.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final requiredCredit = appState.getRequiredCredit(service);
 
     if (!appState.hasEnoughCredit(service)) {
@@ -509,14 +733,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             children: [
               Icon(Icons.warning, color: Colors.red),
               SizedBox(width: 8),
-              Text('Cannot Generate Invoice')
+              Text('Cannot Complete Service')
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Insufficient credit to generate invoice.',
+              const Text('Insufficient credit to complete service.',
                   style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               Text('Required: SAR ${requiredCredit.toStringAsFixed(2)}'),
@@ -545,9 +769,144 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => GenerateInvoiceScreen(service: service)),
+    // ✅ Show confirmation with invoice details
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Complete Service'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Complete service for ${service.customerName}?'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Invoice:'),
+                      Text(
+                        invoice.invoiceNumber,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Payment:'),
+                      Text(
+                        invoice.paymentMethod,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total Amount:'),
+                      Text(
+                        'SAR ${service.totalPrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Credit Deduction:'),
+                      Text(
+                        'SAR ${requiredCredit.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              try {
+                // ✅ Complete service with payment method from invoice
+                await appState.completeService(
+                  service.id,
+                  paymentMethod: invoice.paymentMethod,
+                );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '✅ Service completed!\n'
+                            'Invoice: ${invoice.invoiceNumber}\n'
+                            'Total: SAR ${service.totalPrice.toStringAsFixed(2)}',
+                      ),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                  Navigator.pop(context);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('❌ Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Complete Service'),
+          ),
+        ],
+      ),
     );
   }
 }

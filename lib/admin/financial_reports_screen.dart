@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
 import 'vat_management_screen.dart';
 import 'commission_management_screen.dart';
+import '../models/financial_report_summary_model.dart';
+import '../models/monthly_comparison_model.dart';
 
 class FinancialReportsScreen extends StatefulWidget {
   const FinancialReportsScreen({super.key});

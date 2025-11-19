@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
+import '../models/transaction_model.dart';
 
 class CreditScreen extends StatefulWidget {
   const CreditScreen({super.key});
@@ -168,7 +169,7 @@ class _CreditScreenState extends State<CreditScreen> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: 'Amount (SAR)',
-              hintText: 'Min. 1 SAR', // ✅ Show minimum
+              hintText: 'Min. 1 SAR',
               prefixIcon: const Icon(Icons.attach_money),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -188,7 +189,6 @@ class _CreditScreenState extends State<CreditScreen> {
             onTap: () => _topupFromWallet(appState),
           ),
           const SizedBox(height: 16),
-          // ✅ Updated info banner
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -296,19 +296,20 @@ class _CreditScreenState extends State<CreditScreen> {
   }
 
   Widget _buildTransactionHistory(Color cardColor, Color textColor, AppStateProvider appState) {
-    final transactions = appState.transactions
-        .where((t) => t['type'] == 'transfer_wallet_to_credit' || t['type'] == 'credit_topup')
+    final creditTransactions = appState.transactions
+        .where((t) => t.type == TransactionType.creditTopup)
         .take(5)
         .toList();
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: cardColor,
+        // ✅ Dark card background
+        color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -320,123 +321,190 @@ class _CreditScreenState extends State<CreditScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Recent Transactions',
+              const Text(
+                'Recent Credit Transactions',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: textColor,
+                  color: Colors.white, // ✅ White text
                 ),
               ),
               TextButton(
                 onPressed: () {
                   // Navigate to full transaction history
                 },
-                child: const Text('View All'),
+                child: const Text(
+                  'View All',
+                  style: TextStyle(color: Color(0xFF6B5B9A)),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          if (transactions.isEmpty)
+          if (creditTransactions.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   children: [
-                    Icon(Icons.receipt_long, size: 48, color: Colors.grey.shade300),
+                    Icon(
+                      Icons.receipt_long,
+                      size: 48,
+                      color: Colors.grey.shade700, // ✅ Darker empty state
+                    ),
                     const SizedBox(height: 12),
                     Text(
-                      'No transactions yet',
-                      style: TextStyle(color: Colors.grey.shade600),
+                      'No credit transactions yet',
+                      style: TextStyle(color: Colors.grey.shade500),
                     ),
                   ],
                 ),
               ),
             )
           else
-            ...transactions.map((txn) => _buildTransactionItem(txn, textColor)).toList(),
+            ...creditTransactions.map((txn) => _buildTransactionItem(txn, textColor)).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionItem(Map<String, dynamic> transaction, Color textColor) {
-    final amount = (transaction['amount'] as num).toDouble();
-    final date = transaction['date'] as DateTime;
-    final description = transaction['description'] as String;
+  Widget _buildTransactionItem(Transaction transaction, Color textColor) {
+    // ✅ FIX: Use dark theme colors
+    final bool isCredit = transaction.amount > 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
+        // ✅ Dark background like in the image
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCredit
+              ? Colors.green.withOpacity(0.3)
+              : Colors.red.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
+          // ✅ Icon with dark background
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: isCredit
+                  ? Colors.green.withOpacity(0.15)
+                  : Colors.red.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.arrow_upward, color: Colors.green, size: 20),
+            child: Icon(
+              isCredit ? Icons.arrow_downward : Icons.arrow_upward,
+              color: isCredit ? Colors.greenAccent : Colors.redAccent,
+              size: 24,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
+
+          // ✅ Transaction details with white text
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  description,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
+                  transaction.typeLabel,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 15,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  _formatDate(date),
+                  transaction.description ?? 'Credit transaction',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
+                    fontSize: 13,
+                    color: Colors.grey.shade400,
                   ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: Colors.grey.shade500,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatTransactionDate(transaction.createdAt),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Text(
-            '+${amount.toStringAsFixed(2)} SAR',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-              fontSize: 16,
-            ),
+
+          // ✅ Amount with proper color
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${isCredit ? "+" : "-"}${transaction.amount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isCredit ? Colors.greenAccent : Colors.redAccent,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: (isCredit ? Colors.green : Colors.red).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'SAR',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isCredit ? Colors.greenAccent : Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
+  String _formatTransactionDate(DateTime date) {
+    try {
+      final now = DateTime.now();
+      final diff = now.difference(date);
 
-    if (diff.inDays == 0) {
-      return 'Today';
-    } else if (diff.inDays == 1) {
-      return 'Yesterday';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
+      if (diff.inDays == 0) {
+        return 'Today';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else if (diff.inDays < 7) {
+        return '${diff.inDays} days ago';
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    } catch (e) {
+      return 'N/A';
     }
   }
 
   void _topupFromWallet(AppStateProvider appState) async {
     double amount = double.tryParse(_amountController.text) ?? 0;
 
-    // ✅ Minimum credit top-up = 1 SAR
     if (amount < 1) {
       _showError('Minimum top-up amount is 1 SAR');
       return;

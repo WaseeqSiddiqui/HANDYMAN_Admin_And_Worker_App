@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '/models/service_request_model.dart';
 
 class ChatScreen extends StatefulWidget {
-  final Map<String, dynamic> service;
+  final ServiceRequest service; // ✅ Now accepts ServiceRequest model
 
   const ChatScreen({super.key, required this.service});
 
@@ -41,11 +42,11 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.service['customer'],
+              widget.service.customerName, // ✅ Use model property
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              widget.service['service'],
+              widget.service.serviceName, // ✅ Use model property
               style: const TextStyle(fontSize: 12, color: Colors.white70),
             ),
           ],
@@ -89,7 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Service: ${widget.service['service']} • ${widget.service['address']}',
+              'Service: ${widget.service.serviceName} • ${widget.service.address}',
               style: const TextStyle(fontSize: 12, color: Colors.black87),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -263,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _makePhoneCall() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Calling ${widget.service['customer']}...'),
+        content: Text('Calling ${widget.service.customerName}...'),
         backgroundColor: const Color(0xFF6B5B9A),
         duration: const Duration(seconds: 2),
       ),

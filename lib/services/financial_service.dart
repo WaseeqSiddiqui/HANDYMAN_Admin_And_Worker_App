@@ -1,12 +1,19 @@
+// services/financial_service.dart - FIXED VERSION
+// ✅ Admin wallet now receives service payments correctly
+
 import 'package:flutter/foundation.dart';
+import '/models/financial_transaction_model.dart';
+import '/models/admin_wallet_transaction.dart';
+import '/models/commission_record_model.dart';
+import '/models/vat_model.dart';
+import '/models/financial_report_summary_model.dart';
+import '/models/monthly_comparison_model.dart';
+import '/models/withdrawl_requests_model.dart';
+import '/models/transaction_model.dart';
 import '/providers/app_state_provider.dart';
 
-/// Financial Service - Centralized service completion handler
-/// Jab worker service complete karta hai, automatically:
-/// - Admin wallet update
-/// - Commission record
-/// - VAT record
-/// - Financial reports update
+/// ✅ Financial Service - Centralized service completion handler
+/// Admin wallet receives full payment and tracks all deductions
 class FinancialService {
   static final FinancialService _instance = FinancialService._internal();
   factory FinancialService() => _instance;
@@ -29,8 +36,19 @@ class FinancialService {
     }
   }
 
-  /// Process completed service and update all financial records
-  /// Ye method call hoga jab worker "Complete Service" button press karega
+  // ============= DATA STORAGE =============
+  final List<FinancialTransaction> _allTransactions = [];
+  final List<FinancialTransaction> _completedServices = [];
+  final List<WalletTransaction> _walletTransactions = [];
+  final List<CommissionRecord> _commissionRecords = [];
+  final List<VATRecord> _vatRecords = [];
+  final List<WithdrawalRequest> _withdrawalRequests = [];
+
+  double _currentBalance = 0.0;
+  double _totalCommissionCollected = 0.0;
+  double _totalVATCollected = 0.0;
+
+  // ============= SERVICE COMPLETION =============
   Future<ServiceCompletionResult> processCompletedService({
     required String serviceId,
     required String serviceName,
@@ -43,10 +61,13 @@ class FinancialService {
     required String paymentMethod,
   }) async {
     try {
-      // Calculate all amounts
+      // ✅ FIXED: Calculate correctly
+      // Total = base + extras (this is what customer pays)
       final total = basePrice + extraCharges;
-      final commission = total * 0.20; // 20% commission
-      final vat = total * 0.15; // 15% VAT
+
+      // Commission and VAT are INCLUDED in total, not added
+      final commission = total * 0.20; // 20% of total
+      final vat = total * 0.15; // 15% of total
       final workerDeduction = commission + vat;
       final workerEarnings = total - workerDeduction;
 
@@ -74,8 +95,8 @@ class FinancialService {
       _allTransactions.add(transaction);
       _completedServices.add(transaction);
 
-      // Update wallet
-      _updateWallet(transaction);
+      // ✅ FIXED: Update admin wallet - receives FULL payment amount
+      _updateAdminWallet(transaction);
 
       // Update commission records
       _updateCommissionRecords(transaction);
@@ -83,11 +104,15 @@ class FinancialService {
       // Update VAT records
       _updateVATRecords(transaction);
 
-      // Update financial reports
-      _updateFinancialReports(transaction);
-
       // Notify all listeners
       _notifyListeners();
+
+      debugPrint('✅ Financial Service: Service completed - $serviceId');
+      debugPrint('   Total Payment: SAR ${total.toStringAsFixed(2)}');
+      debugPrint('   Commission: SAR ${commission.toStringAsFixed(2)}');
+      debugPrint('   VAT: SAR ${vat.toStringAsFixed(2)}');
+      debugPrint('   Worker Earnings: SAR ${workerEarnings.toStringAsFixed(2)}');
+      debugPrint('   Admin Wallet: SAR ${_currentBalance.toStringAsFixed(2)}');
 
       return ServiceCompletionResult(
         success: true,
@@ -103,61 +128,60 @@ class FinancialService {
     }
   }
 
-  // ============= WALLET MANAGEMENT =============
-  final List<WalletTransaction> _walletTransactions = [];
-  double _currentBalance = 0.0;
-
-  void _updateWallet(FinancialTransaction transaction) {
-    // Add earnings to wallet
-    final walletTxn = WalletTransaction(
+  // ============= ADMIN WALLET MANAGEMENT =============
+  // ✅ FIXED: Admin wallet receives full payment, tracks deductions with actual amounts
+  void _updateAdminWallet(FinancialTransaction transaction) {
+    // Step 1: Admin receives FULL payment from customer
+    final paymentTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
       type: 'credit',
       amount: transaction.totalAmount,
-      description: 'Payment from ${transaction.serviceName} - ${transaction.customerName}',
+      description: 'Payment received - ${transaction.serviceName} (${transaction.customerName})',
       serviceId: transaction.serviceId,
       date: transaction.completionDate,
       balanceAfter: _currentBalance + transaction.totalAmount,
     );
 
-    _walletTransactions.add(walletTxn);
+    _walletTransactions.add(paymentTxn);
     _currentBalance += transaction.totalAmount;
 
-    // Deduct commission
+    debugPrint('✅ Admin Wallet: +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Payment received)');
+
+    // Step 2: Track commission (kept by admin) - SHOW ACTUAL AMOUNT
     final commissionTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 1}',
-      type: 'debit',
-      amount: transaction.commission,
-      description: 'Commission (20%) - ${transaction.serviceName}',
+      type: 'credit', // Commission is income for admin
+      amount: transaction.commission, // ✅ FIXED: Show actual commission amount
+      description: 'Commission earned (20%) - ${transaction.serviceName}',
       serviceId: transaction.serviceId,
       date: transaction.completionDate,
-      balanceAfter: _currentBalance - transaction.commission,
+      balanceAfter: _currentBalance,
     );
 
     _walletTransactions.add(commissionTxn);
-    _currentBalance -= transaction.commission;
 
-    // Deduct VAT
+    // Step 3: Track VAT (kept by admin) - SHOW ACTUAL AMOUNT
     final vatTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 2}',
-      type: 'debit',
-      amount: transaction.vat,
-      description: 'VAT (15%) - ${transaction.serviceName}',
+      type: 'credit', // VAT is income for admin
+      amount: transaction.vat, // ✅ FIXED: Show actual VAT amount
+      description: 'VAT collected (15%) - ${transaction.serviceName}',
       serviceId: transaction.serviceId,
       date: transaction.completionDate,
-      balanceAfter: _currentBalance - transaction.vat,
+      balanceAfter: _currentBalance,
     );
 
     _walletTransactions.add(vatTxn);
-    _currentBalance -= transaction.vat;
+
+    debugPrint('✅ Admin Wallet Balance: SAR ${_currentBalance.toStringAsFixed(2)}');
+    debugPrint('   Commission: SAR ${transaction.commission.toStringAsFixed(2)}');
+    debugPrint('   VAT: SAR ${transaction.vat.toStringAsFixed(2)}');
   }
 
   List<WalletTransaction> getWalletTransactions() => List.unmodifiable(_walletTransactions);
   double getCurrentBalance() => _currentBalance;
 
   // ============= COMMISSION MANAGEMENT =============
-  final List<CommissionRecord> _commissionRecords = [];
-  double _totalCommissionCollected = 0.0;
-
   void _updateCommissionRecords(FinancialTransaction transaction) {
     final record = CommissionRecord(
       id: 'COM_${DateTime.now().millisecondsSinceEpoch}',
@@ -179,14 +203,12 @@ class FinancialService {
   List<CommissionRecord> getCommissionRecords() => List.unmodifiable(_commissionRecords);
   double getTotalCommissionCollected() => _totalCommissionCollected;
 
-  // Get commission by worker
   double getWorkerCommission(String workerId) {
     return _commissionRecords
         .where((record) => record.workerId == workerId)
         .fold(0.0, (sum, record) => sum + record.commissionAmount);
   }
 
-  // Get commission by date range
   List<CommissionRecord> getCommissionByDateRange(DateTime start, DateTime end) {
     return _commissionRecords
         .where((record) =>
@@ -195,9 +217,6 @@ class FinancialService {
   }
 
   // ============= VAT MANAGEMENT =============
-  final List<VATRecord> _vatRecords = [];
-  double _totalVATCollected = 0.0;
-
   void _updateVATRecords(FinancialTransaction transaction) {
     final record = VATRecord(
       id: 'VAT_${DateTime.now().millisecondsSinceEpoch}',
@@ -217,7 +236,6 @@ class FinancialService {
   List<VATRecord> getVATRecords() => List.unmodifiable(_vatRecords);
   double getTotalVATCollected() => _totalVATCollected;
 
-  // Get VAT by date range
   List<VATRecord> getVATByDateRange(DateTime start, DateTime end) {
     return _vatRecords
         .where((record) => record.date.isAfter(start) && record.date.isBefore(end))
@@ -225,15 +243,6 @@ class FinancialService {
   }
 
   // ============= FINANCIAL REPORTS =============
-  final List<FinancialTransaction> _allTransactions = [];
-  final List<FinancialTransaction> _completedServices = [];
-
-  void _updateFinancialReports(FinancialTransaction transaction) {
-    // Already added to _completedServices in processCompletedService
-    // Just update summary stats
-  }
-
-  // Get report summary
   FinancialReportSummary getReportSummary({
     DateTime? startDate,
     DateTime? endDate,
@@ -266,10 +275,8 @@ class FinancialService {
     );
   }
 
-  // Get all completed services
   List<FinancialTransaction> getCompletedServices() => List.unmodifiable(_completedServices);
 
-  // Get services by worker
   List<FinancialTransaction> getWorkerServices(String workerId) {
     return _completedServices
         .where((service) => service.workerId == workerId)
@@ -277,8 +284,6 @@ class FinancialService {
   }
 
   // ============= ANALYTICS =============
-
-  // Monthly comparison
   MonthlyComparison getMonthlyComparison() {
     final now = DateTime.now();
     final currentMonth = getReportSummary(
@@ -308,10 +313,7 @@ class FinancialService {
     return ((current - previous) / previous) * 100;
   }
 
-  // ============= WITHDRAWAL REQUESTS MANAGEMENT =============
-  final List<WithdrawalRequest> _withdrawalRequests = [];
-
-  // ✅ Create withdrawal request (called from worker app)
+  // ============= WITHDRAWAL REQUESTS =============
   String createWithdrawalRequest({
     required String workerId,
     required String workerName,
@@ -335,7 +337,6 @@ class FinancialService {
     return requestId;
   }
 
-  // ✅ Get withdrawal requests
   List<WithdrawalRequest> getWithdrawalRequests({String? status}) {
     if (status != null) {
       return _withdrawalRequests
@@ -345,7 +346,6 @@ class FinancialService {
     return List.unmodifiable(_withdrawalRequests);
   }
 
-  // ✅ Get withdrawal request by ID
   WithdrawalRequest? getWithdrawalRequestById(String requestId) {
     try {
       return _withdrawalRequests.firstWhere((req) => req.id == requestId);
@@ -354,7 +354,6 @@ class FinancialService {
     }
   }
 
-  // ✅ Process withdrawal request (called from admin app)
   Future<WithdrawalResult> processWithdrawalRequest({
     required WithdrawalRequest request,
     required AppStateProvider appState,
@@ -369,7 +368,6 @@ class FinancialService {
       }
 
       if (approve) {
-        // Check if worker has sufficient balance
         if (appState.walletBalance < request.amount) {
           return WithdrawalResult(
               success: false,
@@ -377,28 +375,29 @@ class FinancialService {
           );
         }
 
-        // ✅ Deduct from worker's wallet
         appState.updateWalletBalance(-request.amount);
 
-        // ✅ Add worker transaction
-        appState.addTransaction({
-          'type': 'withdrawal',
-          'amount': -request.amount,
-          'date': DateTime.now(),
-          'description': 'Withdrawal to STC Pay - Request ${request.id}',
-          'txnId': 'WD${DateTime.now().millisecondsSinceEpoch}',
-          'status': 'approved',
-        });
+        appState.addTransaction(Transaction(
+          id: 'WD${DateTime.now().millisecondsSinceEpoch}',
+          workerId: appState.workerId,
+          workerName: appState.workerName,
+          type: TransactionType.walletWithdrawal,
+          amount: -request.amount,
+          balanceBefore: appState.walletBalance + request.amount,
+          balanceAfter: appState.walletBalance,
+          reference: request.id,
+          description: 'Withdrawal to STC Pay - Request ${request.id}',
+          createdAt: DateTime.now(),
+        ));
 
-        // ✅ Deduct from admin revenue
+        // ✅ Admin wallet pays out withdrawal
         _currentBalance -= request.amount;
 
-        // ✅ Create admin wallet transaction
         final walletTxn = WalletTransaction(
           id: 'WD_${DateTime.now().millisecondsSinceEpoch}',
           type: 'debit',
           amount: request.amount,
-          description: 'Withdrawal approved - ${request.workerName}',
+          description: 'Withdrawal paid - ${request.workerName}',
           serviceId: request.id,
           date: DateTime.now(),
           balanceAfter: _currentBalance,
@@ -406,7 +405,6 @@ class FinancialService {
 
         _walletTransactions.add(walletTxn);
 
-        // ✅ Update request status
         _withdrawalRequests[index] = request.copyWith(
           status: 'Approved',
           processedDate: DateTime.now(),
@@ -422,7 +420,6 @@ class FinancialService {
           message: 'Withdrawal approved successfully',
         );
       } else {
-        // ✅ Reject request
         _withdrawalRequests[index] = request.copyWith(
           status: 'Rejected',
           processedDate: DateTime.now(),
@@ -447,7 +444,6 @@ class FinancialService {
     }
   }
 
-  // ✅ Get withdrawal statistics
   Map<String, dynamic> getWithdrawalStats() {
     final pending = _withdrawalRequests.where((r) => r.status == 'Pending').toList();
     final approved = _withdrawalRequests.where((r) => r.status == 'Approved').toList();
@@ -463,7 +459,6 @@ class FinancialService {
     };
   }
 
-  // Clear all data (for testing)
   void clearAllData() {
     _allTransactions.clear();
     _completedServices.clear();
@@ -478,154 +473,7 @@ class FinancialService {
   }
 }
 
-// ============= DATA MODELS =============
-
-class FinancialTransaction {
-  final String id;
-  final String serviceId;
-  final String serviceName;
-  final String workerId;
-  final String workerName;
-  final String customerName;
-  final double basePrice;
-  final double extraCharges;
-  final double totalAmount;
-  final double commission;
-  final double vat;
-  final double workerDeduction;
-  final double workerEarnings;
-  final String paymentMethod;
-  final DateTime completionDate;
-  final String status;
-
-  FinancialTransaction({
-    required this.id,
-    required this.serviceId,
-    required this.serviceName,
-    required this.workerId,
-    required this.workerName,
-    required this.customerName,
-    required this.basePrice,
-    required this.extraCharges,
-    required this.totalAmount,
-    required this.commission,
-    required this.vat,
-    required this.workerDeduction,
-    required this.workerEarnings,
-    required this.paymentMethod,
-    required this.completionDate,
-    required this.status,
-  });
-}
-
-class WalletTransaction {
-  final String id;
-  final String type; // 'credit' or 'debit'
-  final double amount;
-  final String description;
-  final String serviceId;
-  final DateTime date;
-  final double balanceAfter;
-
-  WalletTransaction({
-    required this.id,
-    required this.type,
-    required this.amount,
-    required this.description,
-    required this.serviceId,
-    required this.date,
-    required this.balanceAfter,
-  });
-}
-
-class CommissionRecord {
-  final String id;
-  final String serviceId;
-  final String serviceName;
-  final String workerId;
-  final String workerName;
-  final double serviceAmount;
-  final double commissionRate;
-  final double commissionAmount;
-  final DateTime date;
-  final String status;
-
-  CommissionRecord({
-    required this.id,
-    required this.serviceId,
-    required this.serviceName,
-    required this.workerId,
-    required this.workerName,
-    required this.serviceAmount,
-    required this.commissionRate,
-    required this.commissionAmount,
-    required this.date,
-    required this.status,
-  });
-}
-
-class VATRecord {
-  final String id;
-  final String serviceId;
-  final String serviceName;
-  final double serviceAmount;
-  final double vatRate;
-  final double vatAmount;
-  final DateTime date;
-  final String status;
-
-  VATRecord({
-    required this.id,
-    required this.serviceId,
-    required this.serviceName,
-    required this.serviceAmount,
-    required this.vatRate,
-    required this.vatAmount,
-    required this.date,
-    required this.status,
-  });
-}
-
-class FinancialReportSummary {
-  final DateTime startDate;
-  final DateTime endDate;
-  final double totalRevenue;
-  final double totalCommission;
-  final double totalVAT;
-  final double workersShare;
-  final int totalServices;
-  final double averageServiceValue;
-  final List<FinancialTransaction> transactions;
-
-  FinancialReportSummary({
-    required this.startDate,
-    required this.endDate,
-    required this.totalRevenue,
-    required this.totalCommission,
-    required this.totalVAT,
-    required this.workersShare,
-    required this.totalServices,
-    required this.averageServiceValue,
-    required this.transactions,
-  });
-}
-
-class MonthlyComparison {
-  final FinancialReportSummary currentMonth;
-  final FinancialReportSummary previousMonth;
-  final double revenueGrowth;
-  final double workersShareGrowth;
-  final double servicesGrowth;
-
-  MonthlyComparison({
-    required this.currentMonth,
-    required this.previousMonth,
-    required this.revenueGrowth,
-    required this.workersShareGrowth,
-    required this.servicesGrowth,
-  });
-}
-
+// ============= RESULT CLASSES =============
 class ServiceCompletionResult {
   final bool success;
   final String message;
@@ -636,51 +484,6 @@ class ServiceCompletionResult {
     required this.message,
     this.transaction,
   });
-}
-
-// ============= WITHDRAWAL REQUEST MODELS =============
-
-class WithdrawalRequest {
-  final String id;
-  final String workerId;
-  final String workerName;
-  final double amount;
-  final DateTime requestDate;
-  final String status; // 'Pending', 'Approved', 'Rejected'
-  final DateTime? processedDate;
-  final String? processedBy;
-  final String? adminNotes;
-
-  WithdrawalRequest({
-    required this.id,
-    required this.workerId,
-    required this.workerName,
-    required this.amount,
-    required this.requestDate,
-    required this.status,
-    this.processedDate,
-    this.processedBy,
-    this.adminNotes,
-  });
-
-  WithdrawalRequest copyWith({
-    String? status,
-    DateTime? processedDate,
-    String? processedBy,
-    String? adminNotes,
-  }) {
-    return WithdrawalRequest(
-      id: id,
-      workerId: workerId,
-      workerName: workerName,
-      amount: amount,
-      requestDate: requestDate,
-      status: status ?? this.status,
-      processedDate: processedDate ?? this.processedDate,
-      processedBy: processedBy ?? this.processedBy,
-      adminNotes: adminNotes ?? this.adminNotes,
-    );
-  }
 }
 
 class WithdrawalResult {

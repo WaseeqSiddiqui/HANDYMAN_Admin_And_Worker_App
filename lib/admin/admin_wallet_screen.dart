@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
+import '../models/admin_wallet_transaction.dart';
+import '../models/financial_report_summary_model.dart';
 
 class AdminWalletScreen extends StatefulWidget {
   const AdminWalletScreen({super.key});
@@ -14,7 +16,6 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
   @override
   void initState() {
     super.initState();
-    // Listen for updates
     _financialService.addListener(_onFinancialUpdate);
   }
 
@@ -25,7 +26,6 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
   }
 
   void _onFinancialUpdate() {
-    // Refresh UI when financial data changes
     if (mounted) {
       setState(() {});
     }
@@ -38,7 +38,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Wallet'),
+        title: const Text("Wallet"),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -54,7 +54,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Recent Transactions',
+                  "Transactions",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -63,7 +63,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 TextButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.filter_list),
-                  label: const Text('Filter'),
+                  label: const Text("Filter"),
                 ),
               ],
             ),
@@ -104,7 +104,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total Balance',
+                "Total Balance",
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
@@ -121,7 +121,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                     Icon(Icons.check_circle, color: Colors.white, size: 16),
                     SizedBox(width: 4),
                     Text(
-                      'Active',
+                      "Active",
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ],
@@ -131,7 +131,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'SAR ${balance.toStringAsFixed(2)}',
+            "SAR ${balance.toStringAsFixed(2)}",
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -142,19 +142,13 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildWalletInfo(
-                'Auto-Updated',
-                Icons.sync,
-              ),
+              _buildWalletInfo("Auto Updated", Icons.sync),
               Container(
                 height: 40,
                 width: 1,
                 color: Colors.white24,
               ),
-              _buildWalletInfo(
-                'Real-time',
-                Icons.flash_on,
-              ),
+              _buildWalletInfo("Real Time", Icons.flash_on),
             ],
           ),
         ],
@@ -187,8 +181,8 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
         children: [
           Expanded(
             child: _buildStatCard(
-              'Total Income',
-              'SAR ${report.totalRevenue.toStringAsFixed(0)}',
+              "Total Income",
+              "SAR ${report.totalRevenue.toStringAsFixed(0)}",
               Icons.arrow_downward,
               Colors.green,
             ),
@@ -196,8 +190,8 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildStatCard(
-              'Total Expenses',
-              'SAR ${(report.totalCommission + report.totalVAT).toStringAsFixed(0)}',
+              "Total Expenses",
+              "SAR ${(report.totalCommission + report.totalVAT).toStringAsFixed(0)}",
               Icons.arrow_upward,
               Colors.red,
             ),
@@ -260,7 +254,6 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
   }
 
   Widget _buildTransactionsList(List<WalletTransaction> transactions) {
-    // Show most recent first
     final sortedTransactions = transactions.reversed.toList();
 
     return ListView.builder(
@@ -313,7 +306,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Balance: SAR ${transaction.balanceAfter.toStringAsFixed(2)}',
+                  "Balance: SAR ${transaction.balanceAfter.toStringAsFixed(2)}",
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 11,
@@ -343,7 +336,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isCredit ? 'Credit' : 'Debit',
+                    isCredit ? "Credit" : "Debit",
                     style: TextStyle(
                       color: isCredit ? Colors.green : Colors.red,
                       fontSize: 10,
@@ -378,7 +371,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'No Transactions Yet',
+            "No Data Available",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -387,7 +380,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Transactions will appear here automatically\nwhen workers complete services',
+            "You have no wallet transactions yet.",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,

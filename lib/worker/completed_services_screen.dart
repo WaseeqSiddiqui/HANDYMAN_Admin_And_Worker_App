@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
+import '/models/service_request_model.dart';
 
 class CompletedServicesScreen extends StatelessWidget {
   const CompletedServicesScreen({super.key});
@@ -15,7 +16,7 @@ class CompletedServicesScreen extends StatelessWidget {
       ),
       body: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
-          final completedServices = appState.completedServices;
+          final completedServices = appState.completedServices; // ✅ Returns List<ServiceRequest>
 
           if (completedServices.isEmpty) {
             return Center(
@@ -46,13 +47,12 @@ class CompletedServicesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(Map<String, dynamic> service) {
-    final totalPrice = (service['price'] as num).toDouble() +
-        ((service['extraCharges'] ?? 0.0) as num).toDouble();
-    final commission = (service['commission'] as num?)?.toDouble() ?? 0.0;
-    final vat = (service['vat'] as num?)?.toDouble() ?? 0.0;
+  Widget _buildServiceCard(ServiceRequest service) {
+    // ✅ Use model properties directly
+    final totalPrice = service.totalPrice;
+    final commission = service.totalCommission;
+    final vat = service.totalVAT;
     final earnings = totalPrice - commission - vat;
-    final completedAt = service['completedAt'] as DateTime?;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -79,14 +79,14 @@ class CompletedServicesScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        service['service'],
+                        service.serviceName,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        service['customer'],
+                        service.customerName,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -119,7 +119,7 @@ class CompletedServicesScreen extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    service['address'],
+                    service.address,
                     style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -127,14 +127,14 @@ class CompletedServicesScreen extends StatelessWidget {
                 ),
               ],
             ),
-            if (completedAt != null) ...[
+            if (service.completedDate != null) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
                   Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 4),
                   Text(
-                    'Completed: ${_formatDate(completedAt)}',
+                    'Completed: ${_formatDate(service.completedDate!)}',
                     style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   ),
                 ],

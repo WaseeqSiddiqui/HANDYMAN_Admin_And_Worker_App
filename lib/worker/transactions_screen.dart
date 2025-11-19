@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
+import '/models/transaction_model.dart';
 
 class WorkerTransactionsScreen extends StatelessWidget {
   const WorkerTransactionsScreen({super.key});
@@ -15,7 +16,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
       ),
       body: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
-          final transactions = appState.transactions;
+          final transactions = appState.transactions; // ✅ Now returns List<Transaction>
 
           if (transactions.isEmpty) {
             return Center(
@@ -46,44 +47,35 @@ class WorkerTransactionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionCard(Map<String, dynamic> transaction) {
-    final type = transaction['type'] as String;
-    final amount = (transaction['amount'] as num).toDouble();
-    final date = transaction['date'] as DateTime;
-    final description = transaction['description'] as String;
-
+  Widget _buildTransactionCard(Transaction transaction) {
     IconData icon;
     Color color;
     String title;
 
-    switch (type) {
-      case 'topup_stc':
-      case 'topup_wallet':
-      case 'credit_topup':
-      case 'transfer_wallet_to_credit':
+    // ✅ Use enum directly
+    switch (transaction.type) {
+      case TransactionType.creditTopup:
         icon = Icons.arrow_upward;
         color = Colors.green;
         title = 'Credit Top-up';
         break;
-      case 'service_completed':
+      case TransactionType.walletEarning:
         icon = Icons.check_circle;
         color = Colors.blue;
         title = 'Service Completed';
         break;
-      case 'platform_fee':
+      case TransactionType.commission:
+      case TransactionType.vat:
+      case TransactionType.creditDeduction:
         icon = Icons.arrow_downward;
         color = Colors.red;
-        title = 'Platform Fee';
+        title = transaction.typeLabel;
         break;
-      case 'withdrawal':
+      case TransactionType.walletWithdrawal:
         icon = Icons.account_balance_wallet;
         color = Colors.orange;
         title = 'Withdrawal';
         break;
-      default:
-        icon = Icons.receipt;
-        color = Colors.grey;
-        title = 'Transaction';
     }
 
     return Card(
@@ -116,7 +108,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    description,
+                    transaction.description ?? transaction.typeLabel,
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey.shade600,
@@ -124,7 +116,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatDate(date),
+                    _formatDate(transaction.createdAt),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade500,
@@ -137,14 +129,14 @@ class WorkerTransactionsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${amount >= 0 ? '+' : ''}${amount.toStringAsFixed(2)} SAR',
+                  '${transaction.amount >= 0 ? '+' : ''}${transaction.amount.toStringAsFixed(2)} SAR',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: amount >= 0 ? Colors.green : Colors.red,
+                    color: transaction.amount >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
-                if (transaction.containsKey('txnId'))
+                if (transaction.reference != null)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -153,7 +145,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      transaction['txnId'],
+                      transaction.reference!,
                       style: const TextStyle(fontSize: 10),
                     ),
                   ),

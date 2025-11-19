@@ -1,0 +1,159 @@
+{
+  "@@locale": "ar",
+
+  "appTitle": "لوحة إدارة أيديا",
+  "welcome": "مرحبا",
+  "admin": "مسؤول",
+  "worker": "عامل",
+  "continueAs": "استمر كـ",
+
+  "adminDashboard": "لوحة المسؤول",
+  "workerDashboard": "لوحة العامل",
+
+  "wallet": "المحفظة",
+  "credit": "الرصيد",
+  "balance": "الرصيد",
+  "totalBalance": "إجمالي الرصيد",
+  "creditBalance": "رصيد الائتمان",
+  "walletBalance": "رصيد المحفظة",
+  "availableCredit": "الرصيد المتاح",
+  "autoUpdated": "تحديث تلقائي",
+  "realTime": "في الوقت الحقيقي",
+  "debit": "مدين",
+  "transactionsEmptyDesc": "ستظهر المعاملات هنا تلقائياً عندما يكمل العمال الخدمات",
+
+  "services": "الخدمات",
+  "activeServices": "الخدمات النشطة",
+  "completedServices": "الخدمات المكتملة",
+  "availableServices": "الخدمات المتاحة",
+  "postponedServices": "الخدمات المؤجلة",
+  "requestedServices": "الخدمات المطلوبة",
+  "serviceRequests": "طلبات الخدمات",
+
+  "financial": "المالية",
+  "commission": "العمولة",
+  "vat": "ضريبة القيمة المضافة",
+  "reports": "التقارير",
+  "financialReports": "التقارير المالية",
+  "totalRevenue": "إجمالي الإيرادات",
+  "workersShare": "حصة العمال",
+
+  "notifications": "الإشعارات",
+  "profile": "الملف الشخصي",
+  "settings": "الإعدادات",
+  "logout": "تسجيل الخروج",
+
+  "customer": "العميل",
+  "customerManagement": "إدارة العملاء",
+  "address": "العنوان",
+  "phone": "الهاتف",
+  "amount": "المبلغ",
+  "total": "الإجمالي",
+
+  "accept": "قبول",
+  "complete": "إكمال",
+  "postpone": "تأجيل",
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "add": "إضافة",
+  "view": "عرض",
+  "download": "تحميل",
+  "close": "إغلاق",
+
+  "serviceDetails": "تفاصيل الخدمة",
+  "customerInfo": "معلومات العميل",
+  "workerInfo": "معلومات العامل",
+
+  "topUpCredit": "إضافة رصيد",
+  "withdraw": "سحب",
+  "withdrawalRequests": "طلبات السحب",
+  "transactions": "المعاملات",
+
+  "insufficientCredit": "رصيد غير كافٍ",
+  "requiredCredit": "الرصيد المطلوب",
+  "yourCredit": "رصيدك",
+
+  "workerManagement": "إدارة العمال",
+  "workers": "العمال",
+  "activeWorkers": "العمال النشطون",
+  "blockedWorkers": "العمال المحظورون",
+  "addWorker": "إضافة عامل",
+
+  "invoiceManagement": "إدارة الفواتير",
+  "invoices": "الفواتير",
+  "generateInvoice": "إنشاء فاتورة",
+
+  "commissionManagement": "إدارة العمولة",
+  "vatManagement": "إدارة ضريبة القيمة المضافة",
+
+  "serviceManagement": "إدارة الخدمات",
+  "categories": "الفئات",
+  "subcategories": "الفئات الفرعية",
+
+  "reviews": "المراجعات",
+  "customerReviews": "مراجعات العملاء",
+  "rating": "التقييم",
+
+  "sendNotifications": "إرسال الإشعارات",
+
+  "pending": "قيد الانتظار",
+  "approved": "تم الموافقة",
+  "rejected": "مرفوض",
+  "completed": "مكتمل",
+  "active": "نشط",
+  "blocked": "محظور",
+  "postponed": "مؤجل",
+
+  "search": "بحث",
+  "filter": "تصفية",
+  "refresh": "تحديث",
+
+  "yes": "نعم",
+  "no": "لا",
+  "confirm": "تأكيد",
+
+  "noDataAvailable": "لا توجد بيانات",
+  "noServicesYet": "لا توجد خدمات بعد",
+  "noWorkersFound": "لم يتم العثور على عمال",
+  "noCustomersFound": "لم يتم العثور على عملاء",
+
+  "totalCustomers": "إجمالي العملاء",
+  "totalServices": "إجمالي الخدمات",
+  "totalIncome": "إجمالي الدخل",
+  "totalExpenses": "إجمالي المصاريف",
+
+  "basePrice": "السعر الأساسي",
+  "extraCharges": "الرسوم الإضافية",
+  "paymentMethod": "طريقة الدفع",
+  "cash": "نقداً",
+  "online": "الدفع الإلكتروني",
+
+  "name": "الاسم",
+  "email": "البريد الإلكتروني",
+  "nationalId": "الهوية الوطنية",
+  "stcPayId": "معرف STC Pay",
+  "joinDate": "تاريخ الانضمام",
+  "status": "الحالة",
+
+  "greeting": "مرحبا {name}!",
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "amountInSAR": "{amount} ريال",
+  "@amountInSAR": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+  "companyName": "شركة أيديا"
+}

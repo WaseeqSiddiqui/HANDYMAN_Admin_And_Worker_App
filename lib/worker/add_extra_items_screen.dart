@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../models/service_request_model.dart';
 
 class AddExtraItemsScreen extends StatefulWidget {
-  final Map<String, dynamic> service;
-  final Function(double, List<Map<String, dynamic>>) onItemsAdded;
+  final ServiceRequest service; // ✅ Now accepts ServiceRequest model
+  final Function(double, List<ExtraItem>) onItemsAdded;
 
   const AddExtraItemsScreen({
     super.key,
@@ -15,14 +16,14 @@ class AddExtraItemsScreen extends StatefulWidget {
 }
 
 class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
-  final List<Map<String, dynamic>> _extraItems = [];
+  final List<ExtraItem> _extraItems = [];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
   double get _totalExtraCharges {
     return _extraItems.fold(
       0.0,
-          (sum, item) => sum + (item['price'] as num).toDouble(),
+          (sum, item) => sum + item.price,
     );
   }
 
@@ -45,7 +46,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Service: ${widget.service['service']}',
+                  'Service: ${widget.service.serviceName}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -53,7 +54,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Customer: ${widget.service['customer']}',
+                  'Customer: ${widget.service.customerName}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
@@ -84,23 +85,23 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: item['type'] == 'Service'
+                      backgroundColor: item.type == 'Service'
                           ? Colors.blue
                           : Colors.orange,
                       child: Icon(
-                        item['type'] == 'Service'
+                        item.type == 'Service'
                             ? Icons.build
                             : Icons.inventory,
                         color: Colors.white,
                       ),
                     ),
-                    title: Text(item['name']),
-                    subtitle: Text('Type: ${item['type']}'),
+                    title: Text(item.name),
+                    subtitle: Text('Type: ${item.type}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'SAR ${item['price'].toStringAsFixed(2)}',
+                          'SAR ${item.price.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -137,7 +138,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B5B9A).withOpacity(0.2),  // ✅ Dark background
+                      color: const Color(0xFF6B5B9A).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -148,7 +149,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,  // ✅ White text
+                            color: Colors.white,
                           ),
                         ),
                         Text(
@@ -156,7 +157,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,  // ✅ White text
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -288,11 +289,12 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
     }
 
     setState(() {
-      _extraItems.add({
-        'name': name,
-        'type': type,
-        'price': price,
-      });
+      _extraItems.add(ExtraItem(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: name,
+        type: type,
+        price: price,
+      ));
     });
 
     Navigator.pop(context);

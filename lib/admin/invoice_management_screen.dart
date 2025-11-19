@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/services/invoice_service.dart';
+import '/models/service_invoice_model.dart'; // ✅ Using model
 
 class InvoiceManagementScreen extends StatefulWidget {
   const InvoiceManagementScreen({super.key});
@@ -13,6 +14,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Returns List<ServiceInvoice> now
     final invoices = _invoiceService.getAllInvoices();
 
     return Scaffold(
@@ -88,7 +90,8 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     );
   }
 
-  Widget _buildInvoiceCard(InvoiceData invoice) {
+  // ✅ Using ServiceInvoice model
+  Widget _buildInvoiceCard(ServiceInvoice invoice) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -293,7 +296,8 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     );
   }
 
-  void _viewInvoiceDetails(InvoiceData invoice) {
+  // ✅ Using ServiceInvoice model
+  void _viewInvoiceDetails(ServiceInvoice invoice) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -310,7 +314,6 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
             ),
             child: Column(
               children: [
-                // Handle bar
                 Container(
                   margin: const EdgeInsets.only(top: 12),
                   width: 40,
@@ -320,13 +323,11 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                // Content
                 Expanded(
                   child: ListView(
                     controller: scrollController,
                     padding: const EdgeInsets.all(24),
                     children: [
-                      // Header
                       Row(
                         children: [
                           Container(
@@ -385,7 +386,6 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                       ),
                       const Divider(height: 32),
 
-                      // Service Info
                       _buildDetailSection('Service Information', [
                         _buildDetailRow('Service ID', invoice.serviceId),
                         _buildDetailRow('Service Type', invoice.serviceName),
@@ -393,22 +393,23 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                         _buildDetailRow('Date', '${invoice.completionDate.day}/${invoice.completionDate.month}/${invoice.completionDate.year}'),
                       ]),
 
-                      // Customer Info
                       _buildDetailSection('Customer Information', [
+                        _buildDetailRow('Phone', invoice.customerId),
                         _buildDetailRow('Name', invoice.customerName),
                         _buildDetailRow('Address', invoice.customerAddress),
                       ]),
 
-                      // Payment Breakdown
                       _buildDetailSection('Payment Breakdown', [
                         _buildDetailRow('Base Price', 'SAR ${invoice.basePrice.toStringAsFixed(2)}'),
                         if (invoice.extraCharges > 0)
                           _buildDetailRow('Extra Charges', 'SAR ${invoice.extraCharges.toStringAsFixed(2)}'),
                         const Divider(),
                         _buildDetailRow('Total Amount', 'SAR ${invoice.totalAmount.toStringAsFixed(2)}', isBold: true),
+                        const Divider(),
+                        _buildDetailRow('VAT (15%)', 'SAR ${invoice.vat.toStringAsFixed(2)}'),
+                        _buildDetailRow('Commission (20%)', 'SAR ${invoice.commission.toStringAsFixed(2)}'),
                       ]),
 
-                      // Payment Info
                       _buildDetailSection('Payment Information', [
                         _buildDetailRow('Method', invoice.paymentMethod),
                         _buildDetailRow('Status', invoice.status),
@@ -416,7 +417,6 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
 
                       const SizedBox(height: 24),
 
-                      // Action Buttons
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
@@ -490,7 +490,8 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     );
   }
 
-  void _downloadInvoice(InvoiceData invoice) async {
+  // ✅ Using ServiceInvoice model
+  void _downloadInvoice(ServiceInvoice invoice) async {
     try {
       await _invoiceService.downloadInvoicePDF(invoice);
 

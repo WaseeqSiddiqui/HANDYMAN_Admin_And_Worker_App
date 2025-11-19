@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
+import '../models/financial_transaction_model.dart';
 
 /// Service Completion Handler
 /// Jab worker "Complete Service" button press karta hai,

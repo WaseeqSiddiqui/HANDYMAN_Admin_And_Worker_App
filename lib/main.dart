@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state_provider.dart';
 import 'screens/auth/role_selection.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,14 @@ class AdminWorkerApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Aidea Admin & Worker Panel',
         debugShowCheckedModeBanner: false,
+
+        // ✅ Add localization support
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+
+        // Optional: Set default locale (remove if you want system default)
+        // locale: const Locale('en'),
+
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF6B5B9A),

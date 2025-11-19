@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../services/financial_service.dart';
+import '../models/withdrawl_requests_model.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -24,7 +25,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
-        // ✅ Check if 7 days have passed since last service
         final canWithdraw = appState.canWithdraw();
         final daysRemaining = appState.getDaysUntilWithdrawal();
 
@@ -43,7 +43,6 @@ class _WalletScreenState extends State<WalletScreen> {
                 _buildBalanceCard(cardColor, textColor, appState),
                 const SizedBox(height: 24),
 
-                // ✅ Show 7-day restriction banner
                 if (!canWithdraw)
                   _buildWithdrawalRestrictionBanner(daysRemaining),
                 if (!canWithdraw) const SizedBox(height: 16),
@@ -57,7 +56,6 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // ✅ Show pending withdrawal requests
                 _buildPendingRequests(cardColor, textColor, appState),
                 const SizedBox(height: 24),
 
@@ -72,7 +70,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  // ✅ 7-Day Restriction Banner
   Widget _buildWithdrawalRestrictionBanner(int daysRemaining) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -120,7 +117,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  // ✅ Show Pending Withdrawal Requests
   Widget _buildPendingRequests(Color cardColor, Color textColor, AppStateProvider appState) {
     final pendingRequests = _financialService.getWithdrawalRequests(status: 'Pending')
         .where((req) => req.workerId == appState.workerId)
@@ -356,9 +352,9 @@ class _WalletScreenState extends State<WalletScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Row(
                   children: [
                     Icon(Icons.info_outline, color: Colors.blue, size: 20),
@@ -646,23 +642,19 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
-  // ✅ Create Withdrawal Request (sends to admin)
   void _createWithdrawalRequest(AppStateProvider appState) async {
     final amount = double.tryParse(_withdrawalController.text) ?? 0;
 
-    // Validate minimum amount
     if (amount < 100) {
       _showError('Minimum withdrawal amount is 100 SAR');
       return;
     }
 
-    // Validate sufficient balance
     if (amount > appState.walletBalance) {
       _showError('Insufficient balance');
       return;
     }
 
-    // Check 7-day restriction
     if (!appState.canWithdraw()) {
       final days = appState.getDaysUntilWithdrawal();
       _showError('You can withdraw in $days day${days > 1 ? 's' : ''}');
@@ -672,7 +664,6 @@ class _WalletScreenState extends State<WalletScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // ✅ Create withdrawal request (goes to admin)
       final requestId = _financialService.createWithdrawalRequest(
         workerId: appState.workerId,
         workerName: appState.workerName,

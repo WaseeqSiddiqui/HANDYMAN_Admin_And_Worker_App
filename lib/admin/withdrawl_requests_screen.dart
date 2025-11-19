@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '/services/financial_service.dart';
 import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
+import '../models/withdrawl_requests_model.dart';
+import '/models/worker_data_model.dart';
 
 class WithdrawalRequestsScreen extends StatefulWidget {
   const WithdrawalRequestsScreen({super.key});

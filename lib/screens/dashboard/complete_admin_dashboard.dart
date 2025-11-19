@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/services/financial_service.dart';
 import '/providers/app_state_provider.dart';
+import '/models/financial_transaction_model.dart';
 
 // Import admin screens
 import '/admin/admin_wallet_screen.dart';
@@ -55,17 +56,20 @@ class AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // Get proper summary object instead of Map
+    // ✅ Get proper summary object from financial service
     final report = _financialService.getReportSummary();
 
-    // Safe access with default values
     final totalRevenue = report.totalRevenue;
     final totalCommission = report.totalCommission;
     final totalVAT = report.totalVAT;
 
-    // ✅ FIXED: Active Services = Requested + Postponed (not including In Progress)
+    // ✅ Get counts from AppStateProvider using model lists
     final appState = Provider.of<AppStateProvider>(context, listen: false);
+
+    // ✅ FIXED: Active services = Requested + In Progress + Postponed
+    // (All non-completed services visible to admin)
     final activeServices = appState.adminRequestedServices.length +
+        appState.adminInProgressServices.length +
         appState.adminPostponedServices.length;
 
     final completedServices = _financialService.getCompletedServices().length;

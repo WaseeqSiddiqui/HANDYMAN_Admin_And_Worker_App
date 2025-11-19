@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
+import '../models/vat_model.dart';
 
 class VATManagementScreen extends StatefulWidget {
   const VATManagementScreen({super.key});

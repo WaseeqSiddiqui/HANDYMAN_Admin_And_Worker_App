@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
+import '/models/worker_data_model.dart';
 
 class WorkerProfileScreen extends StatefulWidget {
   const WorkerProfileScreen({super.key});
@@ -25,7 +26,6 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     final workerId = appState.currentWorkerId;
 
     if (workerId != null) {
-      // Find worker by ID
       final allWorkers = _authService.getAllWorkers();
       _workerData = allWorkers.firstWhere(
             (w) => w.id == workerId,
