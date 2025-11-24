@@ -996,6 +996,7 @@ class AppStateProvider with ChangeNotifier {
   }
 
   // ✅ NEW: Sync worker credit when admin updates it
+  // ✅ NEW: Sync worker credit when admin updates it
   void syncWorkerCredit(String workerId, double newCreditBalance) {
     // Update the specific worker's credit in _workerData
     if (_workerData.containsKey(workerId)) {
@@ -1017,6 +1018,45 @@ class AppStateProvider with ChangeNotifier {
       );
       debugPrint('✅ Initialized and synced credit for worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}');
     }
+  }
+
+  // ✅ NEW: Add credit with transaction record (for admin actions)
+  void addCreditWithTransaction(String workerId, double amount, String description) {
+    if (!_workerData.containsKey(workerId)) {
+      debugPrint('❌ Worker $workerId not found in AppStateProvider');
+      return;
+    }
+
+    final workerData = _workerData[workerId]!;
+    final balanceBefore = workerData.creditBalance;
+    workerData.creditBalance += amount;
+
+    // Add transaction record
+    workerData.transactions.insert(0, Transaction(
+      id: 'ADM${DateTime.now().millisecondsSinceEpoch}',
+      workerId: workerId,
+      workerName: _getWorkerName(workerId) ?? 'Worker',
+      type: TransactionType.creditTopup,
+      amount: amount,
+      balanceBefore: balanceBefore,
+      balanceAfter: workerData.creditBalance,
+      description: description,
+      reference: 'ADMIN_ADDED',
+      createdAt: DateTime.now(),
+    ));
+
+    debugPrint('✅ Credit added with transaction for worker $workerId: +SAR ${amount.toStringAsFixed(2)}');
+
+    // Notify if this is the current worker
+    if (workerId == currentWorkerId) {
+      notifyListeners();
+    }
+  }
+
+// Helper method to get worker name
+  String? _getWorkerName(String workerId) {
+    final worker = WorkerAuthService().getWorkerById(workerId);
+    return worker?.name;
   }
 
   void addTransaction(Transaction transaction) {

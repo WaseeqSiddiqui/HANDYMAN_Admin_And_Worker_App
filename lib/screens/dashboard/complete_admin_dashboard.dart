@@ -60,14 +60,17 @@ class AdminDashboardState extends State<AdminDashboard> {
     final totalRevenue = report.totalRevenue;
     final totalCommission = report.totalCommission;
     final totalVAT = report.totalVAT;
-    final currentBalance = _financialService.getCurrentBalance(); // ✅ Get current admin wallet balance
+    final currentBalance = _financialService.getCurrentBalance();
 
     final appState = Provider.of<AppStateProvider>(context, listen: false);
-    // ✅ FIXED: Only count services with assigned workers
-    final assignedServices = appState.adminAssignedServices.length;
-    final inProgressServices = appState.adminInProgressServices.length;
-    final postponedServices = appState.adminPostponedServices.length;
-    final activeServices = assignedServices + inProgressServices + postponedServices;
+
+    // ✅ FIXED: Count ALL active services using string comparison
+    final activeServices = appState.adminAllActiveServices.where((service) {
+      final statusString = service.status.toString().toLowerCase();
+      return !statusString.contains('completed') &&
+          !statusString.contains('cancelled');
+    }).length;
+
     final completedServices = _financialService.getCompletedServices().length;
 
     return Scaffold(
@@ -273,25 +276,32 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // Simple Logout button at bottom - FIXED ARABIC FONT SIZE
+          // ✅ FIXED: Logout button layout to match worker dashboard
           const Divider(height: 1),
           SafeArea(
             top: false,
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: BilingualText( // ✅ Bilingual logout - FIXED ARABIC FONT SIZE
-                english: AdminTranslations.split(AdminTranslations.logout)[0],
-                arabic: AdminTranslations.split(AdminTranslations.logout)[1],
-                englishStyle: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15, // English font size
-                ),
-                arabicStyle: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13, // Smaller Arabic font size
-                ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AdminTranslations.split(AdminTranslations.logout)[0],
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    AdminTranslations.split(AdminTranslations.logout)[1],
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               ),
               onTap: _handleLogout,
             ),
@@ -350,50 +360,38 @@ class AdminDashboardState extends State<AdminDashboard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.logout, color: Colors.red, size: 24),
+            Text(
+              AdminTranslations.split(AdminTranslations.logout)[0],
+              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(width: 12),
-            BilingualText( // ✅ Bilingual logout title - FIXED ARABIC FONT SIZE
-              english: AdminTranslations.split(AdminTranslations.logout)[0],
-              arabic: AdminTranslations.split(AdminTranslations.logout)[1],
-              englishStyle: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              arabicStyle: const TextStyle(
-                fontSize: 16, // Smaller Arabic font size
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              AdminTranslations.split(AdminTranslations.logout)[1],
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
-        content: BilingualText( // ✅ Bilingual logout confirmation - FIXED ARABIC FONT SIZE
-          english: AdminTranslations.split(AdminTranslations.logoutConfirm)[0],
-          arabic: AdminTranslations.split(AdminTranslations.logoutConfirm)[1],
-          englishStyle: const TextStyle(
-            fontSize: 14,
-          ),
-          arabicStyle: const TextStyle(
-            fontSize: 13, // Smaller Arabic font size
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AdminTranslations.split(AdminTranslations.logoutConfirm)[0],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AdminTranslations.split(AdminTranslations.logoutConfirm)[1],
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: BilingualText(
-              english: AdminTranslations.split(AdminTranslations.cancelBtn)[0],
-              arabic: AdminTranslations.split(AdminTranslations.cancelBtn)[1],
-              englishStyle: const TextStyle(fontSize: 14),
-              arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
-            ),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -403,16 +401,8 @@ class AdminDashboardState extends State<AdminDashboard> {
                     (route) => false,
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: BilingualText(
-              english: AdminTranslations.split(AdminTranslations.logout)[0],
-              arabic: AdminTranslations.split(AdminTranslations.logout)[1],
-              englishStyle: const TextStyle(fontSize: 14),
-              arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(AdminTranslations.split(AdminTranslations.logout)[0]),
           ),
         ],
       ),

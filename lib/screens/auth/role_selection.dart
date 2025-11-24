@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'phone_login.dart';
+import '/utils/auth_translations.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -12,7 +13,7 @@ class RoleSelectionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView( // Added SingleChildScrollView here
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -27,7 +28,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6B5B9A).withAlpha((0.3 * 255).round()), // Fixed withOpacity
+                        color: const Color(0xFF6B5B9A).withAlpha((0.3 * 255).round()),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -50,31 +51,69 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
 
-                Text(
-                  'Aidea Technology',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                // Company Name - Column Format
+                Column(
+                  children: [
+                    Text(
+                      AuthTranslations.getEnglish(AuthTranslations.companyName),
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      AuthTranslations.getArabic(AuthTranslations.companyName),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Service Management System',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                  ),
+
+                // System Name - Column Format
+                Column(
+                  children: [
+                    Text(
+                      AuthTranslations.getEnglish(AuthTranslations.systemName),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      AuthTranslations.getArabic(AuthTranslations.systemName),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 48),
 
-                Text(
-                  'Continue as',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                // Continue As - Column Format
+                Column(
+                  children: [
+                    Text(
+                      AuthTranslations.getEnglish(AuthTranslations.continueAs),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      AuthTranslations.getArabic(AuthTranslations.continueAs),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -82,8 +121,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 _buildRoleCard(
                   context,
                   icon: Icons.admin_panel_settings,
-                  title: 'Admin',
-                  description: 'Manage services, workers, and financials',
+                  title: AuthTranslations.admin,
+                  description: AuthTranslations.adminDescription,
                   color: const Color(0xFF6B5B9A),
                   onTap: () {
                     Navigator.push(
@@ -100,8 +139,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 _buildRoleCard(
                   context,
                   icon: Icons.construction,
-                  title: 'Worker',
-                  description: 'Manage assigned services and earnings',
+                  title: AuthTranslations.worker,
+                  description: AuthTranslations.workerDescription,
                   color: const Color(0xFF7C3AED),
                   onTap: () {
                     Navigator.push(
@@ -140,12 +179,12 @@ class RoleSelectionScreen extends StatelessWidget {
           color: cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: color.withAlpha((0.3 * 255).round()), // Fixed withOpacity
+            color: color.withAlpha((0.3 * 255).round()),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha((0.2 * 255).round()), // Fixed withOpacity
+              color: color.withAlpha((0.2 * 255).round()),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -157,7 +196,7 @@ class RoleSelectionScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withAlpha((0.7 * 255).round())], // Fixed withOpacity
+                  colors: [color, color.withAlpha((0.7 * 255).round())],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -168,21 +207,48 @@ class RoleSelectionScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
+                  // Title - Column Format
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AuthTranslations.getEnglish(title),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        AuthTranslations.getArabic(title),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                    ),
+
+                  // Description - Column Format
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AuthTranslations.getEnglish(description),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        AuthTranslations.getArabic(description),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -190,7 +256,7 @@ class RoleSelectionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withAlpha((0.1 * 255).round()), // Fixed withOpacity
+                color: color.withAlpha((0.1 * 255).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

@@ -144,57 +144,13 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.name),
-                        if (item.nameArabic != null && item.nameArabic!.isNotEmpty)
-                          Text(
-                            item.nameArabic!,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            textDirection: TextDirection.rtl,
-                          ),
-                      ],
+                    title: Text(item.name),
+                    subtitle: Text(
+                      '${WorkerTranslations.split(WorkerTranslations.type)[0]} ${item.type} • ${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${item.price.toStringAsFixed(2)}',
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${WorkerTranslations.split(WorkerTranslations.type)[0]} ${item.type}'),
-                        Text(
-                          '${WorkerTranslations.split(WorkerTranslations.type)[1]} ${item.type == 'Service' ? 'خدمة' : 'قطعة'}',
-                          style: const TextStyle(fontSize: 12),
-                          textDirection: TextDirection.rtl,
-                        ),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${item.price.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              '${WorkerTranslations.split(WorkerTranslations.sar)[1]} ${item.price.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                              textDirection: TextDirection.rtl,
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _removeItem(index),
-                        ),
-                      ],
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _removeItem(index),
                     ),
                   ),
                 );
@@ -221,7 +177,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B5B9A).withOpacity(0.2),
+                      color: const Color(0xFF6B5B9A),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -375,61 +331,137 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: type == 'Service'
-                    ? WorkerTranslations.split(WorkerTranslations.serviceName)[0]
-                    : WorkerTranslations.split(WorkerTranslations.partName)[0],
-                labelStyle: const TextStyle(fontSize: 14),
-                border: const OutlineInputBorder(),
-                prefixIcon: Icon(
-                  type == 'Service' ? Icons.build : Icons.inventory,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Instruction Text
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Enter name in English or Arabic',
+                      style: TextStyle(
+                        color: const Color(0xFF6B5B9A),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      'أدخل الاسم بالإنجليزية أو العربية',
+                      style: TextStyle(
+                        color: const Color(0xFF6B5B9A),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              textDirection: TextDirection.rtl,
-              decoration: InputDecoration(
-                labelText: type == 'Service'
-                    ? WorkerTranslations.split(WorkerTranslations.serviceName)[1]
-                    : WorkerTranslations.split(WorkerTranslations.partName)[1],
-                labelStyle: const TextStyle(fontSize: 14),
-                border: const OutlineInputBorder(),
-                prefixIcon: Icon(
-                  type == 'Service' ? Icons.build : Icons.inventory,
+              const SizedBox(height: 16),
+
+              // Single Name Field
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        type == 'Service'
+                            ? '${WorkerTranslations.split(WorkerTranslations.serviceName)[0]} • ${WorkerTranslations.split(WorkerTranslations.serviceName)[1]}'
+                            : '${WorkerTranslations.split(WorkerTranslations.partName)[0]} • ${WorkerTranslations.split(WorkerTranslations.partName)[1]}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: type == 'Service'
+                            ? 'Enter service name / أدخل اسم الخدمة'
+                            : 'Enter part name / أدخل اسم القطعة',
+                        hintStyle: const TextStyle(fontSize: 14),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      ),
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _priceController,
-              decoration: InputDecoration(
-                labelText: WorkerTranslations.split(WorkerTranslations.priceSAR)[0],
-                labelStyle: const TextStyle(fontSize: 14),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.attach_money),
+              const SizedBox(height: 16),
+
+              // Price Field
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        '${WorkerTranslations.split(WorkerTranslations.priceSAR)[0]} • ${WorkerTranslations.split(WorkerTranslations.priceSAR)[1]}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    TextField(
+                      controller: _priceController,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        hintText: '0.00',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        prefixText: 'SAR ',
+                        prefixStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ],
+                ),
               ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _priceController,
-              textDirection: TextDirection.rtl,
-              decoration: InputDecoration(
-                labelText: WorkerTranslations.split(WorkerTranslations.priceSAR)[1],
-                labelStyle: const TextStyle(fontSize: 14),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.attach_money),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

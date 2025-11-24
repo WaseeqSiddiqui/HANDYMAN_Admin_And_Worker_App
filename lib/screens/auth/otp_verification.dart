@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../dashboard/complete_admin_dashboard.dart';
 import '../dashboard/worker_dashboard.dart';
 import '/services/worker_auth_service.dart';
+import '/utils/auth_translations.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -55,7 +56,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         if (mounted) {
           setState(() => _isLoading = false);
 
-          // ✅ Navigate based on role (worker already verified in phone_login)
           if (widget.role == 'Worker') {
             final authService = WorkerAuthService();
             final worker = authService.getWorkerByPhone(widget.phoneNumber);
@@ -70,7 +70,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   (route) => false,
             );
           } else {
-            // ✅ Navigate to Admin Dashboard
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => AdminDashboard(phoneNumber: widget.phoneNumber),
@@ -82,8 +81,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter complete OTP'),
+        SnackBar(
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AuthTranslations.getEnglish(AuthTranslations.completeOtpError)),
+              Text(AuthTranslations.getArabic(AuthTranslations.completeOtpError)),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -99,9 +105,16 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       _startResendTimer();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OTP sent successfully'),
-          backgroundColor: Color(0xFF6B5B9A),
+        SnackBar(
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
+              Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
+            ],
+          ),
+          backgroundColor: const Color(0xFF6B5B9A),
         ),
       );
     }
@@ -123,6 +136,19 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Icon(Icons.arrow_back, color: textColor),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AuthTranslations.getEnglish(AuthTranslations.back),
+              style: TextStyle(fontSize: 16, color: textColor),
+            ),
+            Text(
+              AuthTranslations.getArabic(AuthTranslations.back),
+              style: TextStyle(fontSize: 12, color: subtitleColor),
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -164,21 +190,48 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
               const SizedBox(height: 32),
 
-              Text(
-                'Verify OTP',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+              // Verify OTP - Column Format
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AuthTranslations.getEnglish(AuthTranslations.verifyOtp),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  Text(
+                    AuthTranslations.getArabic(AuthTranslations.verifyOtp),
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
-              Text(
-                'Enter the code sent to ${widget.phoneNumber}',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: subtitleColor,
-                ),
+
+              // Enter Code - Column Format
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${AuthTranslations.getEnglish(AuthTranslations.enterCodeSentTo)} ${widget.phoneNumber}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: subtitleColor,
+                    ),
+                  ),
+                  Text(
+                    '${AuthTranslations.getArabic(AuthTranslations.enterCodeSentTo)} ${widget.phoneNumber}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
 
@@ -257,13 +310,25 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                      : const Text(
-                    'Verify & Continue',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                      : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AuthTranslations.getEnglish(AuthTranslations.verifyContinue),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        AuthTranslations.getArabic(AuthTranslations.verifyContinue),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -272,15 +337,29 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Center(
                 child: TextButton(
                   onPressed: _canResend ? _resendOTP : null,
-                  child: Text(
-                    _canResend
-                        ? 'Resend OTP'
-                        : 'Resend OTP in $_resendTimer seconds',
-                    style: TextStyle(
-                      color: _canResend ? const Color(0xFF6B5B9A) : subtitleColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _canResend
+                            ? AuthTranslations.getEnglish(AuthTranslations.resendOtp)
+                            : '${AuthTranslations.getEnglish(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getEnglish(AuthTranslations.seconds)}',
+                        style: TextStyle(
+                          color: _canResend ? const Color(0xFF6B5B9A) : subtitleColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        _canResend
+                            ? AuthTranslations.getArabic(AuthTranslations.resendOtp)
+                            : '${AuthTranslations.getArabic(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getArabic(AuthTranslations.seconds)}',
+                        style: TextStyle(
+                          color: _canResend ? const Color(0xFF6B5B9A) : subtitleColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

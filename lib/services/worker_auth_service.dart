@@ -37,6 +37,28 @@ class WorkerAuthService {
     return _registeredWorkers[normalized];
   }
 
+  // ✅ FIXED: Proper getWorkerById method that returns null if not found
+  WorkerData? getWorkerById(String workerId) {
+    try {
+      return _registeredWorkers.values.firstWhere(
+            (worker) => worker.id == workerId,
+      );
+    } catch (e) {
+      // If firstWhere throws StateError (element not found), return null
+      return null;
+    }
+  }
+
+  // ✅ ALTERNATIVE: You can also use this approach
+  WorkerData? getWorkerByIdAlternative(String workerId) {
+    for (var worker in _registeredWorkers.values) {
+      if (worker.id == workerId) {
+        return worker;
+      }
+    }
+    return null;
+  }
+
   String _normalizePhoneNumber(String phone) {
     String normalized = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
     if (!normalized.startsWith('+')) {
@@ -110,7 +132,6 @@ class WorkerAuthService {
     return true;
   }
 
-
   bool updateWorkerServices(String phone, int completedServices) {
     final normalized = _normalizePhoneNumber(phone);
     final worker = _registeredWorkers[normalized];
@@ -121,5 +142,4 @@ class WorkerAuthService {
     _notifyListeners();
     return true;
   }
-
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '/services/worker_auth_service.dart';
 import '/utils/admin_translations.dart';
 import '/models/worker_data_model.dart';
+import '/providers/app_state_provider.dart';
+import 'package:provider/provider.dart';
 
 class WorkerManagementScreen extends StatefulWidget {
   const WorkerManagementScreen({super.key});
@@ -88,6 +90,72 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     }
 
     return filtered;
+  }
+
+  // Top SnackBar utility function
+  void _showTopSnackBar(BuildContext context, String messageEn, String messageAr, Color backgroundColor) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // English text
+                Text(
+                  messageEn,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // Arabic text
+                Text(
+                  messageAr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                  textDirection: TextDirection.rtl,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert overlay
+    overlay.insert(overlayEntry);
+
+    // Remove after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
 
   @override
@@ -617,40 +685,22 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   stcPayController.text.isEmpty ||
                   addressController.text.isEmpty ||
                   addressArabicController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text(AdminTranslations.split(AdminTranslations.fillAllFields)[0]),
-                        const SizedBox(width: 4),
-                        Text(
-                          AdminTranslations.split(AdminTranslations.fillAllFields)[1],
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Please fill all fields',
+                    'يرجى ملء جميع الحقول',
+                    Colors.red
                 );
                 return;
               }
 
               final initialCredit = double.tryParse(initialCreditController.text.trim());
               if (initialCredit == null || initialCredit < 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text(AdminTranslations.split(AdminTranslations.validCreditAmount)[0]),
-                        const SizedBox(width: 4),
-                        Text(
-                          AdminTranslations.split(AdminTranslations.validCreditAmount)[1],
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Please enter a valid credit amount',
+                    'يرجى إدخال مبلغ رصيد صحيح',
+                    Colors.red
                 );
                 return;
               }
@@ -677,46 +727,22 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               Navigator.of(dialogContext).pop();
 
               if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(AdminTranslations.split(AdminTranslations.workerAdded)[0]),
-                            const SizedBox(width: 4),
-                            Text(
-                              AdminTranslations.split(AdminTranslations.workerAdded)[1],
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Text('${nameController.text.trim()} | ${nameArabicController.text.trim()}', textDirection: TextDirection.rtl),
-                        Text('${AdminTranslations.split(AdminTranslations.phoneLabel)[0]} ${phoneController.text.trim()}'),
-                        Text('${AdminTranslations.split(AdminTranslations.initialCreditLabel)[0]} SAR ${initialCredit.toStringAsFixed(2)}'),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 5),
-                  ),
+                // ✅ NEW: Initialize worker in AppStateProvider
+                final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
+                appStateProvider.syncWorkerCredit(newWorkerId, initialCredit);
+
+                _showTopSnackBar(
+                    context,
+                    'Worker added successfully',
+                    'تم إضافة العامل بنجاح',
+                    Colors.green
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text(AdminTranslations.split(AdminTranslations.workerExists)[0]),
-                        const SizedBox(width: 4),
-                        Text(
-                          AdminTranslations.split(AdminTranslations.workerExists)[1],
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Worker already exists with this phone number',
+                    'موجود بالفعل عامل بهذا الرقم',
+                    Colors.red
                 );
               }
             },
@@ -941,20 +967,19 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
   void _showAddCreditDialog(Map<String, dynamic> worker) {
     final amountController = TextEditingController();
-    final notesController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.add_card, color: Color(0xFF6B5B9A)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
+            Row(
+              children: [
+                const Icon(Icons.add_card, color: Color(0xFF6B5B9A)),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Row(
                     children: [
                       Text('Add Credit'),
                       SizedBox(width: 4),
@@ -964,12 +989,13 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       ),
                     ],
                   ),
-                  Text(
-                    worker['name']?.toString() ?? 'Unknown',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              worker['name']?.toString() ?? 'Unknown',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
@@ -978,6 +1004,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Current Credit Section
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -987,13 +1014,17 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Current Credit:'),
-                        SizedBox(width: 4),
                         Text(
-                          'الرصيد الحالي:',
-                          style: TextStyle(fontSize: 12),
+                          'Current Credit',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        Text(
+                          'الرصيد الحالي',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                          textDirection: TextDirection.rtl,
                         ),
                       ],
                     ),
@@ -1008,30 +1039,28 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+
+              // Amount Field
+              const Row(
+                children: [
+                  Text('Amount to Add'),
+                  SizedBox(width: 4),
+                  Text(
+                    'المبلغ المضاف',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                decoration:  InputDecoration(
-                  labelText: 'Amount to Add | المبلغ المضاف',
-                  hintText: 'Enter amount in SAR',
+                decoration: const InputDecoration(
+                  hintText: '0.00',
                   prefixIcon: Icon(Icons.attach_money),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: notesController,
-                maxLines: 3,
-                decoration:  InputDecoration(
-                  labelText: 'Notes (Optional) | ملاحظات',
-                  hintText: 'Reason for adding credit',
-                  prefixIcon: Icon(Icons.note),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 ),
               ),
             ],
@@ -1042,87 +1071,73 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
-                const SizedBox(width: 4),
+                Text('Cancel'),
+                SizedBox(width: 4),
                 Text(
-                  AdminTranslations.split(AdminTranslations.cancelBtn)[1],
-                  style: const TextStyle(fontSize: 12),
+                  'إلغاء',
+                  style: TextStyle(fontSize: 12),
                 ),
               ],
             ),
           ),
-          ElevatedButton.icon(
+          ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
               if (amount == null || amount <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Row(
-                      children: [
-                        Text('Please enter a valid amount'),
-                        SizedBox(width: 4),
-                        Text(
-                          'يرجى إدخال مبلغ صحيح',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                _showTopSnackBar(context, 'Please enter a valid amount', 'يرجى إدخال مبلغ صحيح', Colors.red);
                 return;
               }
 
               final newBalance = (worker['creditBalance'] as double) + amount;
               final success = _authService.updateWorkerCredit(worker['phone'], newBalance);
 
+              // ✅ CRITICAL: AppStateProvider ko bhi sync karo WITH TRANSACTION
+              if (success) {
+                final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
+
+                // ✅ SYNC CREDIT BALANCE
+                appStateProvider.syncWorkerCredit(worker['id'], newBalance);
+
+                // ✅ ADD TRANSACTION RECORD
+                final description = 'Credit added by administrator';
+
+                appStateProvider.addCreditWithTransaction(
+                    worker['id'],
+                    amount,
+                    description
+                );
+
+                debugPrint('✅ Credit updated for worker ${worker['id']}: SAR ${newBalance.toStringAsFixed(2)}');
+                debugPrint('✅ Transaction added for worker ${worker['id']}');
+              }
+
               Navigator.pop(context);
 
               if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text('Added SAR ${amount.toStringAsFixed(2)} to ${worker['name']}\'s credit'),
-                            const SizedBox(width: 4),
-                            Text(
-                              'تم إضافة ${amount.toStringAsFixed(2)} ريال لرصيد ${worker['name']}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Added SAR ${amount.toStringAsFixed(2)} to ${worker['name']}\'s credit',
+                    'تم إضافة ${amount.toStringAsFixed(2)} ريال لرصيد ${worker['name']}',
+                    Colors.green
                 );
                 _loadWorkers();
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text('Failed to update credit for ${worker['name']}'),
-                        const SizedBox(width: 4),
-                        Text(
-                          'فشل في تحديث الرصيد لـ ${worker['name']}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Failed to update credit for ${worker['name']}',
+                    'فشل في تحديث الرصيد لـ ${worker['name']}',
+                    Colors.red
                 );
               }
             },
-            icon: const Icon(Icons.check),
-            label: const Row(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B5B9A),
+              foregroundColor: Colors.white,
+            ),
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Add Credit'),
@@ -1132,10 +1147,6 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   style: TextStyle(fontSize: 12),
                 ),
               ],
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
-              foregroundColor: Colors.white,
             ),
           ),
         ],
@@ -1339,6 +1350,27 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.account_balance_wallet),
                   border: const OutlineInputBorder(),
+                  helperText: 'Increase or decrease worker credit balance',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue.shade600, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Credit changes will appear in worker transaction history',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1368,25 +1400,18 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   stcPayController.text.isEmpty ||
                   addressController.text.isEmpty ||
                   addressArabicController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text(AdminTranslations.split(AdminTranslations.fillAllFields)[0]),
-                        const SizedBox(width: 4),
-                        Text(
-                          AdminTranslations.split(AdminTranslations.fillAllFields)[1],
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Please fill all fields',
+                    'يرجى ملء جميع الحقول',
+                    Colors.red
                 );
                 return;
               }
 
               final credit = double.tryParse(creditController.text) ?? worker['creditBalance'];
+              final oldCredit = worker['creditBalance'] as double;
+              final creditDifference = credit - oldCredit;
 
               final updatedWorker = WorkerData(
                 id: worker['id'],
@@ -1408,37 +1433,58 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
               final success = _authService.updateWorker(worker['phone'], updatedWorker);
 
+              // ✅ CRITICAL: Credit change hai to AppStateProvider ko bhi sync karo WITH TRANSACTION
               if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text('${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${AdminTranslations.split(AdminTranslations.successfullyUpdated)[0]}'),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${AdminTranslations.split(AdminTranslations.successfullyUpdated)[1]}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
+                final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
+
+                // Sync credit balance
+                appStateProvider.syncWorkerCredit(worker['id'], credit);
+
+                // ✅ ADD TRANSACTION FOR CREDIT DIFFERENCE (only if credit changed)
+                if (creditDifference != 0) {
+                  final transactionDescription = creditDifference > 0
+                      ? 'Credit increased by administrator'
+                      : 'Credit decreased by administrator';
+
+                  appStateProvider.addCreditWithTransaction(
+                      worker['id'],
+                      creditDifference,
+                      transactionDescription
+                  );
+
+                  debugPrint('✅ Credit transaction added for worker ${worker['id']}: ${creditDifference > 0 ? '+' : ''}${creditDifference.toStringAsFixed(2)}');
+                }
+
+                debugPrint('✅ Credit synced for worker ${worker['id']}: SAR ${credit.toStringAsFixed(2)}');
+              }
+
+              if (success) {
+                String message = '';
+                String messageAr = '';
+
+                if (creditDifference > 0) {
+                  message = 'Worker updated - Credit increased by SAR ${creditDifference.toStringAsFixed(2)}';
+                  messageAr = 'تم تحديث العامل - تم زيادة الرصيد بمقدار ${creditDifference.toStringAsFixed(2)} ريال';
+                } else if (creditDifference < 0) {
+                  message = 'Worker updated - Credit decreased by SAR ${creditDifference.abs().toStringAsFixed(2)}';
+                  messageAr = 'تم تحديث العامل - تم خصم الرصيد بمقدار ${creditDifference.abs().toStringAsFixed(2)} ريال';
+                } else {
+                  message = 'Worker updated successfully';
+                  messageAr = 'تم تحديث العامل بنجاح';
+                }
+
+                _showTopSnackBar(
+                    context,
+                    message,
+                    messageAr,
+                    Colors.green
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Text('Failed to update worker'),
-                        const SizedBox(width: 4),
-                        Text(
-                          'فشل في تحديث العامل',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Failed to update worker',
+                    'فشل في تحديث العامل',
+                    Colors.red
                 );
               }
             },
@@ -1530,27 +1576,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               final success = _authService.toggleWorkerStatus(worker['phone']);
 
               if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text('${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[0] : AdminTranslations.split(AdminTranslations.workerBlocked)[0]}'),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[1] : AdminTranslations.split(AdminTranslations.workerBlocked)[1]}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Text(worker['nameArabic']?.toString() ?? '', textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                    backgroundColor: newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red,
-                  ),
+                _showTopSnackBar(
+                    context,
+                    'Worker ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? 'unblocked' : 'blocked'} successfully',
+                    'تم ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? 'فك الحظر' : 'الحظر'} للعامل بنجاح',
+                    newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red
                 );
               }
             },

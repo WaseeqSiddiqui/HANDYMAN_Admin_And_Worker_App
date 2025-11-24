@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
 import '/services/worker_auth_service.dart';
+import '/utils/auth_translations.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   final String role;
@@ -18,17 +19,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   void _sendOTP() {
     if (_phoneController.text.length == 10) {
-      // ✅ Format phone number consistently
       String phoneInput = _phoneController.text.trim();
       final fullPhoneNumber = '+966$phoneInput';
 
       debugPrint('🔍 Login attempt: $fullPhoneNumber for role: ${widget.role}');
 
-      // ✅ CHECK WORKER REGISTRATION BEFORE SENDING OTP
       if (widget.role == 'Worker') {
         final authService = WorkerAuthService();
 
-        // Debug log all registered workers
         final allWorkers = authService.getAllWorkers();
         debugPrint('📋 Total registered workers: ${allWorkers.length}');
         for (var w in allWorkers) {
@@ -39,11 +37,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           debugPrint('❌ Worker NOT registered: $fullPhoneNumber');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                '⚠️ Worker not registered!\n\n'
-                    'Phone: $fullPhoneNumber\n\n'
-                    'Please contact admin to register your account.',
-                style: const TextStyle(fontSize: 13),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(AuthTranslations.getEnglish(AuthTranslations.workerNotRegistered)),
+                  Text('Phone: $fullPhoneNumber'),
+                  Text(AuthTranslations.getEnglish(AuthTranslations.contactAdmin)),
+                ],
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
@@ -57,17 +58,23 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
         if (worker?.status != 'Active') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('❌ Account Blocked!\n\nYour account has been blocked. Contact admin.'),
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(AuthTranslations.getEnglish(AuthTranslations.accountBlocked)),
+                  Text(AuthTranslations.getEnglish(AuthTranslations.accountBlockedMessage)),
+                ],
+              ),
               backgroundColor: Colors.red,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
           return;
         }
       }
 
-      // ✅ IF ALL CHECKS PASS, SEND OTP
       setState(() => _isLoading = true);
 
       Future.delayed(const Duration(seconds: 2), () {
@@ -86,8 +93,15 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid 10-digit phone number'),
+        SnackBar(
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AuthTranslations.getEnglish(AuthTranslations.validPhoneError)),
+              Text(AuthTranslations.getArabic(AuthTranslations.validPhoneError)),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -110,6 +124,19 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Icon(Icons.arrow_back, color: textColor),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AuthTranslations.getEnglish(AuthTranslations.back),
+              style: TextStyle(fontSize: 16, color: textColor),
+            ),
+            Text(
+              AuthTranslations.getArabic(AuthTranslations.back),
+              style: TextStyle(fontSize: 12, color: subtitleColor),
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -151,21 +178,48 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               const SizedBox(height: 32),
 
-              Text(
-                'Welcome, ${widget.role}',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+              // Welcome - Column Format
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${AuthTranslations.getEnglish(AuthTranslations.welcome)}, ${widget.role}',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  Text(
+                    '${AuthTranslations.getArabic(AuthTranslations.welcome)}, ${widget.role == 'Admin' ? 'مشرف' : 'عامل'}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
-              Text(
-                'Enter your phone number to continue',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: subtitleColor,
-                ),
+
+              // Enter Phone - Column Format
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AuthTranslations.getEnglish(AuthTranslations.enterPhoneToContinue),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: subtitleColor,
+                    ),
+                  ),
+                  Text(
+                    AuthTranslations.getArabic(AuthTranslations.enterPhoneToContinue),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
 
@@ -185,13 +239,26 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Phone Number',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: textColor,
-                      ),
+                    // Phone Number Label - Column Format
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AuthTranslations.getEnglish(AuthTranslations.phoneNumber),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        Text(
+                          AuthTranslations.getArabic(AuthTranslations.phoneNumber),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: subtitleColor,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     Container(
@@ -213,13 +280,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 ),
                               ),
                             ),
-                            child: Row(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text(
                                   '🇸🇦',
                                   style: TextStyle(fontSize: 20),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(height: 4),
                                 Text(
                                   '+966',
                                   style: TextStyle(
@@ -245,7 +313,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 color: textColor,
                               ),
                               decoration: InputDecoration(
-                                hintText: '5XXXXXXXX',
+                                hintText: AuthTranslations.phoneHint,
                                 hintStyle: TextStyle(color: subtitleColor),
                                 border: InputBorder.none,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -281,13 +349,25 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                      : const Text(
-                    'Send OTP',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                      : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AuthTranslations.getEnglish(AuthTranslations.sendOtp),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        AuthTranslations.getArabic(AuthTranslations.sendOtp),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -311,14 +391,28 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        widget.role == 'Worker'
-                            ? 'Workers must be registered by admin before login'
-                            : 'We will send you a one-time password to verify your account',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: subtitleColor,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.role == 'Worker'
+                                ? AuthTranslations.getEnglish(AuthTranslations.workersMustBeRegistered)
+                                : AuthTranslations.getEnglish(AuthTranslations.otpInfo),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: subtitleColor,
+                            ),
+                          ),
+                          Text(
+                            widget.role == 'Worker'
+                                ? AuthTranslations.getArabic(AuthTranslations.workersMustBeRegistered)
+                                : AuthTranslations.getArabic(AuthTranslations.otpInfo),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: subtitleColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
