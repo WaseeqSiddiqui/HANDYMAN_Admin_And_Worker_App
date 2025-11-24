@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
 import '/models/service_request_model.dart';
+import '/utils/worker_translations.dart';
 
 class CompletedServicesScreen extends StatelessWidget {
   const CompletedServicesScreen({super.key});
@@ -10,13 +11,25 @@ class CompletedServicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Completed Services'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.completedServices),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              WorkerTranslations.getArabic(WorkerTranslations.completedServices),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
-          final completedServices = appState.completedServices; // ✅ Returns List<ServiceRequest>
+          final completedServices = appState.completedServices;
 
           if (completedServices.isEmpty) {
             return Center(
@@ -26,8 +39,18 @@ class CompletedServicesScreen extends StatelessWidget {
                   Icon(Icons.check_circle_outline, size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text(
-                    'No completed services yet',
+                    WorkerTranslations.noCompletedServices,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    WorkerTranslations.getBilingual(
+                        'Your completed services will appear here',
+                        'ستظهر خدماتك المكتملة هنا'
+                    ),
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -48,7 +71,6 @@ class CompletedServicesScreen extends StatelessWidget {
   }
 
   Widget _buildServiceCard(ServiceRequest service) {
-    // ✅ Use model properties directly
     final totalPrice = service.totalPrice;
     final commission = service.totalCommission;
     final vat = service.totalVAT;
@@ -101,9 +123,9 @@ class CompletedServicesScreen extends StatelessWidget {
                     color: Colors.green.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Completed',
-                    style: TextStyle(
+                  child: Text(
+                    WorkerTranslations.completed,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.green,
@@ -133,9 +155,13 @@ class CompletedServicesScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 4),
-                  Text(
-                    'Completed: ${_formatDate(service.completedDate!)}',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  Expanded(
+                    child: Text(
+                      'Completed: ${_formatDate(service.completedDate!)}',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -148,7 +174,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total Amount',
+                      WorkerTranslations.totalAmount,
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                     Text(
@@ -165,7 +191,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Your Earnings',
+                      WorkerTranslations.yourEarnings,
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                     Text(
@@ -190,8 +216,14 @@ class CompletedServicesScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildDetailRow('Commission', 'SAR ${commission.toStringAsFixed(2)}'),
-                  _buildDetailRow('VAT', 'SAR ${vat.toStringAsFixed(2)}'),
+                  _buildDetailRow(
+                      WorkerTranslations.commission,
+                      'SAR ${commission.toStringAsFixed(2)}'
+                  ),
+                  _buildDetailRow(
+                      WorkerTranslations.vat,
+                      'SAR ${vat.toStringAsFixed(2)}'
+                  ),
                 ],
               ),
             ),
@@ -209,6 +241,7 @@ class CompletedServicesScreen extends StatelessWidget {
           label,
           style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
         ),
+        const SizedBox(height: 2),
         Text(
           value,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
@@ -223,13 +256,22 @@ class CompletedServicesScreen extends StatelessWidget {
 
     if (diff.inDays == 0) {
       if (diff.inHours == 0) {
-        return '${diff.inMinutes} min ago';
+        return WorkerTranslations.getBilingual(
+            '${diff.inMinutes} min ago',
+            '${diff.inMinutes} دقيقة مضت'
+        );
       }
-      return '${diff.inHours}h ago';
+      return WorkerTranslations.getBilingual(
+          '${diff.inHours}h ago',
+          '${diff.inHours}س مضت'
+      );
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return WorkerTranslations.yesterday;
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return WorkerTranslations.getBilingual(
+          '${date.day}/${date.month}/${date.year}',
+          '${date.day}/${date.month}/${date.year}'
+      );
     }
   }
 }

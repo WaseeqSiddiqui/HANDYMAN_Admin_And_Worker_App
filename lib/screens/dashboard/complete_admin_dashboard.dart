@@ -1,11 +1,11 @@
-// complete_admin_dashboard.dart - FIXED VERSION
-
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/services/financial_service.dart';
 import '/providers/app_state_provider.dart';
 import '/models/financial_transaction_model.dart';
+import '/utils/admin_translations.dart';
+import '/widgets/bilingual_text.dart'; // Add this import
 
 // Import admin screens
 import '/admin/admin_wallet_screen.dart';
@@ -56,28 +56,29 @@ class AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Get proper summary object from financial service
     final report = _financialService.getReportSummary();
-
     final totalRevenue = report.totalRevenue;
     final totalCommission = report.totalCommission;
     final totalVAT = report.totalVAT;
+    final currentBalance = _financialService.getCurrentBalance(); // ✅ Get current admin wallet balance
 
-    // ✅ Get counts from AppStateProvider using model lists
     final appState = Provider.of<AppStateProvider>(context, listen: false);
-
-    // ✅ FIXED: Active services = Requested + In Progress + Postponed
-    // (All non-completed services visible to admin)
-    final activeServices = appState.adminRequestedServices.length +
-        appState.adminInProgressServices.length +
-        appState.adminPostponedServices.length;
-
+    // ✅ FIXED: Only count services with assigned workers
+    final assignedServices = appState.adminAssignedServices.length;
+    final inProgressServices = appState.adminInProgressServices.length;
+    final postponedServices = appState.adminPostponedServices.length;
+    final activeServices = assignedServices + inProgressServices + postponedServices;
     final completedServices = _financialService.getCompletedServices().length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: BilingualText( // ✅ Bilingual app bar title
+          english: AdminTranslations.split(AdminTranslations.adminDashboard)[0],
+          arabic: AdminTranslations.split(AdminTranslations.adminDashboard)[1],
+          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -111,6 +112,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => setState(() {}),
+            tooltip: AdminTranslations.split(AdminTranslations.refreshBtn)[0],
           ),
         ],
       ),
@@ -120,20 +122,30 @@ class AdminDashboardState extends State<AdminDashboard> {
           setState(() {});
           await Future.delayed(const Duration(seconds: 1));
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildFinancialOverview(totalRevenue, totalCommission, totalVAT),
-              const SizedBox(height: 20),
-              _buildQuickStats(activeServices, completedServices),
-              const SizedBox(height: 20),
-              _buildQuickAccessGrid(),
-              const SizedBox(height: 20),
-              _buildRecentActivity(),
-            ],
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFinancialOverview(currentBalance, totalRevenue, totalCommission, totalVAT),
+                    const SizedBox(height: 20),
+                    _buildQuickStats(activeServices, completedServices),
+                    const SizedBox(height: 20),
+                    _buildQuickAccessGrid(),
+                    const SizedBox(height: 20),
+                    _buildRecentActivity(),
+                    const SizedBox(height: 20), // Extra bottom padding to prevent overflow
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -167,11 +179,17 @@ class AdminDashboardState extends State<AdminDashboard> {
                       child: Icon(Icons.admin_panel_settings, size: 32, color: Color(0xFF6B5B9A)),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Admin Panel',
-                      style: TextStyle(
+                    BilingualText( // ✅ Bilingual admin panel title
+                      english: AdminTranslations.split(AdminTranslations.adminPanel)[0],
+                      arabic: AdminTranslations.split(AdminTranslations.adminPanel)[1],
+                      englishStyle: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      arabicStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -194,59 +212,59 @@ class AdminDashboardState extends State<AdminDashboard> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerSection('Financial', [
-                  _buildDrawerItem(Icons.account_balance_wallet, 'Wallet', () {
+                _buildDrawerSection(AdminTranslations.financial, [
+                  _buildDrawerItem(Icons.account_balance_wallet, AdminTranslations.wallet, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen()));
                   }),
-                  _buildDrawerItem(Icons.money, 'Commission', () {
+                  _buildDrawerItem(Icons.money, AdminTranslations.commission, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen()));
                   }),
-                  _buildDrawerItem(Icons.receipt_long, 'VAT', () {
+                  _buildDrawerItem(Icons.receipt_long, AdminTranslations.vat, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen()));
                   }),
-                  _buildDrawerItem(Icons.analytics, 'Reports', () {
+                  _buildDrawerItem(Icons.analytics, AdminTranslations.reports, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen()));
                   }),
                 ]),
                 const Divider(height: 1),
-                _buildDrawerSection('Operations', [
-                  _buildDrawerItem(Icons.assignment, 'Service Requests', () {
+                _buildDrawerSection(AdminTranslations.operations, [
+                  _buildDrawerItem(Icons.assignment, AdminTranslations.serviceRequests, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen()));
                   }),
-                  _buildDrawerItem(Icons.account_balance, 'Withdrawals', () {
+                  _buildDrawerItem(Icons.account_balance, AdminTranslations.withdrawals, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(
                         builder: (context) => const WithdrawalRequestsScreen()));
                   }),
-                  _buildDrawerItem(Icons.build, 'Service Management', () {
+                  _buildDrawerItem(Icons.build, AdminTranslations.serviceManagement, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen()));
                   }),
-                  _buildDrawerItem(Icons.people, 'Workers', () {
+                  _buildDrawerItem(Icons.people, AdminTranslations.workers, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen()));
                   }),
-                  _buildDrawerItem(Icons.person, 'Customers', () {
+                  _buildDrawerItem(Icons.person, AdminTranslations.customers, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerManagementScreen()));
                   }),
-                  _buildDrawerItem(Icons.receipt, 'Invoices', () {
+                  _buildDrawerItem(Icons.receipt, AdminTranslations.invoices, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const InvoiceManagementScreen()));
                   }),
                 ]),
                 const Divider(height: 1),
-                _buildDrawerSection('Support', [
-                  _buildDrawerItem(Icons.rate_review, 'Reviews', () {
+                _buildDrawerSection(AdminTranslations.support, [
+                  _buildDrawerItem(Icons.rate_review, AdminTranslations.reviews, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ReviewsScreen()));
                   }),
-                  _buildDrawerItem(Icons.notifications, 'Notifications', () {
+                  _buildDrawerItem(Icons.notifications, AdminTranslations.notifications, () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
                   }),
@@ -255,17 +273,24 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // Simple Logout button at bottom
+          // Simple Logout button at bottom - FIXED ARABIC FONT SIZE
           const Divider(height: 1),
           SafeArea(
             top: false,
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'Logout',
-                style: TextStyle(
+              title: BilingualText( // ✅ Bilingual logout - FIXED ARABIC FONT SIZE
+                english: AdminTranslations.split(AdminTranslations.logout)[0],
+                arabic: AdminTranslations.split(AdminTranslations.logout)[1],
+                englishStyle: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.w600,
+                  fontSize: 15, // English font size
+                ),
+                arabicStyle: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13, // Smaller Arabic font size
                 ),
               ),
               onTap: _handleLogout,
@@ -276,19 +301,27 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildDrawerSection(String title, List<Widget> items) {
+  Widget _buildDrawerSection(String bilingualTitle, List<Widget> items) {
+    final titleParts = AdminTranslations.split(bilingualTitle);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            title,
-            style: TextStyle(
+          child: BilingualText( // ✅ Bilingual section titles
+            english: titleParts[0],
+            arabic: titleParts[1],
+            englishStyle: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: Colors.grey[600],
               letterSpacing: 0.5,
+            ),
+            arabicStyle: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
             ),
           ),
         ),
@@ -297,12 +330,16 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildDrawerItem(IconData icon, String bilingualTitle, VoidCallback onTap) {
+    final titleParts = AdminTranslations.split(bilingualTitle);
+
     return ListTile(
       leading: Icon(icon, size: 22, color: const Color(0xFF6B5B9A)),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 15),
+      title: BilingualText( // ✅ Bilingual drawer items
+        english: titleParts[0],
+        arabic: titleParts[1],
+        englishStyle: const TextStyle(fontSize: 15),
+        arabicStyle: const TextStyle(fontSize: 14),
       ),
       onTap: onTap,
       dense: true,
@@ -324,14 +361,39 @@ class AdminDashboardState extends State<AdminDashboard> {
               child: const Icon(Icons.logout, color: Colors.red, size: 24),
             ),
             const SizedBox(width: 12),
-            const Text('Logout'),
+            BilingualText( // ✅ Bilingual logout title - FIXED ARABIC FONT SIZE
+              english: AdminTranslations.split(AdminTranslations.logout)[0],
+              arabic: AdminTranslations.split(AdminTranslations.logout)[1],
+              englishStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              arabicStyle: const TextStyle(
+                fontSize: 16, // Smaller Arabic font size
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
-        content: const Text('Are you sure you want to logout from Admin Panel?'),
+        content: BilingualText( // ✅ Bilingual logout confirmation - FIXED ARABIC FONT SIZE
+          english: AdminTranslations.split(AdminTranslations.logoutConfirm)[0],
+          arabic: AdminTranslations.split(AdminTranslations.logoutConfirm)[1],
+          englishStyle: const TextStyle(
+            fontSize: 14,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 13, // Smaller Arabic font size
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: BilingualText(
+              english: AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+              arabic: AdminTranslations.split(AdminTranslations.cancelBtn)[1],
+              englishStyle: const TextStyle(fontSize: 14),
+              arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -345,16 +407,21 @@ class AdminDashboardState extends State<AdminDashboard> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Logout'),
+            child: BilingualText(
+              english: AdminTranslations.split(AdminTranslations.logout)[0],
+              arabic: AdminTranslations.split(AdminTranslations.logout)[1],
+              englishStyle: const TextStyle(fontSize: 14),
+              arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFinancialOverview(double totalRevenue, double totalCommission, double totalVAT) {
+  Widget _buildFinancialOverview(double currentBalance, double totalRevenue, double totalCommission, double totalVAT) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF6B5B9A), Color(0xFF4A3B7A)],
@@ -373,43 +440,81 @@ class AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.account_balance_wallet, color: Colors.white, size: 28),
-              SizedBox(width: 12),
-              Text(
-                'Financial Overview',
-                style: TextStyle(
+              const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              BilingualText( // ✅ Bilingual financial overview title
+                english: AdminTranslations.split(AdminTranslations.financialOverview)[0],
+                arabic: AdminTranslations.split(AdminTranslations.financialOverview)[1],
+                englishStyle: const TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                arabicStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
+          // ✅ CURRENT BALANCE - Most Prominent (matches admin wallet screen)
+          Center(
+            child: Column(
+              children: [
+                const Text(
+                  'Current Balance | الرصيد الحالي',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'SAR ${currentBalance.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.2),
+          ),
+          const SizedBox(height: 16),
+          // ✅ Total Revenue
           _buildFinancialMetric(
-            'Total Revenue',
+            AdminTranslations.totalRevenue,
             'SAR ${totalRevenue.toStringAsFixed(2)}',
             Icons.trending_up,
             Colors.greenAccent,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          // ✅ Commission & VAT
           Row(
             children: [
               Expanded(
                 child: _buildFinancialMetric(
-                  'Commission',
+                  AdminTranslations.commission,
                   'SAR ${totalCommission.toStringAsFixed(2)}',
                   Icons.money,
                   Colors.amberAccent,
                   isCompact: true,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildFinancialMetric(
-                  'VAT',
+                  AdminTranslations.vat,
                   'SAR ${totalVAT.toStringAsFixed(2)}',
                   Icons.receipt,
                   Colors.orangeAccent,
@@ -423,10 +528,12 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildFinancialMetric(String label, String value, IconData icon, Color iconColor,
+  Widget _buildFinancialMetric(String bilingualLabel, String value, IconData icon, Color iconColor,
       {bool isCompact = false}) {
+    final labelParts = AdminTranslations.split(bilingualLabel);
+
     return Container(
-      padding: EdgeInsets.all(isCompact ? 12 : 16),
+      padding: EdgeInsets.all(isCompact ? 10 : 16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(12),
@@ -434,32 +541,40 @@ class AdminDashboardState extends State<AdminDashboard> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: iconColor, size: isCompact ? 20 : 24),
+            child: Icon(icon, color: iconColor, size: isCompact ? 18 : 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
+                BilingualText( // ✅ Bilingual metric labels
+                  english: labelParts[0],
+                  arabic: labelParts[1],
+                  englishStyle: TextStyle(
                     color: Colors.white70,
-                    fontSize: isCompact ? 11 : 13,
+                    fontSize: isCompact ? 10 : 13,
+                    height: 1.2,
+                  ),
+                  arabicStyle: TextStyle(
+                    color: Colors.white70,
+                    fontSize: isCompact ? 9 : 12,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isCompact ? 14 : 18,
+                    fontSize: isCompact ? 12 : 18,
                     fontWeight: FontWeight.bold,
+                    height: 1.1,
                   ),
                 ),
               ],
@@ -475,7 +590,7 @@ class AdminDashboardState extends State<AdminDashboard> {
       children: [
         Expanded(
           child: _buildStatCard(
-            'Active Services',
+            AdminTranslations.activeServices,
             activeServices.toString(),
             Icons.pending_actions,
             Colors.blue,
@@ -484,7 +599,7 @@ class AdminDashboardState extends State<AdminDashboard> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
-            'Completed',
+            AdminTranslations.completed,
             completedServices.toString(),
             Icons.check_circle,
             Colors.green,
@@ -494,7 +609,9 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String bilingualLabel, String value, IconData icon, Color color) {
+    final labelParts = AdminTranslations.split(bilingualLabel);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -527,11 +644,19 @@ class AdminDashboardState extends State<AdminDashboard> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(
+          const SizedBox(height: 4),
+          BilingualText( // ✅ Bilingual stat labels
+            english: labelParts[0],
+            arabic: labelParts[1],
+            englishStyle: TextStyle(
               fontSize: 13,
               color: Colors.grey[600],
+              height: 1.2,
+            ),
+            arabicStyle: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              height: 1.2,
             ),
           ),
         ],
@@ -543,9 +668,11 @@ class AdminDashboardState extends State<AdminDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Quick Access',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        BilingualText( // ✅ Bilingual quick access title
+          english: AdminTranslations.split(AdminTranslations.quickAccess)[0],
+          arabic: AdminTranslations.split(AdminTranslations.quickAccess)[1],
+          englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          arabicStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -554,46 +681,46 @@ class AdminDashboardState extends State<AdminDashboard> {
           crossAxisCount: 3,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.1,
+          childAspectRatio: 1.0, // Reduced from 1.1 to prevent overflow
           children: [
             _buildQuickAccessCard(
-              'Wallet',
+              AdminTranslations.wallet,
               Icons.account_balance_wallet,
               Colors.blue,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen())),
             ),
             _buildQuickAccessCard(
-              'Commission',
+              AdminTranslations.commission,
               Icons.money,
               Colors.purple,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen())),
             ),
             _buildQuickAccessCard(
-              'VAT',
+              AdminTranslations.vat,
               Icons.receipt_long,
               Colors.orange,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen())),
             ),
             _buildQuickAccessCard(
-              'Reports',
+              AdminTranslations.reports,
               Icons.analytics,
               Colors.green,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen())),
             ),
             _buildQuickAccessCard(
-              'Services',
+              AdminTranslations.services,
               Icons.assignment,
               Colors.red,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen())),
             ),
             _buildQuickAccessCard(
-              'Workers',
+              AdminTranslations.workers,
               Icons.people,
               Colors.teal,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen())),
             ),
             _buildQuickAccessCard(
-              'Service Mgmt',
+              AdminTranslations.serviceMgmt,
               Icons.build,
               Colors.deepPurple,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen())),
@@ -604,7 +731,9 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildQuickAccessCard(String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickAccessCard(String bilingualLabel, IconData icon, Color color, VoidCallback onTap) {
+    final labelParts = AdminTranslations.split(bilingualLabel);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -618,14 +747,22 @@ class AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
+            Icon(icon, color: color, size: 28), // Reduced from 32
+            const SizedBox(height: 6), // Reduced from 8
+            BilingualText( // ✅ Bilingual quick access labels
+              english: labelParts[0],
+              arabic: labelParts[1],
+              englishStyle: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
+                fontSize: 11, // Reduced from 12
+                height: 1.2,
+              ),
+              arabicStyle: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 10, // Reduced from 11
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
             ),
@@ -644,16 +781,23 @@ class AdminDashboardState extends State<AdminDashboard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Recent Services',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            BilingualText( // ✅ Bilingual recent services title
+              english: AdminTranslations.split(AdminTranslations.recentServices)[0],
+              arabic: AdminTranslations.split(AdminTranslations.recentServices)[1],
+              englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              arabicStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FinancialReportsScreen()),
               ),
-              child: const Text('View All'),
+              child: BilingualText(
+                english: AdminTranslations.split(AdminTranslations.viewAll)[0],
+                arabic: AdminTranslations.split(AdminTranslations.viewAll)[1],
+                englishStyle: const TextStyle(fontSize: 14),
+                arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
+              ),
             ),
           ],
         ),
@@ -670,9 +814,11 @@ class AdminDashboardState extends State<AdminDashboard> {
                 children: [
                   Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
                   const SizedBox(height: 12),
-                  Text(
-                    'No recent services',
-                    style: TextStyle(color: Colors.grey[600]),
+                  BilingualText( // ✅ Bilingual empty state
+                    english: AdminTranslations.split(AdminTranslations.noRecentServices)[0],
+                    arabic: AdminTranslations.split(AdminTranslations.noRecentServices)[1],
+                    englishStyle: TextStyle(color: Colors.grey[600]),
+                    arabicStyle: TextStyle(color: Colors.grey[600]),
                   ),
                 ],
               ),

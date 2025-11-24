@@ -1,4 +1,4 @@
-// lib/models/worker_data.dart
+// lib/models/worker_data_model.dart
 class WorkerData {
   final String id;
   final String name;
@@ -27,7 +27,7 @@ class WorkerData {
     required this.status,
     required this.joinedDate,
     this.completedServices = 0,
-    this.creditBalance = 100.0, // default initial credit
+    this.creditBalance = 100.0,
   });
 
   WorkerData copyWith({
@@ -59,6 +59,44 @@ class WorkerData {
       joinedDate: joinedDate ?? this.joinedDate,
       completedServices: completedServices ?? this.completedServices,
       creditBalance: creditBalance ?? this.creditBalance,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'nameArabic': nameArabic,
+      'phone': phone,
+      'email': email,
+      'nationalId': nationalId,
+      'stcPayId': stcPayId,
+      'address': address,
+      'addressArabic': addressArabic,
+      'status': status,
+      'joinedDate': joinedDate.toIso8601String(),
+      'completedServices': completedServices,
+      'creditBalance': creditBalance,
+    };
+  }
+
+  factory WorkerData.fromMap(Map<String, dynamic> map) {
+    return WorkerData(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      nameArabic: map['nameArabic'] ?? '',
+      phone: map['phone'] ?? '',
+      email: map['email'] ?? '',
+      nationalId: map['nationalId'] ?? '',
+      stcPayId: map['stcPayId'] ?? '',
+      address: map['address'] ?? '',
+      addressArabic: map['addressArabic'] ?? '',
+      status: map['status'] ?? 'Active',
+      joinedDate: map['joinedDate'] is DateTime
+          ? map['joinedDate']
+          : DateTime.parse(map['joinedDate'] ?? DateTime.now().toIso8601String()),
+      completedServices: map['completedServices'] ?? 0,
+      creditBalance: (map['creditBalance'] ?? 100.0).toDouble(),
     );
   }
 }

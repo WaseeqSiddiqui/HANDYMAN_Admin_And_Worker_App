@@ -4,6 +4,8 @@ import 'vat_management_screen.dart';
 import 'commission_management_screen.dart';
 import '../models/financial_report_summary_model.dart';
 import '../models/monthly_comparison_model.dart';
+import '../utils/admin_translations.dart';
+import '../widgets/bilingual_text.dart';
 
 class FinancialReportsScreen extends StatefulWidget {
   const FinancialReportsScreen({super.key});
@@ -50,14 +52,19 @@ class FinancialReportsScreenState
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Financial Reports'),
+        title: BilingualText( // ✅ Bilingual app bar title
+          english: AdminTranslations.split(AdminTranslations.financialReports)[0],
+          arabic: AdminTranslations.split(AdminTranslations.financialReports)[1],
+          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => setState(() {}),
-            tooltip: 'Refresh',
+            tooltip: AdminTranslations.split(AdminTranslations.refreshBtn)[0],
           ),
         ],
       ),
@@ -88,10 +95,19 @@ class FinancialReportsScreenState
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(value: 'Weekly', label: Text('Weekly')),
-          ButtonSegment(value: 'Monthly', label: Text('Monthly')),
-          ButtonSegment(value: 'Yearly', label: Text('Yearly')),
+        segments: [
+          ButtonSegment(
+            value: 'Weekly',
+            label: Text(AdminTranslations.split(AdminTranslations.weekly)[0]),
+          ),
+          ButtonSegment(
+            value: 'Monthly',
+            label: Text(AdminTranslations.split(AdminTranslations.monthly)[0]),
+          ),
+          ButtonSegment(
+            value: 'Yearly',
+            label: Text(AdminTranslations.split(AdminTranslations.yearly)[0]),
+          ),
         ],
         selected: {_selectedPeriod},
         onSelectionChanged: (Set<String> newSelection) {
@@ -129,9 +145,10 @@ class FinancialReportsScreenState
                     const Icon(Icons.trending_up,
                         color: Colors.white, size: 28),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Total Revenue',
-                      style: TextStyle(
+                    BilingualText(
+                      english: AdminTranslations.split(AdminTranslations.totalRevenue)[0],
+                      arabic: AdminTranslations.split(AdminTranslations.totalRevenue)[1],
+                      englishStyle: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
@@ -165,7 +182,7 @@ class FinancialReportsScreenState
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${comparison.revenueGrowth.abs().toStringAsFixed(1)}% from last month',
+                            '${comparison.revenueGrowth.abs().toStringAsFixed(1)}% ${AdminTranslations.split(AdminTranslations.fromLastMonth)[0]}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -201,9 +218,10 @@ class FinancialReportsScreenState
                     const Icon(Icons.account_balance_wallet,
                         color: Colors.white, size: 28),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Workers Share',
-                      style: TextStyle(
+                    BilingualText(
+                      english: AdminTranslations.split(AdminTranslations.workersShare)[0],
+                      arabic: AdminTranslations.split(AdminTranslations.workersShare)[1],
+                      englishStyle: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
@@ -237,7 +255,7 @@ class FinancialReportsScreenState
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${comparison.workersShareGrowth.abs().toStringAsFixed(1)}% from last month',
+                            '${comparison.workersShareGrowth.abs().toStringAsFixed(1)}% ${AdminTranslations.split(AdminTranslations.fromLastMonth)[0]}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -253,148 +271,86 @@ class FinancialReportsScreenState
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSmallStatCard(
-                'Services',
-                report.totalServices.toString(),
-                Icons.build_circle,
-                const Color(0xFF2196F3),
-                cardColor,
-                textColor,
-              ),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSmallStatCard(
-                'Avg. Value',
-                'SAR ${report.averageServiceValue.toStringAsFixed(0)}',
-                Icons.attach_money,
-                const Color(0xFF9C27B0),
-                cardColor,
-                textColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF9800).withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.analytics, color: Colors.white, size: 28),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BilingualText(
+                        english: AdminTranslations.split(AdminTranslations.avgServiceValue)[0],
+                        arabic: AdminTranslations.split(AdminTranslations.avgServiceValue)[1],
+                        englishStyle: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'SAR ${report.averageServiceValue.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${report.totalServices} ${AdminTranslations.split(AdminTranslations.services)[0]}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSmallStatCard(
-      String label,
-      String value,
-      IconData icon,
-      Color color,
-      Color cardColor,
-      Color textColor,
-      ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: textColor.withOpacity(0.6),
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildQuickAccessCards(
       FinancialReportSummary report, Color cardColor, Color textColor) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Detailed Reports',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.sync, color: Colors.green, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      'Auto-Updated',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
         Row(
           children: [
             Expanded(
               child: _buildQuickAccessCard(
-                'VAT Report',
+                AdminTranslations.split(AdminTranslations.vat)[0],
+                AdminTranslations.split(AdminTranslations.vat)[1],
                 'SAR ${report.totalVAT.toStringAsFixed(0)}',
-                Icons.receipt_long,
+                Icons.receipt,
                 Colors.orange,
                     () {
                   Navigator.push(
@@ -412,7 +368,8 @@ class FinancialReportsScreenState
             const SizedBox(width: 12),
             Expanded(
               child: _buildQuickAccessCard(
-                'Commission',
+                AdminTranslations.split(AdminTranslations.commission)[0],
+                AdminTranslations.split(AdminTranslations.commission)[1],
                 'SAR ${report.totalCommission.toStringAsFixed(0)}',
                 Icons.money,
                 Colors.purple,
@@ -436,7 +393,8 @@ class FinancialReportsScreenState
   }
 
   Widget _buildQuickAccessCard(
-      String title,
+      String titleEn,
+      String titleAr,
       String amount,
       IconData icon,
       Color color,
@@ -483,9 +441,10 @@ class FinancialReportsScreenState
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
+            BilingualText(
+              english: titleEn,
+              arabic: titleAr,
+              englishStyle: TextStyle(
                 fontSize: 13,
                 color: textColor.withOpacity(0.7),
               ),
@@ -514,9 +473,10 @@ class FinancialReportsScreenState
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Text(
-            'Recent Services',
-            style: TextStyle(
+          child: BilingualText(
+            english: AdminTranslations.split(AdminTranslations.recentServices)[0],
+            arabic: AdminTranslations.split(AdminTranslations.recentServices)[1],
+            englishStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -555,14 +515,14 @@ class FinancialReportsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Worker: ${transaction.workerName}',
+                      '${AdminTranslations.split(AdminTranslations.worker)[0]}: ${transaction.workerName}',
                       style: TextStyle(
                         fontSize: 12,
                         color: textColor.withOpacity(0.6),
                       ),
                     ),
                     Text(
-                      'Customer: ${transaction.customerName}',
+                      '${AdminTranslations.split(AdminTranslations.customer)[0]}: ${transaction.customerName}',
                       style: TextStyle(
                         fontSize: 12,
                         color: textColor.withOpacity(0.6),
@@ -608,12 +568,14 @@ class FinancialReportsScreenState
             Icon(Icons.analytics_outlined,
                 size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 16),
-            Text(
-              'No services completed yet',
-              style: TextStyle(
+            BilingualText(
+              english: AdminTranslations.split(AdminTranslations.noServicesYet)[0],
+              arabic: AdminTranslations.split(AdminTranslations.noServicesYet)[1],
+              englishStyle: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 14,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -627,7 +589,7 @@ class FinancialReportsScreenState
     final dateToCheck = DateTime(date.year, date.month, date.day);
 
     if (dateToCheck == today) {
-      return 'Today';
+      return AdminTranslations.split(AdminTranslations.today)[0];
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

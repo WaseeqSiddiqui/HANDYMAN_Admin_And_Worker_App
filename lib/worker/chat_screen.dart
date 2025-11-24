@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import '/models/service_request_model.dart';
+import '/utils/worker_translations.dart';
 
 class ChatScreen extends StatefulWidget {
-  final ServiceRequest service; // ✅ Now accepts ServiceRequest model
+  final ServiceRequest serviceRequest; // âœ… FIXED: Named parameter matches dashboard call
+  final String workerName;
 
-  const ChatScreen({super.key, required this.service});
+  const ChatScreen({
+    super.key,
+    required this.serviceRequest,
+    required this.workerName,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -42,11 +48,11 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.service.customerName, // ✅ Use model property
+              widget.serviceRequest.customerName,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              widget.service.serviceName, // ✅ Use model property
+              widget.serviceRequest.serviceName,
               style: const TextStyle(fontSize: 12, color: Colors.white70),
             ),
           ],
@@ -90,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Service: ${widget.service.serviceName} • ${widget.service.address}',
+              '${WorkerTranslations.getEnglish(WorkerTranslations.service)} ${widget.serviceRequest.serviceName} â€¢ ${widget.serviceRequest.address}',
               style: const TextStyle(fontSize: 12, color: Colors.black87),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -187,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 fontSize: 15,
               ),
               decoration: InputDecoration(
-                hintText: 'Type a message...',
+                hintText: WorkerTranslations.getEnglish(WorkerTranslations.typeMessage),
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -229,11 +235,11 @@ class _ChatScreenState extends State<ChatScreen> {
     final diff = now.difference(time);
 
     if (diff.inMinutes < 1) {
-      return 'Just now';
+      return WorkerTranslations.getEnglish(WorkerTranslations.justNow);
     } else if (diff.inHours < 1) {
-      return '${diff.inMinutes}m ago';
+      return '${diff.inMinutes}${WorkerTranslations.getEnglish(WorkerTranslations.mAgo)}';
     } else if (diff.inDays < 1) {
-      return '${diff.inHours}h ago';
+      return '${diff.inHours}${WorkerTranslations.getEnglish(WorkerTranslations.hAgo)}';
     } else {
       return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
     }
@@ -264,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _makePhoneCall() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Calling ${widget.service.customerName}...'),
+        content: Text('${WorkerTranslations.getEnglish(WorkerTranslations.calling)} ${widget.serviceRequest.customerName}...'),
         backgroundColor: const Color(0xFF6B5B9A),
         duration: const Duration(seconds: 2),
       ),

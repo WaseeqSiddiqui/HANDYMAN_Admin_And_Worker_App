@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '/utils/admin_translations.dart';
 import '/services/financial_service.dart';
 import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
@@ -15,7 +16,7 @@ class WithdrawalRequestsScreen extends StatefulWidget {
 
 class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
   final _financialService = FinancialService();
-  String _selectedFilter = 'Pending';
+  String _selectedFilter = "Pending";
 
   @override
   void initState() {
@@ -42,7 +43,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('Withdrawal Requests'),
+        title: Text(AdminTranslations.split(AdminTranslations.withdrawalRequests)[0]),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -50,7 +51,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => setState(() {}),
-            tooltip: 'Refresh',
+            tooltip: AdminTranslations.split(AdminTranslations.refreshBtn)[0],
           ),
         ],
       ),
@@ -72,15 +73,27 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildFilterChip('Pending', Icons.pending_actions, Colors.orange),
+            child: _buildFilterChip(
+              AdminTranslations.split(AdminTranslations.pending)[0],
+              Icons.pending_actions,
+              Colors.orange,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildFilterChip('Approved', Icons.check_circle, Colors.green),
+            child: _buildFilterChip(
+              AdminTranslations.split(AdminTranslations.approved)[0],
+              Icons.check_circle,
+              Colors.green,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildFilterChip('Rejected', Icons.cancel, Colors.red),
+            child: _buildFilterChip(
+              AdminTranslations.split(AdminTranslations.rejected)[0],
+              Icons.cancel,
+              Colors.red,
+            ),
           ),
         ],
       ),
@@ -139,7 +152,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
   }
 
   Widget _buildStatsSummary(Color cardColor) {
-    final pendingRequests = _financialService.getWithdrawalRequests(status: 'Pending');
+    final pendingRequests = _financialService.getWithdrawalRequests(
+      status: AdminTranslations.split(AdminTranslations.pending)[0],
+    );
     final totalPendingAmount = pendingRequests.fold<double>(
       0.0,
           (sum, req) => sum + req.amount,
@@ -163,7 +178,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
         children: [
           Expanded(
             child: _buildStatItem(
-              'Pending Requests',
+              AdminTranslations.split(AdminTranslations.pendingRequests)[0],
               pendingRequests.length.toString(),
               Icons.pending_actions,
               Colors.orange,
@@ -172,7 +187,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           Container(width: 1, height: 40, color: Colors.grey.shade300),
           Expanded(
             child: _buildStatItem(
-              'Total Amount',
+              AdminTranslations.split(AdminTranslations.totalAmount)[0],
               'SAR ${totalPendingAmount.toStringAsFixed(0)}',
               Icons.account_balance_wallet,
               Colors.blue,
@@ -253,20 +268,23 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       ),
     );
 
+    // Extract English values from bilingual strings
+    final approvedEn = AdminTranslations.split(AdminTranslations.approved)[0];
+    final rejectedEn = AdminTranslations.split(AdminTranslations.rejected)[0];
+
+    // Determine status color and icon
     Color statusColor;
     IconData statusIcon;
-    switch (request.status) {
-      case 'Approved':
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-      case 'Rejected':
-        statusColor = Colors.red;
-        statusIcon = Icons.cancel;
-        break;
-      default:
-        statusColor = Colors.orange;
-        statusIcon = Icons.pending_actions;
+
+    if (request.status == approvedEn) {
+      statusColor = Colors.green;
+      statusIcon = Icons.check_circle;
+    } else if (request.status == rejectedEn) {
+      statusColor = Colors.red;
+      statusIcon = Icons.cancel;
+    } else {
+      statusColor = Colors.orange;
+      statusIcon = Icons.pending_actions;
     }
 
     return Card(
@@ -302,7 +320,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                         ),
                       ),
                       Text(
-                        'Request ID: ${request.id}',
+                        '${AdminTranslations.split(AdminTranslations.requestId)[0]}: ${request.id}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -332,9 +350,23 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             const Divider(height: 24),
 
             // Worker Details
-            _buildDetailRow(Icons.phone, 'Phone', workerData.phone),
-            _buildDetailRow(Icons.payment, 'STC Pay', workerData.stcPayId.isEmpty ? 'Not provided' : workerData.stcPayId),
-            _buildDetailRow(Icons.work, 'Completed Services', '${workerData.completedServices} services'),
+            _buildDetailRow(
+              Icons.phone,
+              AdminTranslations.split(AdminTranslations.phone)[0],
+              workerData.phone,
+            ),
+            _buildDetailRow(
+              Icons.payment,
+              AdminTranslations.split(AdminTranslations.stcPay)[0],
+              workerData.stcPayId.isEmpty
+                  ? AdminTranslations.split(AdminTranslations.notProvided)[0]
+                  : workerData.stcPayId,
+            ),
+            _buildDetailRow(
+              Icons.work,
+              AdminTranslations.split(AdminTranslations.completedServices)[0],
+              '${workerData.completedServices} ${AdminTranslations.split(AdminTranslations.servicesLowercase)[0]}',
+            ),
 
             const SizedBox(height: 12),
 
@@ -349,13 +381,13 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.account_balance_wallet, color: Colors.blue, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.account_balance_wallet, color: Colors.blue, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Withdrawal Amount',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        AdminTranslations.split(AdminTranslations.withdrawalAmount)[0],
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -374,11 +406,19 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             const SizedBox(height: 12),
 
             // Request Date
-            _buildDetailRow(Icons.calendar_today, 'Requested', _formatDate(request.requestDate)),
+            _buildDetailRow(
+              Icons.calendar_today,
+              AdminTranslations.split(AdminTranslations.requested)[0],
+              _formatDate(request.requestDate),
+            ),
 
             // Processed Date (if approved/rejected)
             if (request.processedDate != null)
-              _buildDetailRow(Icons.check_circle_outline, 'Processed', _formatDate(request.processedDate!)),
+              _buildDetailRow(
+                Icons.check_circle_outline,
+                AdminTranslations.split(AdminTranslations.processedDate)[0],
+                _formatDate(request.processedDate!),
+              ),
 
             // Admin Notes (if rejected)
             if (request.adminNotes != null && request.adminNotes!.isNotEmpty) ...[
@@ -398,9 +438,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Rejection Reason:',
-                            style: TextStyle(
+                          Text(
+                            '${AdminTranslations.split(AdminTranslations.rejectionReason)[0]}:',
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                               color: Colors.red,
@@ -423,7 +463,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             ],
 
             // Action Buttons (only for pending)
-            if (request.status == 'Pending') ...[
+            if (request.status == AdminTranslations.split(AdminTranslations.pending)[0]) ...[
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -431,7 +471,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(request),
                       icon: const Icon(Icons.cancel, size: 18),
-                      label: const Text('Reject'),
+                      label: Text(AdminTranslations.split(AdminTranslations.reject)[0]),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
@@ -445,7 +485,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                     child: ElevatedButton.icon(
                       onPressed: () => _showApproveDialog(request, workerData),
                       icon: const Icon(Icons.check_circle, size: 18),
-                      label: const Text('Approve & Process'),
+                      label: Text(AdminTranslations.split(AdminTranslations.approveAndProcess)[0]),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -491,20 +531,23 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
   }
 
   Widget _buildEmptyState() {
+    // Extract English values from bilingual strings
+    final approvedEn = AdminTranslations.split(AdminTranslations.approved)[0];
+    final rejectedEn = AdminTranslations.split(AdminTranslations.rejected)[0];
+
+    // Determine empty state message and icon
     String message;
     IconData icon;
-    switch (_selectedFilter) {
-      case 'Approved':
-        message = 'No approved withdrawals';
-        icon = Icons.check_circle_outline;
-        break;
-      case 'Rejected':
-        message = 'No rejected withdrawals';
-        icon = Icons.cancel_outlined;
-        break;
-      default:
-        message = 'No pending withdrawal requests';
-        icon = Icons.pending_actions_outlined;
+
+    if (_selectedFilter == approvedEn) {
+      message = AdminTranslations.split(AdminTranslations.noApprovedWithdrawals)[0];
+      icon = Icons.check_circle_outline;
+    } else if (_selectedFilter == rejectedEn) {
+      message = AdminTranslations.split(AdminTranslations.noRejectedWithdrawals)[0];
+      icon = Icons.cancel_outlined;
+    } else {
+      message = AdminTranslations.split(AdminTranslations.noWithdrawalRequests)[0];
+      icon = Icons.pending_actions_outlined;
     }
 
     return Center(
@@ -529,11 +572,11 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Approve Withdrawal'),
+            const Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 8),
+            Text(AdminTranslations.split(AdminTranslations.approveWithdrawal)[0]),
           ],
         ),
         content: SingleChildScrollView(
@@ -541,16 +584,31 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Are you sure you want to approve this withdrawal request?',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AdminTranslations.split(AdminTranslations.approveConfirmTitle)[0],
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Divider(),
-              _buildInfoRow('Worker', workerData.name),
-              _buildInfoRow('Phone', workerData.phone),
-              _buildInfoRow('STC Pay ID', workerData.stcPayId.isEmpty ? 'Not provided' : workerData.stcPayId),
-              _buildInfoRow('Amount', 'SAR ${request.amount.toStringAsFixed(2)}', isBold: true),
+              _buildInfoRow(
+                AdminTranslations.split(AdminTranslations.worker)[0],
+                workerData.name,
+              ),
+              _buildInfoRow(
+                AdminTranslations.split(AdminTranslations.phone)[0],
+                workerData.phone,
+              ),
+              _buildInfoRow(
+                AdminTranslations.split(AdminTranslations.stcPayId)[0],
+                workerData.stcPayId.isEmpty
+                    ? AdminTranslations.split(AdminTranslations.notProvided)[0]
+                    : workerData.stcPayId,
+              ),
+              _buildInfoRow(
+                AdminTranslations.split(AdminTranslations.amount)[0],
+                'SAR ${request.amount.toStringAsFixed(2)}',
+                isBold: true,
+              ),
               const Divider(),
               const SizedBox(height: 8),
               Container(
@@ -562,13 +620,13 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.warning, color: Colors.orange, size: 20),
-                        SizedBox(width: 8),
+                        const Icon(Icons.warning, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
                         Text(
-                          'This action will:',
-                          style: TextStyle(
+                          '${AdminTranslations.split(AdminTranslations.thisActionWill)[0]}',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.orange,
                           ),
@@ -577,20 +635,20 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '• Deduct SAR ${request.amount.toStringAsFixed(2)} from worker\'s wallet',
+                      '• ${AdminTranslations.split(AdminTranslations.deductFromWorkerWallet)[0]} SAR ${request.amount.toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     Text(
-                      '• Deduct SAR ${request.amount.toStringAsFixed(2)} from admin wallet',
+                      '• ${AdminTranslations.split(AdminTranslations.deductFromAdminWallet)[0]} SAR ${request.amount.toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 12),
                     ),
-                    const Text(
-                      '• Update financial reports',
-                      style: TextStyle(fontSize: 12),
+                    Text(
+                      '• ${AdminTranslations.split(AdminTranslations.updateFinancialReports)[0]}',
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    const Text(
-                      '• Send notification to worker',
-                      style: TextStyle(fontSize: 12),
+                    Text(
+                      '• ${AdminTranslations.split(AdminTranslations.sendNotificationToWorker)[0]}',
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
@@ -601,7 +659,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -611,7 +669,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
             ),
-            child: const Text('Approve & Process'),
+            child: Text(AdminTranslations.split(AdminTranslations.approveAndProcess)[0]),
           ),
         ],
       ),
@@ -624,25 +682,27 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.cancel, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Reject Withdrawal'),
+            const Icon(Icons.cancel, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(AdminTranslations.split(AdminTranslations.rejectWithdrawal)[0]),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Reject withdrawal request from ${request.workerName}?'),
+            Text(
+              '${AdminTranslations.split(AdminTranslations.rejectWithdrawal)[0]} from ${request.workerName}?',
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Rejection Reason',
-                hintText: 'Enter reason for rejection...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AdminTranslations.split(AdminTranslations.rejectionReason)[0],
+                hintText: AdminTranslations.split(AdminTranslations.enterRejectionReason)[0],
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -653,14 +713,14 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.red, size: 16),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline, color: Colors.red, size: 16),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Worker will be notified about the rejection',
-                      style: TextStyle(fontSize: 11, color: Colors.red),
+                      AdminTranslations.split(AdminTranslations.workerNotified)[0],
+                      style: const TextStyle(fontSize: 11, color: Colors.red),
                     ),
                   ),
                 ],
@@ -674,14 +734,14 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               reasonController.dispose();
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please provide a rejection reason'),
+                  SnackBar(
+                    content: Text(AdminTranslations.split(AdminTranslations.provideRejectionReason)[0]),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -695,7 +755,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
             ),
-            child: const Text('Reject'),
+            child: Text(AdminTranslations.split(AdminTranslations.reject)[0]),
           ),
         ],
       ),
@@ -742,11 +802,11 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '✅ Withdrawal Approved',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    AdminTranslations.split(AdminTranslations.withdrawalApprovedSuccess)[0],
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('SAR ${request.amount.toStringAsFixed(2)} processed successfully'),
+                  Text('SAR ${request.amount.toStringAsFixed(2)} ${AdminTranslations.split(AdminTranslations.processedSuccessfully)[0]}'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -768,7 +828,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${AdminTranslations.split(AdminTranslations.error)[0]}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -788,7 +848,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (result.success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Withdrawal request rejected: $reason'),
+            content: Text('${AdminTranslations.split(AdminTranslations.withdrawalRequestRejected)[0]} $reason'),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 3),
           ),
@@ -798,7 +858,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${AdminTranslations.split(AdminTranslations.error)[0]}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -812,13 +872,13 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
 
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
-        return '${difference.inMinutes} minutes ago';
+        return '${difference.inMinutes} ${AdminTranslations.split(AdminTranslations.minutesAgo)[0]}';
       }
-      return '${difference.inHours} hours ago';
+      return '${difference.inHours} ${AdminTranslations.split(AdminTranslations.hoursAgo)[0]}';
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return AdminTranslations.split(AdminTranslations.yesterday)[0];
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays} ${AdminTranslations.split(AdminTranslations.daysAgo)[0]}';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/service_request_model.dart';
+import '../utils/worker_translations.dart';
 
 class AddExtraItemsScreen extends StatefulWidget {
-  final ServiceRequest service; // ✅ Now accepts ServiceRequest model
+  final ServiceRequest service;
   final Function(double, List<ExtraItem>) onItemsAdded;
 
   const AddExtraItemsScreen({
@@ -31,7 +32,23 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Extra Items'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // English title
+            Text(
+              WorkerTranslations.split(WorkerTranslations.addExtraItems)[0],
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            // Arabic title
+            Text(
+              WorkerTranslations.split(WorkerTranslations.addExtraItems)[1],
+              style: const TextStyle(fontSize: 14),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
       ),
@@ -45,17 +62,39 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Service: ${widget.service.serviceName}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                // Service name
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${WorkerTranslations.split(WorkerTranslations.service)[0]} ${widget.service.serviceName}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${WorkerTranslations.split(WorkerTranslations.service)[1]} ${widget.service.serviceName}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Customer: ${widget.service.customerName}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                // Customer name
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${WorkerTranslations.split(WorkerTranslations.customer)[0]} ${widget.service.customerName}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    Text(
+                      '${WorkerTranslations.split(WorkerTranslations.customer)[1]} ${widget.service.customerName}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -63,15 +102,25 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           // Extra Items List
           Expanded(
             child: _extraItems.isEmpty
-                ? const Center(
+                ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No extra items added',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  // No items message
+                  Column(
+                    children: [
+                      Text(
+                        WorkerTranslations.split(WorkerTranslations.noExtraItemsAdded)[0],
+                        style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      Text(
+                        WorkerTranslations.split(WorkerTranslations.noExtraItemsAdded)[1],
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        textDirection: TextDirection.rtl,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -95,17 +144,51 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    title: Text(item.name),
-                    subtitle: Text('Type: ${item.type}'),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name),
+                        if (item.nameArabic != null && item.nameArabic!.isNotEmpty)
+                          Text(
+                            item.nameArabic!,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            textDirection: TextDirection.rtl,
+                          ),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${WorkerTranslations.split(WorkerTranslations.type)[0]} ${item.type}'),
+                        Text(
+                          '${WorkerTranslations.split(WorkerTranslations.type)[1]} ${item.type == 'Service' ? 'خدمة' : 'قطعة'}',
+                          style: const TextStyle(fontSize: 12),
+                          textDirection: TextDirection.rtl,
+                        ),
+                      ],
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'SAR ${item.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${item.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              '${WorkerTranslations.split(WorkerTranslations.sar)[1]} ${item.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ],
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
@@ -141,24 +224,54 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                       color: const Color(0xFF6B5B9A).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
                       children: [
-                        const Text(
-                          'Total Extra Charges:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        // English total
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              WorkerTranslations.split(WorkerTranslations.totalExtraCharges)[0],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${_totalExtraCharges.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'SAR ${_totalExtraCharges.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        const SizedBox(height: 4),
+                        // Arabic total
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              WorkerTranslations.split(WorkerTranslations.totalExtraCharges)[1],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                            Text(
+                              '${WorkerTranslations.split(WorkerTranslations.sar)[1]} ${_totalExtraCharges.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -171,7 +284,17 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () => _showAddItemDialog('Service'),
                         icon: const Icon(Icons.build),
-                        label: const Text('Add Service'),
+                        label: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(WorkerTranslations.split(WorkerTranslations.addService)[0]),
+                            Text(
+                              WorkerTranslations.split(WorkerTranslations.addService)[1],
+                              style: const TextStyle(fontSize: 10),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ],
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6B5B9A),
                           foregroundColor: Colors.white,
@@ -184,7 +307,17 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => _showAddItemDialog('Part'),
                         icon: const Icon(Icons.inventory),
-                        label: const Text('Add Part'),
+                        label: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(WorkerTranslations.split(WorkerTranslations.addPart)[0]),
+                            Text(
+                              WorkerTranslations.split(WorkerTranslations.addPart)[1],
+                              style: const TextStyle(fontSize: 10),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ],
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -202,7 +335,17 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Save & Return'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(WorkerTranslations.split(WorkerTranslations.saveReturn)[0]),
+                        Text(
+                          WorkerTranslations.split(WorkerTranslations.saveReturn)[1],
+                          style: const TextStyle(fontSize: 12),
+                          textDirection: TextDirection.rtl,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -220,14 +363,43 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add $type'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${WorkerTranslations.split(WorkerTranslations.addBtn)[0]} $type'),
+            Text(
+              '${WorkerTranslations.split(WorkerTranslations.addBtn)[1]} ${type == 'Service' ? 'خدمة' : 'قطعة'}',
+              style: const TextStyle(fontSize: 14),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: '$type Name',
+                labelText: type == 'Service'
+                    ? WorkerTranslations.split(WorkerTranslations.serviceName)[0]
+                    : WorkerTranslations.split(WorkerTranslations.partName)[0],
+                labelStyle: const TextStyle(fontSize: 14),
+                border: const OutlineInputBorder(),
+                prefixIcon: Icon(
+                  type == 'Service' ? Icons.build : Icons.inventory,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _nameController,
+              textDirection: TextDirection.rtl,
+              decoration: InputDecoration(
+                labelText: type == 'Service'
+                    ? WorkerTranslations.split(WorkerTranslations.serviceName)[1]
+                    : WorkerTranslations.split(WorkerTranslations.partName)[1],
+                labelStyle: const TextStyle(fontSize: 14),
                 border: const OutlineInputBorder(),
                 prefixIcon: Icon(
                   type == 'Service' ? Icons.build : Icons.inventory,
@@ -237,10 +409,23 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _priceController,
-              decoration: const InputDecoration(
-                labelText: 'Price (SAR)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.attach_money),
+              decoration: InputDecoration(
+                labelText: WorkerTranslations.split(WorkerTranslations.priceSAR)[0],
+                labelStyle: const TextStyle(fontSize: 14),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.attach_money),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _priceController,
+              textDirection: TextDirection.rtl,
+              decoration: InputDecoration(
+                labelText: WorkerTranslations.split(WorkerTranslations.priceSAR)[1],
+                labelStyle: const TextStyle(fontSize: 14),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.attach_money),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -249,14 +434,34 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(WorkerTranslations.split(WorkerTranslations.cancelBtn)[0]),
+                Text(
+                  WorkerTranslations.split(WorkerTranslations.cancelBtn)[1],
+                  style: const TextStyle(fontSize: 12),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ),
           ),
           ElevatedButton(
             onPressed: () => _addItem(type),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6B5B9A),
             ),
-            child: const Text('Add'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(WorkerTranslations.split(WorkerTranslations.addBtn)[0]),
+                Text(
+                  WorkerTranslations.split(WorkerTranslations.addBtn)[1],
+                  style: const TextStyle(fontSize: 12),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -269,8 +474,18 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
 
     if (name.isEmpty || priceText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all fields'),
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(WorkerTranslations.split(WorkerTranslations.pleaseFillAllFields)[0]),
+              Text(
+                WorkerTranslations.split(WorkerTranslations.pleaseFillAllFields)[1],
+                style: const TextStyle(fontSize: 12),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -280,8 +495,18 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
     final price = double.tryParse(priceText);
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid price'),
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(WorkerTranslations.split(WorkerTranslations.pleaseEnterValidPrice)[0]),
+              Text(
+                WorkerTranslations.split(WorkerTranslations.pleaseEnterValidPrice)[1],
+                style: const TextStyle(fontSize: 12),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -300,7 +525,17 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$type added successfully'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$type ${WorkerTranslations.split(WorkerTranslations.addedSuccessfully)[0]}'),
+            Text(
+              '${type == 'Service' ? 'خدمة' : 'قطعة'} ${WorkerTranslations.split(WorkerTranslations.addedSuccessfully)[1]}',
+              style: const TextStyle(fontSize: 12),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
         backgroundColor: Colors.green,
       ),
     );
@@ -311,8 +546,18 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
       _extraItems.removeAt(index);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Item removed'),
+      SnackBar(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(WorkerTranslations.split(WorkerTranslations.itemRemoved)[0]),
+            Text(
+              WorkerTranslations.split(WorkerTranslations.itemRemoved)[1],
+              style: const TextStyle(fontSize: 12),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
         backgroundColor: Colors.orange,
       ),
     );
@@ -323,8 +568,21 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Extra charges: SAR ${_totalExtraCharges.toStringAsFixed(2)} added',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // English success message
+            Text(
+              '${WorkerTranslations.split(WorkerTranslations.extraCharges)[0]} ${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${_totalExtraCharges.toStringAsFixed(2)} ${WorkerTranslations.split(WorkerTranslations.added)[0]}',
+            ),
+            // Arabic success message
+            Text(
+              '${WorkerTranslations.split(WorkerTranslations.extraCharges)[1]} ${WorkerTranslations.split(WorkerTranslations.sar)[1]} ${_totalExtraCharges.toStringAsFixed(2)} ${WorkerTranslations.split(WorkerTranslations.added)[1]}',
+              style: const TextStyle(fontSize: 12),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
         ),
         backgroundColor: Colors.green,
       ),

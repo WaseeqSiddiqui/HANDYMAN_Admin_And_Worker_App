@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
 import '../models/admin_wallet_transaction.dart';
 import '../models/financial_report_summary_model.dart';
+import '../widgets/bilingual_text.dart';
+import '/utils/admin_translations.dart';
 
 class AdminWalletScreen extends StatefulWidget {
   const AdminWalletScreen({super.key});
@@ -12,11 +14,14 @@ class AdminWalletScreen extends StatefulWidget {
 
 class _AdminWalletScreenState extends State<AdminWalletScreen> {
   final _financialService = FinancialService();
+  String _currentFilter = 'all';
+  List<WalletTransaction> _filteredTransactions = [];
 
   @override
   void initState() {
     super.initState();
     _financialService.addListener(_onFinancialUpdate);
+    _updateFilteredTransactions();
   }
 
   @override
@@ -27,8 +32,107 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
   void _onFinancialUpdate() {
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _updateFilteredTransactions();
+      });
     }
+  }
+
+  void _updateFilteredTransactions() {
+    final transactions = _financialService.getWalletTransactions();
+
+    switch (_currentFilter) {
+      case 'income':
+        _filteredTransactions = transactions.where((t) => t.type == 'credit').toList();
+        break;
+      case 'expenses':
+        _filteredTransactions = transactions.where((t) => t.type == 'debit').toList();
+        break;
+      default:
+        _filteredTransactions = transactions;
+    }
+  }
+
+  Future<void> _refreshData() async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const BilingualText(
+            english: 'Failed to refresh data',
+            arabic: 'فشل في تحديث البيانات',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const BilingualText(
+          english: 'Filter Transactions',
+          arabic: 'تصفية المعاملات',
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.all_inclusive,
+                color: _currentFilter == 'all' ? const Color(0xFF6B5B9A) : Colors.grey,
+              ),
+              title: const BilingualText(
+                english: 'All Transactions',
+                arabic: 'جميع المعاملات',
+              ),
+              onTap: () {
+                setState(() {
+                  _currentFilter = 'all';
+                  _updateFilteredTransactions();
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.arrow_downward,
+                color: _currentFilter == 'income' ? Colors.green : Colors.grey,
+              ),
+              title: const BilingualText(
+                english: 'Income Only',
+                arabic: 'الدخل فقط',
+              ),
+              onTap: () {
+                setState(() {
+                  _currentFilter = 'income';
+                  _updateFilteredTransactions();
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.arrow_upward,
+                color: _currentFilter == 'expenses' ? Colors.red : Colors.grey,
+              ),
+              title: const BilingualText(
+                english: 'Expenses Only',
+                arabic: 'المصروفات فقط',
+              ),
+              onTap: () {
+                setState(() {
+                  _currentFilter = 'expenses';
+                  _updateFilteredTransactions();
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -38,7 +142,12 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Wallet"),
+        title: const BilingualText(
+          english: 'Wallet',
+          arabic: 'المحفظة',
+          englishStyle: TextStyle(color: Colors.white, fontSize: 16),
+          arabicStyle:  TextStyle(color: Colors.white, fontSize: 14),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -46,32 +155,65 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
       body: Column(
         children: [
           _buildBalanceCard(balance),
-          _buildQuickStats(),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Transactions",
-                  style: TextStyle(
+                const BilingualText(
+                  english: 'Transactions',
+                  arabic: 'المعاملات',
+                  englishStyle: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: _showFilterDialog,
                   icon: const Icon(Icons.filter_list),
-                  label: const Text("Filter"),
+                  label: const BilingualText(
+                    english: 'Filter',
+                    arabic: 'تصفية',
+                    englishStyle: TextStyle(fontSize: 14),
+                  ),
                 ),
               ],
             ),
           ),
+          if (_currentFilter != 'all') ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Chip(
+                    label: Text(
+                      _currentFilter == 'income' ? 'Income Only' : 'Expenses Only',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    backgroundColor: _currentFilter == 'income'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    onDeleted: () {
+                      setState(() {
+                        _currentFilter = 'all';
+                        _updateFilteredTransactions();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Expanded(
-            child: transactions.isEmpty
-                ? _buildEmptyState()
-                : _buildTransactionsList(transactions),
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              child: _filteredTransactions.isEmpty
+                  ? _buildEmptyState()
+                  : _buildTransactionsList(_filteredTransactions),
+            ),
           ),
         ],
       ),
@@ -103,12 +245,19 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Total Balance",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Balance',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    'الرصيد الإجمالي',
+                    style: TextStyle(color: Colors.white60, fontSize: 13),
+                    textDirection: TextDirection.rtl,
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -116,13 +265,13 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.white, size: 16),
-                    SizedBox(width: 4),
+                    const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
                     Text(
-                      "Active",
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      AdminTranslations.active,
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
                     ),
                   ],
                 ),
@@ -142,13 +291,13 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildWalletInfo("Auto Updated", Icons.sync),
+              _buildWalletInfo('Auto Updated • محدث تلقائياً', Icons.sync),
               Container(
                 height: 40,
                 width: 1,
                 color: Colors.white24,
               ),
-              _buildWalletInfo("Real Time", Icons.flash_on),
+              _buildWalletInfo('Real Time • حقيقي', Icons.flash_on),
             ],
           ),
         ],
@@ -165,93 +314,13 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           label,
           style: const TextStyle(
             color: Colors.white70,
-            fontSize: 14,
+            fontSize: 12,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildQuickStats() {
-    final report = _financialService.getReportSummary();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              "Total Income",
-              "SAR ${report.totalRevenue.toStringAsFixed(0)}",
-              Icons.arrow_downward,
-              Colors.green,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              "Total Expenses",
-              "SAR ${(report.totalCommission + report.totalVAT).toStringAsFixed(0)}",
-              Icons.arrow_upward,
-              Colors.red,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const Spacer(),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTransactionsList(List<WalletTransaction> transactions) {
     final sortedTransactions = transactions.reversed.toList();
@@ -306,7 +375,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  "Balance: SAR ${transaction.balanceAfter.toStringAsFixed(2)}",
+                  "Balance • الرصيد: SAR ${transaction.balanceAfter.toStringAsFixed(2)}",
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 11,
@@ -336,7 +405,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isCredit ? "Credit" : "Debit",
+                    isCredit ? AdminTranslations.credit : AdminTranslations.debit,
                     style: TextStyle(
                       color: isCredit ? Colors.green : Colors.red,
                       fontSize: 10,
@@ -370,21 +439,24 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            "No Data Available",
-            style: TextStyle(
+          const BilingualText(
+            english: 'No Transactions Available',
+            arabic: 'لا توجد معاملات متاحة',
+            englishStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700,
+              color: Colors.grey,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
-            "You have no wallet transactions yet.",
+          const BilingualText(
+            english: 'You don\'t have any wallet transactions yet',
+            arabic: 'ليس لديك معاملات محفظة حتى الآن',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
+            englishStyle: TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
             ),
           ),
         ],
@@ -399,9 +471,9 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
     final dateToCheck = DateTime(date.year, date.month, date.day);
 
     if (dateToCheck == today) {
-      return 'Today at ${_formatTime(date)}';
+      return '${AdminTranslations.today} at ${_formatTime(date)}';
     } else if (dateToCheck == yesterday) {
-      return 'Yesterday at ${_formatTime(date)}';
+      return '${AdminTranslations.yesterday} at ${_formatTime(date)}';
     } else {
       return '${date.day}/${date.month}/${date.year} at ${_formatTime(date)}';
     }

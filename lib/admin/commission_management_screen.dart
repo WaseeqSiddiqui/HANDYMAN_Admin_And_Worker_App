@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
 import '../models/commission_record_model.dart';
+import '../utils/admin_translations.dart';
+import '../widgets/bilingual_text.dart';
 
 class CommissionManagementScreen extends StatefulWidget {
   const CommissionManagementScreen({super.key});
@@ -40,7 +42,12 @@ class CommissionManagementScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Commission Management'),
+        title: BilingualText( // ✅ Bilingual app bar title
+          english: AdminTranslations.split(AdminTranslations.commissionManagement)[0],
+          arabic: AdminTranslations.split(AdminTranslations.commissionManagement)[1],
+          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
       ),
@@ -54,15 +61,16 @@ class CommissionManagementScreenState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Commission Records',
-                  style: TextStyle(
+                BilingualText(
+                  english: AdminTranslations.split(AdminTranslations.commissionRecords)[0],
+                  arabic: AdminTranslations.split(AdminTranslations.commissionRecords)[1],
+                  englishStyle: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '${commissionRecords.length} records',
+                  '${commissionRecords.length} ${AdminTranslations.split(AdminTranslations.records)[0]}',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -107,9 +115,10 @@ class CommissionManagementScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total Commission',
-                style: TextStyle(
+              BilingualText(
+                english: AdminTranslations.split(AdminTranslations.totalCommission)[0],
+                arabic: AdminTranslations.split(AdminTranslations.totalCommission)[1],
+                englishStyle: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
                 ),
@@ -120,13 +129,15 @@ class CommissionManagementScreenState
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.trending_up, color: Colors.white, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      '20% Rate',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    const Icon(Icons.trending_up, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
+                    BilingualText(
+                      english: '20% Rate',
+                      arabic: 'معدل 20%',
+                      englishStyle: const TextStyle(color: Colors.white, fontSize: 12),
+                      arabicStyle: const TextStyle(color: Colors.white, fontSize: 11),
                     ),
                   ],
                 ),
@@ -147,13 +158,15 @@ class CommissionManagementScreenState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildInfoChip(
-                'Services',
+                AdminTranslations.split(AdminTranslations.services)[0],
+                AdminTranslations.split(AdminTranslations.services)[1],
                 recordCount.toString(),
                 Icons.build_circle,
               ),
               _buildInfoChip(
-                'Auto-Updated',
-                'Real-time',
+                AdminTranslations.split(AdminTranslations.autoUpdated)[0],
+                AdminTranslations.split(AdminTranslations.autoUpdated)[1],
+                AdminTranslations.split(AdminTranslations.realTime)[0],
                 Icons.sync,
               ),
             ],
@@ -163,7 +176,7 @@ class CommissionManagementScreenState
     );
   }
 
-  Widget _buildInfoChip(String label, String value, IconData icon) {
+  Widget _buildInfoChip(String labelEn, String labelAr, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -177,9 +190,10 @@ class CommissionManagementScreenState
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: const TextStyle(
+              BilingualText(
+                english: labelEn,
+                arabic: labelAr,
+                englishStyle: const TextStyle(
                   color: Colors.white70,
                   fontSize: 11,
                 ),
@@ -200,6 +214,13 @@ class CommissionManagementScreenState
   }
 
   Widget _buildPeriodSelector() {
+    final periods = [
+      AdminTranslations.today,
+      AdminTranslations.thisWeek,
+      AdminTranslations.thisMonth,
+      AdminTranslations.allTime,
+    ];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
@@ -208,13 +229,10 @@ class CommissionManagementScreenState
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        children: [
-          'Today',
-          'This Week',
-          'This Month',
-          'All Time',
-        ].map((period) {
+        children: periods.map((period) {
           final isSelected = _selectedPeriod == period;
+          final periodParts = AdminTranslations.split(period);
+
           return Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedPeriod = period),
@@ -225,7 +243,7 @@ class CommissionManagementScreenState
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  period,
+                  periodParts[0], // Show English only for space
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey.shade700,
@@ -335,17 +353,20 @@ class CommissionManagementScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildInfoRow(
-                  'Service Amount',
+                  AdminTranslations.split(AdminTranslations.serviceAmount)[0],
+                  AdminTranslations.split(AdminTranslations.serviceAmount)[1],
                   'SAR ${record.serviceAmount.toStringAsFixed(2)}',
                   Icons.attach_money,
                 ),
                 _buildInfoRow(
-                  'Rate',
+                  AdminTranslations.split(AdminTranslations.rateLabel)[0],
+                  AdminTranslations.split(AdminTranslations.rateLabel)[1],
                   '${record.commissionRate.toStringAsFixed(0)}%',
                   Icons.percent,
                 ),
                 _buildInfoRow(
-                  'Date',
+                  AdminTranslations.split(AdminTranslations.date)[0],
+                  AdminTranslations.split(AdminTranslations.date)[1],
                   _formatDate(record.date),
                   Icons.calendar_today,
                 ),
@@ -357,7 +378,7 @@ class CommissionManagementScreenState
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon) {
+  Widget _buildInfoRow(String labelEn, String labelAr, String value, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -365,9 +386,10 @@ class CommissionManagementScreenState
           children: [
             Icon(icon, size: 14, color: Colors.grey.shade600),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
+            BilingualText(
+              english: labelEn,
+              arabic: labelAr,
+              englishStyle: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 11,
               ),
@@ -387,6 +409,8 @@ class CommissionManagementScreenState
   }
 
   Widget _buildEmptyState() {
+    final emptyMessageParts = AdminTranslations.split(AdminTranslations.noCommissionRecords);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -404,21 +428,27 @@ class CommissionManagementScreenState
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            'No Commission Records',
-            style: TextStyle(
+          BilingualText(
+            english: AdminTranslations.split(AdminTranslations.commissionRecords)[0],
+            arabic: AdminTranslations.split(AdminTranslations.commissionRecords)[1],
+            englishStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.grey.shade700,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
-            'Commission records will appear here\nautomatically when services are completed',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: BilingualText(
+              english: emptyMessageParts[0],
+              arabic: emptyMessageParts[1],
+              englishStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -432,7 +462,7 @@ class CommissionManagementScreenState
     final dateToCheck = DateTime(date.year, date.month, date.day);
 
     if (dateToCheck == today) {
-      return 'Today';
+      return AdminTranslations.split(AdminTranslations.today)[0];
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

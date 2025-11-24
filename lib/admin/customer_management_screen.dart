@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
-import '/models/customer_model.dart'; // ✅ Using model
-import '/models/customer_service_model.dart'; // ✅ Using model
+import '/models/customer_model.dart';
+import '/models/customer_service_model.dart';
+import '/utils/admin_translations.dart';
+import '/widgets/bilingual_text.dart';
 
 class CustomerManagementScreen extends StatefulWidget {
   const CustomerManagementScreen({super.key});
@@ -18,16 +20,14 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customer Management'),
+        title: Text(AdminTranslations.split(AdminTranslations.customerManagement)[0]),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
-          // ✅ Get Customer objects
           final customers = appState.registeredCustomers;
 
-          // Filter customers based on search query
           final filteredCustomers = customers.where((customer) {
             final query = _searchQuery.toLowerCase();
             return customer.name.toLowerCase().contains(query) ||
@@ -42,7 +42,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 child: TextField(
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
-                    hintText: 'Search customers by name, phone, or email...',
+                    hintText: AdminTranslations.split(AdminTranslations.searchCustomers)[0],
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -53,7 +53,6 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 ),
               ),
 
-              // Stats card
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(16),
@@ -67,7 +66,8 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildStatItem(
-                      'Total Customers',
+                      AdminTranslations.split(AdminTranslations.totalCustomers)[0],
+                      AdminTranslations.split(AdminTranslations.totalCustomers)[1],
                       customers.length.toString(),
                       Icons.people,
                     ),
@@ -77,7 +77,8 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                       color: Colors.white.withOpacity(0.3),
                     ),
                     _buildStatItem(
-                      'Active Services',
+                      AdminTranslations.split(AdminTranslations.activeServices)[0],
+                      AdminTranslations.split(AdminTranslations.activeServices)[1],
                       _getCustomerActiveServices(customers, appState).toString(),
                       Icons.build,
                     ),
@@ -99,18 +100,26 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                         color: Colors.grey[300],
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        _searchQuery.isEmpty
-                            ? 'No customers registered yet'
-                            : 'No customers found',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      BilingualText(
+                        english: _searchQuery.isEmpty
+                            ? AdminTranslations.split(AdminTranslations.noCustomersYet)[0]
+                            : AdminTranslations.split(AdminTranslations.noCustomersFound)[0],
+                        arabic: _searchQuery.isEmpty
+                            ? AdminTranslations.split(AdminTranslations.noCustomersYet)[1]
+                            : AdminTranslations.split(AdminTranslations.noCustomersFound)[1],
+                        englishStyle: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        _searchQuery.isEmpty
-                            ? 'Customers will appear here when they register'
-                            : 'Try a different search term',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      BilingualText(
+                        english: _searchQuery.isEmpty
+                            ? AdminTranslations.split(AdminTranslations.customersWillAppear)[0]
+                            : AdminTranslations.split(AdminTranslations.tryDifferentSearch)[0],
+                        arabic: _searchQuery.isEmpty
+                            ? AdminTranslations.split(AdminTranslations.customersWillAppear)[1]
+                            : AdminTranslations.split(AdminTranslations.tryDifferentSearch)[1],
+                        englishStyle: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -131,7 +140,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatItem(String labelEn, String labelAr, String value, IconData icon) {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 28),
@@ -144,12 +153,14 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(
+        BilingualText(
+          english: labelEn,
+          arabic: labelAr,
+          englishStyle: const TextStyle(
             color: Colors.white70,
             fontSize: 12,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -158,7 +169,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
   int _getCustomerActiveServices(List<Customer> customers, AppStateProvider appState) {
     int count = 0;
     for (var customer in customers) {
-      final customerServices = appState.getCustomerServices(customer.id); // ✅ Use ID
+      final customerServices = appState.getCustomerServices(customer.id);
       count += customerServices.length;
     }
     return count;
@@ -258,7 +269,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                       Icon(Icons.shopping_bag, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${customerServices.length} services',
+                        '${customerServices.length} ${AdminTranslations.split(AdminTranslations.servicesLowercase)[0]}',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[600],
@@ -268,7 +279,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                     ],
                   ),
                   Text(
-                    'Registered: ${customer.registeredAt.day}/${customer.registeredAt.month}/${customer.registeredAt.year}',
+                    '${AdminTranslations.split(AdminTranslations.registered)[0]}: ${customer.registeredAt.day}/${customer.registeredAt.month}/${customer.registeredAt.year}',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[500],
@@ -337,9 +348,10 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            'Customer Details',
-                            style: TextStyle(
+                          BilingualText(
+                            english: AdminTranslations.split(AdminTranslations.customerDetails)[0],
+                            arabic: AdminTranslations.split(AdminTranslations.customerDetails)[1],
+                            englishStyle: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
@@ -350,20 +362,32 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                _buildDetailRow('Phone Number', customer.phone, Icons.phone),
-                if (customer.email != null && customer.email!.isNotEmpty)
-                  _buildDetailRow('Email', customer.email!, Icons.email),
                 _buildDetailRow(
-                  'Registered',
+                  AdminTranslations.split(AdminTranslations.phoneNumber)[0],
+                  AdminTranslations.split(AdminTranslations.phoneNumber)[1],
+                  customer.phone,
+                  Icons.phone,
+                ),
+                if (customer.email != null && customer.email!.isNotEmpty)
+                  _buildDetailRow(
+                    AdminTranslations.split(AdminTranslations.email)[0],
+                    AdminTranslations.split(AdminTranslations.email)[1],
+                    customer.email!,
+                    Icons.email,
+                  ),
+                _buildDetailRow(
+                  AdminTranslations.split(AdminTranslations.registered)[0],
+                  AdminTranslations.split(AdminTranslations.registered)[1],
                   '${customer.registeredAt.day}/${customer.registeredAt.month}/${customer.registeredAt.year}',
                   Icons.calendar_today,
                 ),
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text(
-                  'Service History (${services.length})',
-                  style: const TextStyle(
+                BilingualText(
+                  english: '${AdminTranslations.split(AdminTranslations.serviceHistory)[0]} (${services.length})',
+                  arabic: '${AdminTranslations.split(AdminTranslations.serviceHistory)[1]} (${services.length})',
+                  englishStyle: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -377,9 +401,11 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                         children: [
                           Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text(
-                            'No services yet',
-                            style: TextStyle(color: Colors.grey[600]),
+                          BilingualText(
+                            english: AdminTranslations.split(AdminTranslations.noServicesYet)[0],
+                            arabic: AdminTranslations.split(AdminTranslations.noServicesYet)[1],
+                            englishStyle: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -421,7 +447,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                     backgroundColor: const Color(0xFF6B5B9A),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text('Close'),
+                  child: Text(AdminTranslations.split(AdminTranslations.closeBtn)[0]),
                 ),
               ],
             ),
@@ -431,7 +457,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, IconData icon) {
+  Widget _buildDetailRow(String labelEn, String labelAr, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -442,9 +468,10 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
+                BilingualText(
+                  english: labelEn,
+                  arabic: labelAr,
+                  englishStyle: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
                   ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
 import '/models/worker_data_model.dart';
+import '/utils/worker_translations.dart';
 
 class WorkerProfileScreen extends StatefulWidget {
   const WorkerProfileScreen({super.key});
@@ -31,15 +32,15 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
             (w) => w.id == workerId,
         orElse: () => WorkerData(
           id: workerId,
-          name: 'Unknown Worker',
-          nameArabic: 'عامل غير معروف',
+          name: WorkerTranslations.getEnglish(WorkerTranslations.activeWorker),
+          nameArabic: WorkerTranslations.getArabic(WorkerTranslations.activeWorker),
           phone: '',
           email: '',
           nationalId: '',
           stcPayId: '',
           address: '',
           addressArabic: '',
-          status: 'Active',
+          status: WorkerTranslations.getEnglish(WorkerTranslations.active),
           joinedDate: DateTime.now(),
         ),
       );
@@ -52,7 +53,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text(WorkerTranslations.profile),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         actions: [
@@ -137,7 +138,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: _workerData!.status == 'Active'
+              color: _workerData!.status == WorkerTranslations.getEnglish(WorkerTranslations.active)
                   ? Colors.green.withOpacity(0.3)
                   : Colors.red.withOpacity(0.3),
               borderRadius: BorderRadius.circular(20),
@@ -146,7 +147,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _workerData!.status == 'Active' ? Icons.check_circle : Icons.block,
+                  _workerData!.status == WorkerTranslations.getEnglish(WorkerTranslations.active) ? Icons.check_circle : Icons.block,
                   size: 16,
                   color: Colors.white,
                 ),
@@ -175,23 +176,23 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Personal Information',
-              style: TextStyle(
+            Text(
+              WorkerTranslations.personalInformation,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.credit_card, 'Worker ID', _workerData!.id),
-            _buildInfoRow(Icons.badge, 'National ID', _workerData!.nationalId),
-            _buildInfoRow(Icons.email, 'Email', _workerData!.email),
-            _buildInfoRow(Icons.phone, 'Phone', _workerData!.phone),
-            _buildInfoRow(Icons.payment, 'STC Pay ID', _workerData!.stcPayId),
-            _buildInfoRow(Icons.location_on, 'Address (EN)', _workerData!.address),
+            _buildInfoRow(Icons.credit_card, WorkerTranslations.getEnglish(WorkerTranslations.fullName), _workerData!.name),
+            _buildInfoRow(Icons.badge, WorkerTranslations.getEnglish(WorkerTranslations.nationalID), _workerData!.nationalId),
+            _buildInfoRow(Icons.email, WorkerTranslations.getEnglish(WorkerTranslations.email), _workerData!.email),
+            _buildInfoRow(Icons.phone, WorkerTranslations.getEnglish(WorkerTranslations.phone), _workerData!.phone),
+            _buildInfoRow(Icons.payment, WorkerTranslations.getEnglish(WorkerTranslations.stcPayID), _workerData!.stcPayId),
+            _buildInfoRow(Icons.location_on, WorkerTranslations.getEnglish(WorkerTranslations.address), _workerData!.address),
             _buildInfoRow(
               Icons.location_on_outlined,
-              'العنوان (AR)',
+              WorkerTranslations.getArabic(WorkerTranslations.address),
               _workerData!.addressArabic,
               isRtl: true,
             ),
@@ -210,9 +211,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Work Statistics',
-              style: TextStyle(
+            Text(
+              WorkerTranslations.statistics,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -222,7 +223,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               children: [
                 Expanded(
                   child: _buildStatBox(
-                    'Completed\nServices',
+                    WorkerTranslations.getEnglish(WorkerTranslations.completedServices),
                     _workerData!.completedServices.toString(),
                     Icons.check_circle,
                     Colors.green,
@@ -231,7 +232,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatBox(
-                    'Member\nSince',
+                    WorkerTranslations.getEnglish(WorkerTranslations.joinedOn),
                     '${_workerData!.joinedDate.day}/${_workerData!.joinedDate.month}/${_workerData!.joinedDate.year}',
                     Icons.calendar_today,
                     Colors.blue,
@@ -256,9 +257,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Financial Overview',
-                  style: TextStyle(
+                Text(
+                  WorkerTranslations.financialInfo,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -268,8 +269,8 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                   children: [
                     Expanded(
                       child: _buildStatBox(
-                        'Wallet\nBalance',
-                        'SAR ${appState.walletBalance.toStringAsFixed(0)}',
+                        WorkerTranslations.getEnglish(WorkerTranslations.walletBalance),
+                        '${WorkerTranslations.sar.split(' • ')[0]} ${appState.walletBalance.toStringAsFixed(0)}',
                         Icons.account_balance_wallet,
                         const Color(0xFF6B5B9A),
                       ),
@@ -277,8 +278,8 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildStatBox(
-                        'Credit\nBalance',
-                        'SAR ${appState.creditBalance.toStringAsFixed(0)}',
+                        WorkerTranslations.getEnglish(WorkerTranslations.creditBalance),
+                        '${WorkerTranslations.sar.split(' • ')[0]} ${appState.creditBalance.toStringAsFixed(0)}',
                         Icons.credit_card,
                         Colors.orange,
                       ),
@@ -377,55 +378,55 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
+        title: Text(WorkerTranslations.editProfile),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name (English)',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.fullName),
+                  prefixIcon: const Icon(Icons.person),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameArabicController,
                 textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  labelText: 'الاسم الكامل (Arabic)',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getArabic(WorkerTranslations.fullName),
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.email),
+                  prefixIcon: const Icon(Icons.email),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: stcPayController,
-                decoration: const InputDecoration(
-                  labelText: 'STC Pay ID',
-                  prefixIcon: Icon(Icons.payment),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.stcPayID),
+                  prefixIcon: const Icon(Icons.payment),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: addressController,
                 maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Address (English)',
-                  prefixIcon: Icon(Icons.location_on),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.address),
+                  prefixIcon: const Icon(Icons.location_on),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -433,10 +434,10 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                 controller: addressArabicController,
                 maxLines: 2,
                 textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان (Arabic)',
-                  prefixIcon: Icon(Icons.location_on_outlined),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: WorkerTranslations.getArabic(WorkerTranslations.address),
+                  prefixIcon: const Icon(Icons.location_on_outlined),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -453,7 +454,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               addressArabicController.dispose();
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(WorkerTranslations.cancelBtn),
           ),
           ElevatedButton(
             onPressed: () {
@@ -482,8 +483,8 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               Navigator.pop(context);
 
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profile updated successfully'),
+                SnackBar(
+                  content: Text(WorkerTranslations.getBilingual('Profile updated successfully', 'تم تحديث الملف الشخصي بنجاح')),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -492,7 +493,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Save'),
+            child: Text(WorkerTranslations.saveBtn),
           ),
         ],
       ),

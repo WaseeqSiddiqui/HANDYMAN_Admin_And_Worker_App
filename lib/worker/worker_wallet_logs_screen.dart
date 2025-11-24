@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/utils/worker_translations.dart';
 
 class WorkerWalletLogsScreen extends StatefulWidget {
   const WorkerWalletLogsScreen({super.key});
@@ -8,8 +9,8 @@ class WorkerWalletLogsScreen extends StatefulWidget {
 }
 
 class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
-  String _selectedType = 'All';
-  String _selectedPeriod = 'All Time';
+  String _selectedType = WorkerTranslations.getEnglish(WorkerTranslations.all);
+  String _selectedPeriod = WorkerTranslations.getEnglish('All Time • كل الوقت');
 
   final List<Map<String, dynamic>> _transactions = [];
 
@@ -24,8 +25,8 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
       {
         'id': 'LOG001',
         'type': 'credit_deduction',
-        'category': 'Service Acceptance',
-        'description': 'Credit deducted for accepting service SRV001',
+        'category': WorkerTranslations.getEnglish('Service Acceptance • قبول الخدمة'),
+        'description': WorkerTranslations.getEnglish('Credit deducted for accepting service SRV001 • تم خصم الرصيد لقبول الخدمة SRV001'),
         'serviceId': 'SRV001',
         'serviceName': 'AC Repair',
         'amount': -112.50,
@@ -34,38 +35,38 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
         'balanceBefore': 850.00,
         'balanceAfter': 737.50,
         'date': DateTime.now().subtract(const Duration(hours: 2)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG002',
         'type': 'wallet_credit',
-        'category': 'Service Completion',
-        'description': 'Payment received for completed service SRV002',
+        'category': WorkerTranslations.getEnglish('Service Completion • إتمام الخدمة'),
+        'description': WorkerTranslations.getEnglish('Payment received for completed service SRV002 • تم استلام الدفع للخدمة المكتملة SRV002'),
         'serviceId': 'SRV002',
         'serviceName': 'Refrigerator Repair',
         'amount': 650.00,
         'balanceBefore': 2100.00,
         'balanceAfter': 2750.00,
         'date': DateTime.now().subtract(const Duration(hours: 5)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG003',
         'type': 'credit_topup',
-        'category': 'Top-up from Wallet',
-        'description': 'Credit topped up from wallet balance',
+        'category': WorkerTranslations.getEnglish('Top-up from Wallet • شحن من المحفظة'),
+        'description': WorkerTranslations.getEnglish('Credit topped up from wallet balance • تم شحن الرصيد من رصيد المحفظة'),
         'amount': 500.00,
         'balanceBefore': 737.50,
         'balanceAfter': 1237.50,
         'paymentMethod': 'wallet',
         'date': DateTime.now().subtract(const Duration(hours: 8)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG004',
         'type': 'credit_deduction',
-        'category': 'Extra Charges',
-        'description': 'Additional credit deducted for extra service charges',
+        'category': WorkerTranslations.getEnglish('Extra Charges • رسوم إضافية'),
+        'description': WorkerTranslations.getEnglish('Additional credit deducted for extra service charges • تم خصم رصيد إضافي للرسوم الإضافية للخدمة'),
         'serviceId': 'SRV001',
         'serviceName': 'AC Repair',
         'amount': -45.00,
@@ -74,60 +75,60 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
         'balanceBefore': 1237.50,
         'balanceAfter': 1192.50,
         'date': DateTime.now().subtract(const Duration(hours: 10)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG005',
         'type': 'wallet_debit',
-        'category': 'Withdrawal',
-        'description': 'Withdrawal to STC Bank',
+        'category': WorkerTranslations.getEnglish('Withdrawal • سحب'),
+        'description': WorkerTranslations.getEnglish('Withdrawal to STC Bank • سحب إلى STC Bank'),
         'amount': -2500.00,
         'balanceBefore': 2750.00,
         'balanceAfter': 250.00,
         'paymentMethod': 'stc_bank',
         'bankAccount': '+966501234567',
         'date': DateTime.now().subtract(const Duration(days: 1)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG006',
         'type': 'credit_topup',
-        'category': 'Top-up from STC Bank',
-        'description': 'Credit topped up from STC Bank',
+        'category': WorkerTranslations.getEnglish('Top-up from STC Bank • شحن من STC Bank'),
+        'description': WorkerTranslations.getEnglish('Credit topped up from STC Bank • تم شحن الرصيد من STC Bank'),
         'amount': 1000.00,
         'balanceBefore': 450.00,
         'balanceAfter': 1450.00,
         'paymentMethod': 'stc_bank',
         'bankAccount': '+966501234567',
         'date': DateTime.now().subtract(const Duration(days: 2)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG007',
         'type': 'credit_adjustment',
-        'category': 'Admin Adjustment',
-        'description': 'Credit adjusted by admin - Bonus for excellent service',
+        'category': WorkerTranslations.getEnglish('Admin Adjustment • تعديل إداري'),
+        'description': WorkerTranslations.getEnglish('Credit adjusted by admin - Bonus for excellent service • تم تعديل الرصيد من قبل المشرف - مكافأة للخدمة الممتازة'),
         'amount': 200.00,
         'balanceBefore': 1192.50,
         'balanceAfter': 1392.50,
-        'adjustedBy': 'Admin',
-        'reason': 'Performance bonus',
+        'adjustedBy': WorkerTranslations.getEnglish(WorkerTranslations.admin),
+        'reason': WorkerTranslations.getEnglish('Performance bonus • مكافأة الأداء'),
         'date': DateTime.now().subtract(const Duration(days: 3)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
       {
         'id': 'LOG008',
         'type': 'credit_deduction',
-        'category': 'Complaint Penalty',
-        'description': 'Credit deducted due to customer complaint',
+        'category': WorkerTranslations.getEnglish('Complaint Penalty • غرامة شكوى'),
+        'description': WorkerTranslations.getEnglish('Credit deducted due to customer complaint • تم خصم الرصيد بسبب شكوى العميل'),
         'complaintId': 'CMP001',
         'amount': -150.00,
         'balanceBefore': 1392.50,
         'balanceAfter': 1242.50,
-        'adjustedBy': 'Admin',
-        'reason': 'Service quality issue',
+        'adjustedBy': WorkerTranslations.getEnglish(WorkerTranslations.admin),
+        'reason': WorkerTranslations.getEnglish('Service quality issue • مشكلة في جودة الخدمة'),
         'date': DateTime.now().subtract(const Duration(days: 5)),
-        'status': 'completed',
+        'status': WorkerTranslations.getEnglish(WorkerTranslations.completed),
       },
     ]);
   }
@@ -139,7 +140,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Wallet & Credit Logs'),
+        title: Text(WorkerTranslations.walletLogs),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         actions: [
@@ -192,7 +193,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
         children: [
           Expanded(
             child: _buildSummaryCard(
-              'Total Credits',
+              WorkerTranslations.getEnglish('Total Credits • إجمالي الرصيد'),
               totalCredit,
               Icons.add_circle,
               Colors.green,
@@ -201,7 +202,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildSummaryCard(
-              'Total Debits',
+              WorkerTranslations.getEnglish('Total Debits • إجمالي الخصومات'),
               totalDebit,
               Icons.remove_circle,
               Colors.red,
@@ -210,7 +211,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildSummaryCard(
-              'Earnings',
+              WorkerTranslations.getEnglish('Earnings • الأرباح'),
               totalWalletCredit,
               Icons.attach_money,
               Colors.blue,
@@ -240,7 +241,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
-            'SAR ${amount.toStringAsFixed(2)}',
+            '${WorkerTranslations.sar.split(' • ')[0]} ${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -259,26 +260,28 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
 
   // Type Filter
   Widget _buildTypeFilter() {
+    final filterTypes = [
+      WorkerTranslations.all,
+      'Credit Top-up • شحن الرصيد',
+      'Credit Deduction • خصم الرصيد',
+      'Wallet Credit • رصيد المحفظة',
+      'Wallet Debit • خصم المحفظة',
+      'Adjustments • تعديلات'
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        children: [
-          'All',
-          'Credit Top-up',
-          'Credit Deduction',
-          'Wallet Credit',
-          'Wallet Debit',
-          'Adjustments'
-        ].map((type) {
-          final isSelected = _selectedType == type;
+        children: filterTypes.map((type) {
+          final isSelected = _selectedType == WorkerTranslations.getEnglish(type);
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
-              label: Text(type),
+              label: Text(WorkerTranslations.getEnglish(type)),
               selected: isSelected,
               onSelected: (selected) {
-                setState(() => _selectedType = type);
+                setState(() => _selectedType = WorkerTranslations.getEnglish(type));
               },
               selectedColor: const Color(0xFF6B5B9A),
               labelStyle: TextStyle(
@@ -350,7 +353,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          transaction['category'],
+                          WorkerTranslations.getEnglish(transaction['category']),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -358,7 +361,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          transaction['description'],
+                          WorkerTranslations.getEnglish(transaction['description']),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -373,7 +376,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${transaction['amount'] > 0 ? '+' : ''}SAR ${transaction['amount'].toStringAsFixed(2)}',
+                        '${transaction['amount'] > 0 ? '+' : ''}${WorkerTranslations.sar.split(' • ')[0]} ${transaction['amount'].toStringAsFixed(2)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -388,7 +391,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          transaction['status'],
+                          WorkerTranslations.getEnglish(transaction['status']),
                           style: const TextStyle(
                             fontSize: 10,
                             color: Colors.green,
@@ -448,12 +451,12 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                       children: [
                         if (transaction['vat'] != null)
                           Text(
-                            'VAT: SAR ${transaction['vat'].toStringAsFixed(2)}',
+                            '${WorkerTranslations.getEnglish(WorkerTranslations.vat)}: ${WorkerTranslations.sar.split(' • ')[0]} ${transaction['vat'].toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 11, color: Colors.grey),
                           ),
                         if (transaction['commission'] != null)
                           Text(
-                            'Commission: SAR ${transaction['commission'].toStringAsFixed(2)}',
+                            '${WorkerTranslations.getEnglish(WorkerTranslations.commission)}: ${WorkerTranslations.sar.split(' • ')[0]} ${transaction['commission'].toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 11, color: Colors.grey),
                           ),
                       ],
@@ -475,12 +478,12 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
           Icon(Icons.receipt_long, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
-            'No transactions found',
+            WorkerTranslations.getEnglish(WorkerTranslations.noWalletLogs),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
-            'Your transaction history will appear here',
+            WorkerTranslations.getEnglish(WorkerTranslations.firstTransactionAppear),
             style: TextStyle(fontSize: 12, color: Colors.grey[400]),
           ),
         ],
@@ -490,6 +493,14 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
 
   // Filter Dialog
   void _showFilterDialog() {
+    final periodOptions = [
+      'All Time • كل الوقت',
+      'Today • اليوم',
+      'This Week • هذا الأسبوع',
+      'This Month • هذا الشهر',
+      'Last Month • الشهر الماضي'
+    ];
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -501,21 +512,21 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Filter Transactions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              WorkerTranslations.getBilingual('Filter Transactions', 'تصفية المعاملات'),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            const Text('Period', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(WorkerTranslations.getBilingual('Period', 'الفترة'), style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: ['All Time', 'Today', 'This Week', 'This Month', 'Last Month']
+              children: periodOptions
                   .map((period) => ChoiceChip(
-                label: Text(period),
-                selected: _selectedPeriod == period,
+                label: Text(WorkerTranslations.getEnglish(period)),
+                selected: _selectedPeriod == WorkerTranslations.getEnglish(period),
                 onSelected: (selected) {
-                  setState(() => _selectedPeriod = period);
+                  setState(() => _selectedPeriod = WorkerTranslations.getEnglish(period));
                   Navigator.pop(context);
                 },
               ))
@@ -527,8 +538,8 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    _selectedType = 'All';
-                    _selectedPeriod = 'All Time';
+                    _selectedType = WorkerTranslations.getEnglish(WorkerTranslations.all);
+                    _selectedPeriod = WorkerTranslations.getEnglish('All Time • كل الوقت');
                   });
                   Navigator.pop(context);
                 },
@@ -536,7 +547,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                   backgroundColor: Colors.grey[300],
                   foregroundColor: Colors.black87,
                 ),
-                child: const Text('Reset Filters'),
+                child: Text(WorkerTranslations.getBilingual('Reset Filters', 'إعادة تعيين الفلاتر')),
               ),
             ),
           ],
@@ -574,46 +585,46 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Transaction Details',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Text(
+                  WorkerTranslations.getBilingual('Transaction Details', 'تفاصيل المعاملة'),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-                _buildDetailRow('Transaction ID', transaction['id']),
-                _buildDetailRow('Type', transaction['type']),
-                _buildDetailRow('Category', transaction['category']),
+                _buildDetailRow(WorkerTranslations.getBilingual('Transaction ID', 'معرف المعاملة'), transaction['id']),
+                _buildDetailRow(WorkerTranslations.getBilingual('Type', 'النوع'), transaction['type']),
+                _buildDetailRow(WorkerTranslations.getBilingual('Category', 'الفئة'), WorkerTranslations.getEnglish(transaction['category'])),
                 const Divider(height: 24),
-                _buildDetailRow('Description', transaction['description']),
+                _buildDetailRow(WorkerTranslations.getBilingual('Description', 'الوصف'), WorkerTranslations.getEnglish(transaction['description'])),
                 if (transaction['serviceId'] != null) ...[
-                  _buildDetailRow('Service ID', transaction['serviceId']),
-                  _buildDetailRow('Service', transaction['serviceName']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Service ID', 'معرف الخدمة'), transaction['serviceId']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Service', 'الخدمة'), transaction['serviceName']),
                 ],
                 if (transaction['complaintId'] != null)
-                  _buildDetailRow('Complaint ID', transaction['complaintId']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Complaint ID', 'معرف الشكوى'), transaction['complaintId']),
                 const Divider(height: 24),
                 _buildDetailRow(
-                  'Amount',
-                  '${transaction['amount'] > 0 ? '+' : ''}SAR ${transaction['amount'].toStringAsFixed(2)}',
+                  WorkerTranslations.getBilingual('Amount', 'المبلغ'),
+                  '${transaction['amount'] > 0 ? '+' : ''}${WorkerTranslations.sar.split(' • ')[0]} ${transaction['amount'].toStringAsFixed(2)}',
                   isBold: true,
                 ),
                 if (transaction['vat'] != null)
-                  _buildDetailRow('VAT', 'SAR ${transaction['vat'].toStringAsFixed(2)}'),
+                  _buildDetailRow(WorkerTranslations.getBilingual('VAT', 'ضريبة القيمة المضافة'), '${WorkerTranslations.sar.split(' • ')[0]} ${transaction['vat'].toStringAsFixed(2)}'),
                 if (transaction['commission'] != null)
-                  _buildDetailRow('Commission', 'SAR ${transaction['commission'].toStringAsFixed(2)}'),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Commission', 'العمولة'), '${WorkerTranslations.sar.split(' • ')[0]} ${transaction['commission'].toStringAsFixed(2)}'),
                 const Divider(height: 24),
-                _buildDetailRow('Balance Before', 'SAR ${transaction['balanceBefore'].toStringAsFixed(2)}'),
-                _buildDetailRow('Balance After', 'SAR ${transaction['balanceAfter'].toStringAsFixed(2)}'),
+                _buildDetailRow(WorkerTranslations.getBilingual('Balance Before', 'الرصيد قبل'), '${WorkerTranslations.sar.split(' • ')[0]} ${transaction['balanceBefore'].toStringAsFixed(2)}'),
+                _buildDetailRow(WorkerTranslations.getBilingual('Balance After', 'الرصيد بعد'), '${WorkerTranslations.sar.split(' • ')[0]} ${transaction['balanceAfter'].toStringAsFixed(2)}'),
                 const Divider(height: 24),
                 if (transaction['paymentMethod'] != null)
-                  _buildDetailRow('Payment Method', transaction['paymentMethod']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Payment Method', 'طريقة الدفع'), transaction['paymentMethod']),
                 if (transaction['bankAccount'] != null)
-                  _buildDetailRow('Bank Account', transaction['bankAccount']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Bank Account', 'الحساب البنكي'), transaction['bankAccount']),
                 if (transaction['adjustedBy'] != null) ...[
-                  _buildDetailRow('Adjusted By', transaction['adjustedBy']),
-                  _buildDetailRow('Reason', transaction['reason']),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Adjusted By', 'تم التعديل بواسطة'), WorkerTranslations.getEnglish(transaction['adjustedBy'])),
+                  _buildDetailRow(WorkerTranslations.getBilingual('Reason', 'السبب'), WorkerTranslations.getEnglish(transaction['reason'])),
                 ],
-                _buildDetailRow('Date', _formatDateTime(transaction['date'])),
-                _buildDetailRow('Status', transaction['status']),
+                _buildDetailRow(WorkerTranslations.getBilingual('Date', 'التاريخ'), _formatDateTime(transaction['date'])),
+                _buildDetailRow(WorkerTranslations.getBilingual('Status', 'الحالة'), WorkerTranslations.getEnglish(transaction['status'])),
               ],
             ),
           );
@@ -630,7 +641,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            WorkerTranslations.getEnglish(label),
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 13,
@@ -655,7 +666,7 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
   // Helper Methods
   List<Map<String, dynamic>> _getFilteredTransactions() {
     return _transactions.where((transaction) {
-      if (_selectedType == 'All') return true;
+      if (_selectedType == WorkerTranslations.getEnglish(WorkerTranslations.all)) return true;
 
       switch (_selectedType) {
         case 'Credit Top-up':
@@ -679,11 +690,11 @@ class _WorkerWalletLogsScreenState extends State<WorkerWalletLogsScreen> {
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min ago';
+      return '${difference.inMinutes} ${WorkerTranslations.getEnglish(WorkerTranslations.minAgo)}';
     } else if (difference.inHours < 24) {
-      return '${difference.inHours} hours ago';
+      return '${difference.inHours} ${WorkerTranslations.getEnglish(WorkerTranslations.hAgo)}';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays} ${WorkerTranslations.getEnglish(WorkerTranslations.daysAgo)}';
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     }

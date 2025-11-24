@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
 import '../models/vat_model.dart';
+import '../utils/admin_translations.dart';
+import '../widgets/bilingual_text.dart';
 
 class VATManagementScreen extends StatefulWidget {
   const VATManagementScreen({super.key});
@@ -40,14 +42,19 @@ class VATManagementScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('VAT Management'),
+        title: BilingualText( // ✅ Bilingual app bar title
+          english: AdminTranslations.split(AdminTranslations.vatManagement)[0],
+          arabic: AdminTranslations.split(AdminTranslations.vatManagement)[1],
+          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.file_download),
             onPressed: () => _exportVATReport(),
-            tooltip: 'Export VAT Report',
+            tooltip: AdminTranslations.split(AdminTranslations.exportVatReport)[0],
           ),
         ],
       ),
@@ -55,35 +62,8 @@ class VATManagementScreenState
         children: [
           _buildVATSummaryCard(totalVAT, vatRecords.length),
           _buildPeriodSelector(),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'VAT Records',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${vatRecords.length} records',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: vatRecords.isEmpty
-                ? _buildEmptyState()
-                : _buildVATList(vatRecords),
-          ),
+          const SizedBox(height: 16),
+          _buildVATRecordsSection(vatRecords),
         ],
       ),
     );
@@ -92,76 +72,64 @@ class VATManagementScreenState
   Widget _buildVATSummaryCard(double total, int recordCount) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFFF9800), // ✅ Orange color
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF9800).withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total VAT Collected',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.receipt_long, color: Colors.white, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      '15% Rate',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Title
+          BilingualText(
+            english: AdminTranslations.split(AdminTranslations.totalVatCollected)[0],
+            arabic: AdminTranslations.split(AdminTranslations.totalVatCollected)[1],
+            englishStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white, // ✅ White text on orange
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+
+          // Amount
           Text(
             'SAR ${total.toStringAsFixed(2)}',
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
+              color: Colors.white, // ✅ White text on orange
             ),
           ),
           const SizedBox(height: 16),
+
+          // Divider
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.3), // ✅ White divider
+          ),
+          const SizedBox(height: 16),
+
+          // Services Info Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildInfoChip(
-                'Services',
+              _buildServiceInfo(
+                AdminTranslations.split(AdminTranslations.services)[0],
+                AdminTranslations.split(AdminTranslations.services)[1],
                 recordCount.toString(),
-                Icons.receipt,
               ),
-              _buildInfoChip(
-                'Auto-Updated',
-                'Real-time',
-                Icons.sync,
+              _buildServiceInfo(
+                AdminTranslations.split(AdminTranslations.autoUpdated)[0],
+                AdminTranslations.split(AdminTranslations.autoUpdated)[1],
+                AdminTranslations.split(AdminTranslations.realTime)[0],
               ),
             ],
           ),
@@ -170,43 +138,39 @@ class VATManagementScreenState
     );
   }
 
-  Widget _buildInfoChip(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 20),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+  Widget _buildServiceInfo(String labelEn, String labelAr, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BilingualText(
+          english: labelEn,
+          arabic: labelAr,
+          englishStyle: const TextStyle(
+            fontSize: 12,
+            color: Colors.white70, // ✅ Light white text
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // ✅ White text
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildPeriodSelector() {
+    final periods = [
+      AdminTranslations.today,
+      AdminTranslations.thisWeek,
+      AdminTranslations.thisMonth,
+      AdminTranslations.allTime,
+    ];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
@@ -215,16 +179,13 @@ class VATManagementScreenState
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        children: [
-          'Today',
-          'This Week',
-          'This Month',
-          'All Time',
-        ].map((period) {
-          final isSelected = _selectedPeriod == period;
+        children: periods.map((period) {
+          final isSelected = _selectedPeriod == AdminTranslations.getEnglish(period);
+          final periodText = AdminTranslations.getEnglish(period);
+
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedPeriod = period),
+              onTap: () => setState(() => _selectedPeriod = periodText),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
@@ -232,7 +193,7 @@ class VATManagementScreenState
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  period,
+                  periodText,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey.shade700,
@@ -248,21 +209,62 @@ class VATManagementScreenState
     );
   }
 
+  Widget _buildVATRecordsSection(List<VATRecord> vatRecords) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                BilingualText(
+                  english: AdminTranslations.split(AdminTranslations.vatRecords)[0],
+                  arabic: AdminTranslations.split(AdminTranslations.vatRecords)[1],
+                  englishStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${vatRecords.length} ${AdminTranslations.split(AdminTranslations.records)[0]}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Records List or Empty State
+          Expanded(
+            child: vatRecords.isEmpty
+                ? _buildEmptyState()
+                : _buildVATList(vatRecords),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildVATList(List<VATRecord> records) {
-    // Show most recent first
     final sortedRecords = records.reversed.toList();
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: sortedRecords.length,
       itemBuilder: (context, index) {
         final record = sortedRecords[index];
-        return _buildVATCard(record);
+        return _buildVATRecordCard(record);
       },
     );
   }
 
-  Widget _buildVATCard(VATRecord record) {
+  Widget _buildVATRecordCard(VATRecord record) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -291,7 +293,7 @@ class VATManagementScreenState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Service ID: ${record.serviceId}',
+                        '${AdminTranslations.split(AdminTranslations.serviceId)[0]}: ${record.serviceId}',
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontSize: 12,
@@ -306,7 +308,7 @@ class VATManagementScreenState
                     Text(
                       'SAR ${record.vatAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        color: Color(0xFFFF9800),
+                        color: Color(0xFFFF9800), // ✅ Orange color for VAT amount
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -331,24 +333,21 @@ class VATManagementScreenState
                 ),
               ],
             ),
-            const Divider(height: 24),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildInfoRow(
-                  'Service Amount',
+                _buildRecordInfo(
+                  AdminTranslations.split(AdminTranslations.serviceAmount)[0],
                   'SAR ${record.serviceAmount.toStringAsFixed(2)}',
-                  Icons.attach_money,
                 ),
-                _buildInfoRow(
-                  'VAT Rate',
+                _buildRecordInfo(
+                  AdminTranslations.split(AdminTranslations.vatRate)[0],
                   '${record.vatRate.toStringAsFixed(0)}%',
-                  Icons.percent,
                 ),
-                _buildInfoRow(
-                  'Date',
+                _buildRecordInfo(
+                  AdminTranslations.split(AdminTranslations.date)[0],
                   _formatDate(record.date),
-                  Icons.calendar_today,
                 ),
               ],
             ),
@@ -358,24 +357,18 @@ class VATManagementScreenState
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon) {
+  Widget _buildRecordInfo(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: Colors.grey.shade600),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 11,
-              ),
-            ),
-          ],
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 11,
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           value,
           style: const TextStyle(
@@ -405,21 +398,27 @@ class VATManagementScreenState
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            'No VAT Records',
-            style: TextStyle(
-              fontSize: 20,
+          BilingualText(
+            english: AdminTranslations.split(AdminTranslations.noVatRecordsTitle)[0],
+            arabic: AdminTranslations.split(AdminTranslations.noVatRecordsTitle)[1],
+            englishStyle: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.grey.shade700,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'VAT records will appear here\nautomatically when services are completed',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: BilingualText(
+              english: AdminTranslations.split(AdminTranslations.noVatRecords)[0],
+              arabic: AdminTranslations.split(AdminTranslations.noVatRecords)[1],
+              englishStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -433,7 +432,7 @@ class VATManagementScreenState
     final dateToCheck = DateTime(date.year, date.month, date.day);
 
     if (dateToCheck == today) {
-      return 'Today';
+      return AdminTranslations.split(AdminTranslations.today)[0];
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
@@ -441,10 +440,10 @@ class VATManagementScreenState
 
   void _exportVATReport() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('VAT report exported successfully'),
+      SnackBar(
+        content: Text(AdminTranslations.split(AdminTranslations.vatReportExported)[0]),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

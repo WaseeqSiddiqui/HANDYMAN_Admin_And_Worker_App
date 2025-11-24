@@ -95,8 +95,8 @@ class FinancialService {
       _allTransactions.add(transaction);
       _completedServices.add(transaction);
 
-      // ✅ FIXED: Update admin wallet - receives FULL payment amount
-      _updateAdminWallet(transaction);
+      // ✅ FIXED: Update admin wallet based on payment method
+      _updateAdminWallet(transaction, paymentMethod);
 
       // Update commission records
       _updateCommissionRecords(transaction);
@@ -129,29 +129,52 @@ class FinancialService {
   }
 
   // ============= ADMIN WALLET MANAGEMENT =============
-  // ✅ FIXED: Admin wallet receives full payment, tracks deductions with actual amounts
-  void _updateAdminWallet(FinancialTransaction transaction) {
-    // Step 1: Admin receives FULL payment from customer
-    final paymentTxn = WalletTransaction(
-      id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
-      type: 'credit',
-      amount: transaction.totalAmount,
-      description: 'Payment received - ${transaction.serviceName} (${transaction.customerName})',
-      serviceId: transaction.serviceId,
-      date: transaction.completionDate,
-      balanceAfter: _currentBalance + transaction.totalAmount,
-    );
+  // ✅ FIXED: Admin wallet based on payment method
+  // ONLINE: Receives full payment, then pays worker
+  // CASH: Receives only VAT + Commission (worker already got cash)
+  void _updateAdminWallet(FinancialTransaction transaction, String paymentMethod) {
+    if (paymentMethod == 'Cash') {
+      // CASH: Admin receives only VAT + Commission
+      final deductionAmount = transaction.commission + transaction.vat;
 
-    _walletTransactions.add(paymentTxn);
-    _currentBalance += transaction.totalAmount;
+      final deductionTxn = WalletTransaction(
+        id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
+        type: 'credit',
+        amount: deductionAmount,
+        description: 'VAT+Commission received (CASH) - ${transaction.serviceName} (${transaction.customerName})',
+        serviceId: transaction.serviceId,
+        date: transaction.completionDate,
+        balanceAfter: _currentBalance + deductionAmount,
+      );
 
-    debugPrint('✅ Admin Wallet: +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Payment received)');
+      _walletTransactions.add(deductionTxn);
+      _currentBalance += deductionAmount;
 
-    // Step 2: Track commission (kept by admin) - SHOW ACTUAL AMOUNT
+      debugPrint('✅ Admin Wallet (CASH): +SAR ${deductionAmount.toStringAsFixed(2)} (VAT+Commission only)');
+
+    } else {
+      // ONLINE: Admin receives FULL payment from customer
+      final paymentTxn = WalletTransaction(
+        id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
+        type: 'credit',
+        amount: transaction.totalAmount,
+        description: 'Payment received (ONLINE) - ${transaction.serviceName} (${transaction.customerName})',
+        serviceId: transaction.serviceId,
+        date: transaction.completionDate,
+        balanceAfter: _currentBalance + transaction.totalAmount,
+      );
+
+      _walletTransactions.add(paymentTxn);
+      _currentBalance += transaction.totalAmount;
+
+      debugPrint('✅ Admin Wallet (ONLINE): +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Full payment received)');
+    }
+
+    // Track commission and VAT (for both payment methods)
     final commissionTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 1}',
-      type: 'credit', // Commission is income for admin
-      amount: transaction.commission, // ✅ FIXED: Show actual commission amount
+      type: 'credit',
+      amount: transaction.commission,
       description: 'Commission earned (20%) - ${transaction.serviceName}',
       serviceId: transaction.serviceId,
       date: transaction.completionDate,
@@ -160,11 +183,10 @@ class FinancialService {
 
     _walletTransactions.add(commissionTxn);
 
-    // Step 3: Track VAT (kept by admin) - SHOW ACTUAL AMOUNT
     final vatTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 2}',
-      type: 'credit', // VAT is income for admin
-      amount: transaction.vat, // ✅ FIXED: Show actual VAT amount
+      type: 'credit',
+      amount: transaction.vat,
       description: 'VAT collected (15%) - ${transaction.serviceName}',
       serviceId: transaction.serviceId,
       date: transaction.completionDate,

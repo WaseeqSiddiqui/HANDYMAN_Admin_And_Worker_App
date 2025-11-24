@@ -110,6 +110,7 @@ class WorkerAuthService {
     return true;
   }
 
+
   bool updateWorkerServices(String phone, int completedServices) {
     final normalized = _normalizePhoneNumber(phone);
     final worker = _registeredWorkers[normalized];
@@ -120,4 +121,5 @@ class WorkerAuthService {
     _notifyListeners();
     return true;
   }
+
 }

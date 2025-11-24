@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '/utils/admin_translations.dart';
+import '/widgets/bilingual_text.dart';
 import '/services/service_management_service.dart';
 import '/models/service_model.dart';
 
@@ -43,7 +45,12 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Service Management'),
+        title: BilingualText( // ✅ Bilingual app bar title
+          english: AdminTranslations.split(AdminTranslations.serviceManagement)[0],
+          arabic: AdminTranslations.split(AdminTranslations.serviceManagement)[1],
+          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
         bottom: TabBar(
@@ -51,10 +58,31 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(text: 'Categories'),
-            Tab(text: 'Subcategories'),
-            Tab(text: 'Services'),
+          tabs: [
+            Tab(
+              child: BilingualText( // ✅ Bilingual tab
+                english: AdminTranslations.split(AdminTranslations.categories)[0],
+                arabic: AdminTranslations.split(AdminTranslations.categories)[1],
+                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+            ),
+            Tab(
+              child: BilingualText( // ✅ Bilingual tab
+                english: AdminTranslations.split(AdminTranslations.subcategories)[0],
+                arabic: AdminTranslations.split(AdminTranslations.subcategories)[1],
+                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+            ),
+            Tab(
+              child: BilingualText( // ✅ Bilingual tab
+                english: AdminTranslations.split(AdminTranslations.services)[0],
+                arabic: AdminTranslations.split(AdminTranslations.services)[1],
+                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+            ),
           ],
         ),
       ),
@@ -70,7 +98,12 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         onPressed: () => _showAddDialog(),
         backgroundColor: const Color(0xFF6B5B9A),
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add New', style: TextStyle(color: Colors.white)),
+        label: BilingualText( // ✅ Bilingual FAB label
+          english: 'Add New',
+          arabic: 'إضافة جديد',
+          englishStyle: const TextStyle(color: Colors.white, fontSize: 14),
+          arabicStyle: const TextStyle(color: Colors.white, fontSize: 13),
+        ),
       ),
     );
   }
@@ -88,9 +121,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           children: [
             Icon(Icons.category_outlined, size: 64, color: textColor.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text(
-              'No categories yet',
-              style: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+            BilingualText(
+              english: 'No categories yet',
+              arabic: 'لا توجد فئات حتى الآن',
+              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
             ),
           ],
         ),
@@ -138,9 +173,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '${category.subcategories.length} subcategories',
-                style: TextStyle(color: textColor.withOpacity(0.6)),
+              child: BilingualText(
+                english: '${category.subcategories.length} subcategories',
+                arabic: '${category.subcategories.length} فئة فرعية',
+                englishStyle: TextStyle(color: textColor.withOpacity(0.6)),
+                arabicStyle: TextStyle(color: textColor.withOpacity(0.6)),
               ),
             ),
             trailing: Row(
@@ -175,9 +212,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           children: [
             Icon(Icons.list_alt_outlined, size: 64, color: textColor.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text(
-              'No categories available',
-              style: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+            BilingualText(
+              english: 'No categories available',
+              arabic: 'لا توجد فئات متاحة',
+              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
             ),
           ],
         ),
@@ -212,9 +251,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 ? [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(
-                  'No subcategories',
-                  style: TextStyle(color: textColor.withOpacity(0.5)),
+                child: BilingualText(
+                  english: 'No subcategories',
+                  arabic: 'لا توجد فئات فرعية',
+                  englishStyle: TextStyle(color: textColor.withOpacity(0.5)),
+                  arabicStyle: TextStyle(color: textColor.withOpacity(0.5)),
                 ),
               )
             ]
@@ -265,9 +306,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           children: [
             Icon(Icons.room_service_outlined, size: 64, color: textColor.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text(
-              'No services yet',
-              style: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+            BilingualText(
+              english: 'No services yet',
+              arabic: 'لا توجد خدمات حتى الآن',
+              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
+              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
             ),
           ],
         ),
@@ -371,7 +414,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     TextButton.icon(
                       onPressed: () => _showEditServiceDialog(service),
                       icon: const Icon(Icons.edit, size: 18),
-                      label: const Text('Edit'),
+                      label: Text(AdminTranslations.split(AdminTranslations.editBtn)[0]),
                       style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFF6B5B9A),
                       ),
@@ -380,7 +423,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     TextButton.icon(
                       onPressed: () => _confirmDeleteService(service),
                       icon: const Icon(Icons.delete, size: 18),
-                      label: const Text('Delete'),
+                      label: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.red,
                       ),
@@ -444,7 +487,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Category'),
+        title: Text(AdminTranslations.split(AdminTranslations.addCategory)[0]),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -474,7 +517,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -531,7 +574,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add Subcategory'),
+          title: Text(AdminTranslations.split(AdminTranslations.addSubcategory)[0]),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -590,7 +633,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
             ),
             ElevatedButton(
               onPressed: () {
@@ -654,7 +697,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               : null;
 
           return AlertDialog(
-            title: const Text('Add Service'),
+            title: Text(AdminTranslations.split(AdminTranslations.addService)[0]),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -777,7 +820,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -873,7 +916,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -898,7 +941,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Save'),
+            child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
           ),
         ],
       ),
@@ -941,7 +984,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -966,7 +1009,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Save'),
+            child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
           ),
         ],
       ),
@@ -1042,7 +1085,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1070,7 +1113,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Save'),
+            child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
           ),
         ],
       ),
@@ -1086,7 +1129,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1112,7 +1155,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
           ),
         ],
       ),
@@ -1130,7 +1173,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1156,7 +1199,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
           ),
         ],
       ),
@@ -1172,7 +1215,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1190,7 +1233,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
           ),
         ],
       ),

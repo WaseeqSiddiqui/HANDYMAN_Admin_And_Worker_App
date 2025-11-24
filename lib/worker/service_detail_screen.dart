@@ -8,6 +8,7 @@ import '/services/invoice_service.dart';
 import 'add_extra_items_screen.dart';
 import 'generate_invoice_screen.dart';
 import 'credit_screen.dart';
+import '/utils/worker_translations.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServiceRequest service;
@@ -20,12 +21,13 @@ class ServiceDetailScreen extends StatefulWidget {
 
 class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   bool _isLoading = false;
+  final ScrollController _scrollController = ScrollController();
 
   String _formatDate(DateTime dateTime) {
     try {
       return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
     } catch (e) {
-      return 'N/A';
+      return WorkerTranslations.getBilingual('N/A', 'غير متوفر');
     }
   }
 
@@ -35,7 +37,6 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       builder: (context, appState, child) {
         final service = appState.getServiceById(widget.service.id) ?? widget.service;
 
-        // ✅ CHECK: Has invoice been generated?
         final invoiceService = InvoiceService();
         final invoice = invoiceService.getInvoiceByServiceId(service.id);
         final hasInvoice = invoice != null;
@@ -55,7 +56,26 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           child: Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
-              title: Text(service.serviceName),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    service.serviceName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    service.customerName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
               backgroundColor: const Color(0xFF6B5B9A),
               foregroundColor: Colors.white,
               leading: IconButton(
@@ -65,33 +85,60 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             ),
             body: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+                : SafeArea(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildCustomerInfo(service),
-                  const SizedBox(height: 16),
-                  _buildPriceBreakdown(service, totalPrice, commission, vat, workerEarnings),
-                  const SizedBox(height: 16),
-                  _buildCreditValidation(appState, requiredCredit, hasEnoughCredit),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildCustomerInfo(service),
+                          const SizedBox(height: 12),
+                          _buildPriceBreakdown(service, totalPrice, commission, vat, workerEarnings),
 
-                  // ✅ SHOW INVOICE STATUS
-                  if (service.status == ServiceRequestStatus.inProgress) ...[
-                    const SizedBox(height: 16),
-                    _buildInvoiceStatus(hasInvoice, invoice),
-                  ],
+                          if (service.status != ServiceRequestStatus.completed) ...[
+                            const SizedBox(height: 12),
+                            _buildCreditValidation(appState, requiredCredit, hasEnoughCredit),
+                          ],
 
-                  const SizedBox(height: 24),
-                  _buildActionButtons(
-                    context,
-                    appState,
-                    service,
-                    hasEnoughCredit,
-                    requiredCredit,
-                    hasInvoice, // ✅ Pass invoice status
+                          if (service.status == ServiceRequestStatus.inProgress) ...[
+                            const SizedBox(height: 12),
+                            _buildInvoiceStatus(hasInvoice, invoice),
+                          ],
+
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 100),
+
+                  // Fixed bottom action buttons
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: _buildActionButtons(
+                        context,
+                        appState,
+                        service,
+                        hasEnoughCredit,
+                        requiredCredit,
+                        hasInvoice,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -101,98 +148,62 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
-  // ✅ NEW: Show invoice generation status
   Widget _buildInvoiceStatus(bool hasInvoice, ServiceInvoice? invoice) {
     return Card(
       elevation: 3,
       color: hasInvoice ? Colors.green.shade900 : Colors.orange.shade900,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(
                   hasInvoice ? Icons.check_circle : Icons.receipt_long,
                   color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
-                  size: 28,
+                  size: 20,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    hasInvoice ? 'Invoice Generated' : 'Invoice Required',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (hasInvoice && invoice != null) ...[
-              const Divider(height: 24, color: Colors.white30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Invoice Number:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    invoice.invoiceNumber,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // ✅ FIX: Show actual payment method from invoice
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Payment Method:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        invoice.paymentMethod == 'Cash'
-                            ? Icons.money
-                            : Icons.account_balance,
-                        color: Colors.greenAccent,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        invoice.paymentMethod == 'unknown'
-                            ? 'Not Set'
-                            : invoice.paymentMethod,
+                        WorkerTranslations.getEnglish(hasInvoice ? WorkerTranslations.invoiceGenerated : WorkerTranslations.invoiceRequired),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: invoice.paymentMethod == 'unknown'
-                              ? Colors.orangeAccent
-                              : Colors.greenAccent,
+                          color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
+                        ),
+                      ),
+                      Text(
+                        WorkerTranslations.getArabic(hasInvoice ? WorkerTranslations.invoiceGenerated : WorkerTranslations.invoiceRequired),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: hasInvoice ? Colors.greenAccent : Colors.orangeAccent,
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ],
+            ),
+
+            if (hasInvoice && invoice != null) ...[
+              const SizedBox(height: 12),
+              _buildInvoiceDetailRow(
+                  WorkerTranslations.invoiceNumber,
+                  invoice.invoiceNumber,
+                  Colors.greenAccent
               ),
-              // ✅ Show STC account if payment is via STC/Bank
+              const SizedBox(height: 6),
+              _buildInvoiceDetailRow(
+                  WorkerTranslations.paymentMethodLabel,
+                  invoice.paymentMethod == 'unknown' ? WorkerTranslations.notSet : invoice.paymentMethod,
+                  invoice.paymentMethod == 'unknown' ? Colors.orangeAccent : Colors.greenAccent,
+                  icon: invoice.paymentMethod == 'Cash' ? Icons.money : Icons.account_balance
+              ),
               if (invoice.paymentMethod == 'STC/Bank') ...[
                 const SizedBox(height: 8),
                 Container(
@@ -203,63 +214,72 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, color: Colors.lightBlueAccent, size: 16),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.info_outline, color: Colors.lightBlueAccent, size: 14),
+                      const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                          'STC Account: ${InvoiceService.ADMIN_STC_ACCOUNT}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.lightBlueAccent,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Admin STC Account: ${InvoiceService.ADMIN_STC_ACCOUNT}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.lightBlueAccent,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              'حساب STC الإداري: ${InvoiceService.ADMIN_STC_ACCOUNT}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.lightBlueAccent,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Amount:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'SAR ${invoice.totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 6),
+              _buildInvoiceDetailRow(
+                  WorkerTranslations.totalAmount,
+                  'SAR ${invoice.totalAmount.toStringAsFixed(2)}',
+                  Colors.greenAccent
               ),
             ] else ...[
-              const Divider(height: 24, color: Colors.white30),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                    const SizedBox(width: 6),
                     Expanded(
-                      child: Text(
-                        'You must generate an invoice before completing this service',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish(WorkerTranslations.mustGenerateInvoice),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic(WorkerTranslations.mustGenerateInvoice),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -272,30 +292,80 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
+  Widget _buildInvoiceDetailRow(String label, String value, Color color, {IconData? icon}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              WorkerTranslations.getEnglish(label),
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+                color: Colors.white70,
+              ),
+            ),
+            Text(
+              WorkerTranslations.getArabic(label),
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: color, size: 14),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildCustomerInfo(ServiceRequest service) {
     return Card(
       elevation: 3,
       color: Colors.grey.shade900,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.person, color: Color(0xFF6B5B9A), size: 24),
+                const Icon(Icons.person, color: Color(0xFF6B5B9A), size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Customer',
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.customer),
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)
+                      ),
+                      Text(
+                          WorkerTranslations.getArabic(WorkerTranslations.customer),
+                          style: const TextStyle(fontSize: 10, color: Colors.grey)
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         service.customerName,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -305,23 +375,29 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ),
               ],
             ),
-            const Divider(height: 24, color: Colors.grey),
+            const Divider(height: 16, color: Colors.grey),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on, color: Color(0xFF6B5B9A), size: 20),
+                const Icon(Icons.location_on, color: Color(0xFF6B5B9A), size: 18),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Address',
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.address),
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)
+                      ),
+                      Text(
+                          WorkerTranslations.getArabic(WorkerTranslations.address),
+                          style: const TextStyle(fontSize: 10, color: Colors.grey)
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         service.address,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.white70,
                         ),
                       ),
@@ -346,32 +422,60 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       elevation: 3,
       color: Colors.grey.shade900,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Price Breakdown',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                )),
-            const Divider(height: 24, color: Colors.grey),
-            _buildRow('Base Price', basePrice),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(WorkerTranslations.priceBreakdown),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(WorkerTranslations.priceBreakdown),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Colors.grey),
+            const SizedBox(height: 12),
+            _buildRow(WorkerTranslations.basePrice, basePrice),
 
             if (extraItems.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'Extra Items:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
-                ),
+              const SizedBox(height: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    WorkerTranslations.getEnglish(WorkerTranslations.extraItems),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  Text(
+                    WorkerTranslations.getArabic(WorkerTranslations.extraItems),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               ...extraItems.map((item) => Padding(
-                padding: const EdgeInsets.only(left: 16, bottom: 4),
+                padding: const EdgeInsets.only(left: 12, bottom: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -380,26 +484,28 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         children: [
                           Icon(
                             item.type == 'Service' ? Icons.build : Icons.inventory,
-                            size: 16,
+                            size: 14,
                             color: item.type == 'Service' ? Colors.blue : Colors.orange,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               '${item.name} (${item.type})',
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 color: Colors.white70,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Text(
                       'SAR ${item.price.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.orange,
                       ),
@@ -407,15 +513,55 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   ],
                 ),
               )).toList(),
-              const SizedBox(height: 8),
-              _buildRow('Total Extra', extraCharges, color: Colors.orange),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish(WorkerTranslations.totalExtraCharges),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.orange,
+                              fontSize: 11,
+                            ),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic(WorkerTranslations.totalExtraCharges),
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'SAR ${extraCharges.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
 
-            const Divider(height: 24, color: Colors.grey),
-            _buildRow('Total Amount', totalPrice, isBold: true, color: const Color(0xFF6B5B9A), fontSize: 20),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Colors.grey),
+            const SizedBox(height: 12),
+            _buildRow(WorkerTranslations.total, totalPrice, isBold: true, color: const Color(0xFF6B5B9A), fontSize: 16),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
@@ -426,32 +572,74 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Commission (20%)',
-                          style: TextStyle(color: Colors.redAccent)),
-                      Text('SAR ${commission.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.redAccent)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              WorkerTranslations.getEnglish(WorkerTranslations.commissionDeduction),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 11,
+                              )
+                          ),
+                          Text(
+                              WorkerTranslations.getArabic(WorkerTranslations.commissionDeduction),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 10,
+                              )
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'SAR ${commission.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                            fontSize: 11
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('VAT (15%)',
-                          style: TextStyle(color: Colors.redAccent)),
-                      Text('SAR ${vat.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.redAccent)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              WorkerTranslations.getEnglish(WorkerTranslations.vatDeduction),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 11,
+                              )
+                          ),
+                          Text(
+                              WorkerTranslations.getArabic(WorkerTranslations.vatDeduction),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 10,
+                              )
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'SAR ${vat.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                            fontSize: 11
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
@@ -459,17 +647,34 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Your Earnings',
-                      style: TextStyle(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.workerEarnings),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: Colors.white,
+                          )
+                      ),
+                      Text(
+                          WorkerTranslations.getArabic(WorkerTranslations.workerEarnings),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                          )
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'SAR ${workerEarnings.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.white,
-                      )),
-                  Text('SAR ${workerEarnings.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.greenAccent)),
+                        color: Colors.greenAccent
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -482,24 +687,37 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   Widget _buildRow(String label, double value,
       {bool isBold = false, Color? color, double? fontSize}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? Colors.white70,
-              fontSize: fontSize ?? 14,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                WorkerTranslations.getEnglish(label),
+                style: TextStyle(
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                  color: color ?? Colors.white70,
+                  fontSize: fontSize != null ? fontSize - 2 : 12,
+                ),
+              ),
+              Text(
+                WorkerTranslations.getArabic(label),
+                style: TextStyle(
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                  color: color ?? Colors.white70,
+                  fontSize: fontSize != null ? fontSize - 4 : 10,
+                ),
+              ),
+            ],
           ),
           Text(
             'SAR ${value.toStringAsFixed(2)}',
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
               color: color ?? Colors.white,
-              fontSize: fontSize ?? 14,
+              fontSize: fontSize ?? 12,
             ),
           ),
         ],
@@ -514,73 +732,129 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       elevation: 3,
       color: hasInsufficientCredit ? Colors.red.shade900 : Colors.green.shade900,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Row(
               children: [
                 Icon(hasInsufficientCredit ? Icons.warning : Icons.check_circle,
-                    color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent, size: 28),
-                const SizedBox(width: 12),
-                Text(hasInsufficientCredit ? 'Insufficient Credit' : 'Credit Validation',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent)),
+                    color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        WorkerTranslations.getEnglish(hasInsufficientCredit ? WorkerTranslations.insufficientCredit : WorkerTranslations.creditValidation),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent
+                        ),
+                      ),
+                      Text(
+                        WorkerTranslations.getArabic(hasInsufficientCredit ? WorkerTranslations.insufficientCredit : WorkerTranslations.creditValidation),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: hasInsufficientCredit ? Colors.redAccent : Colors.greenAccent
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const Divider(height: 24, color: Colors.white30),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Colors.white30),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Required Credit:',
-                    style: TextStyle(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        WorkerTranslations.getEnglish(WorkerTranslations.requiredCredit),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.white,
+                        )
+                    ),
+                    Text(
+                        WorkerTranslations.getArabic(WorkerTranslations.requiredCredit),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white,
+                        )
+                    ),
+                  ],
+                ),
+                Text(
+                  'SAR ${requiredCredit.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white,
-                    )),
-                Text('SAR ${requiredCredit.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.redAccent)),
+                      color: Colors.redAccent
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Your Credit:',
-                    style: TextStyle(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        WorkerTranslations.getEnglish(WorkerTranslations.currentCredit),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.white,
+                        )
+                    ),
+                    Text(
+                        WorkerTranslations.getArabic(WorkerTranslations.currentCredit),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white,
+                        )
+                    ),
+                  ],
+                ),
+                Text(
+                  'SAR ${appState.creditBalance.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white,
-                    )),
-                Text('SAR ${appState.creditBalance.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.greenAccent)),
+                      color: Colors.greenAccent
+                  ),
+                ),
               ],
             ),
             if (hasInsufficientCredit) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                          'Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                        'Shortfall• النقص: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -598,69 +872,135 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       ServiceRequest service,
       bool hasEnoughCredit,
       double requiredCredit,
-      bool hasInvoice, // ✅ NEW parameter
+      bool hasInvoice,
       ) {
     if (service.status == ServiceRequestStatus.pending) {
       return const SizedBox.shrink();
     } else if (service.status == ServiceRequestStatus.inProgress) {
       return Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ElevatedButton.icon(
-            onPressed: () => _addExtraItems(context, appState, service),
-            icon: const Icon(Icons.add_circle),
-            label: const Text('Add Extra Items'),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange, minimumSize: const Size(double.infinity, 50)),
-          ),
-          const SizedBox(height: 12),
-
-          // ✅ GENERATE INVOICE BUTTON (if not generated yet)
-          if (!hasInvoice) ...[
-            ElevatedButton.icon(
-              onPressed: hasEnoughCredit
-                  ? () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GenerateInvoiceScreen(serviceId: service.id),
-                ),
-              ).then((_) => setState(() {})) // ✅ Refresh on return
-                  : null,
-              icon: const Icon(Icons.receipt_long),
-              label: const Text('Generate Invoice'),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _addExtraItems(context, appState, service),
+              icon: const Icon(Icons.add_circle, size: 18),
+              label: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    WorkerTranslations.getEnglish(WorkerTranslations.addExtraCharges),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  Text(
+                    WorkerTranslations.getArabic(WorkerTranslations.addExtraCharges),
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6B5B9A),
-                minimumSize: const Size(double.infinity, 50),
-                disabledBackgroundColor: Colors.grey,
+                  backgroundColor: Colors.orange,
+                  minimumSize: const Size(double.infinity, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          if (!hasInvoice) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: hasEnoughCredit
+                    ? () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GenerateInvoiceScreen(serviceId: service.id),
+                  ),
+                ).then((_) => setState(() {}))
+                    : null,
+                icon: const Icon(Icons.receipt_long, size: 18),
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish(WorkerTranslations.generateInvoice),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.generateInvoice),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B5B9A),
+                  minimumSize: const Size(double.infinity, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  disabledBackgroundColor: Colors.grey,
+                ),
               ),
             ),
           ],
 
-          // ✅ COMPLETE SERVICE BUTTON (only if invoice generated)
           if (hasInvoice) ...[
-            ElevatedButton.icon(
-              onPressed: hasEnoughCredit
-                  ? () => _completeService(context, appState, service)
-                  : null,
-              icon: const Icon(Icons.check_circle),
-              label: const Text('Complete Service'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: const Size(double.infinity, 50),
-                disabledBackgroundColor: Colors.grey,
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: hasEnoughCredit
+                    ? () => _completeService(context, appState, service)
+                    : null,
+                icon: const Icon(Icons.check_circle, size: 18),
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish(WorkerTranslations.markCompleted),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.markCompleted),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  minimumSize: const Size(double.infinity, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  disabledBackgroundColor: Colors.grey,
+                ),
               ),
             ),
           ],
 
           if (!hasEnoughCredit) ...[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => const CreditScreen())),
-              icon: const Icon(Icons.add_circle),
-              label: const Text('Top-up Credit'),
-              style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF6B5B9A),
-                  minimumSize: const Size(double.infinity, 50)),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => const CreditScreen())),
+                icon: const Icon(Icons.add_circle, size: 18),
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish(WorkerTranslations.topUpNow),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.topUpNow),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6B5B9A),
+                    minimumSize: const Size(double.infinity, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    side: const BorderSide(color: Color(0xFF6B5B9A))),
+              ),
             ),
           ],
         ],
@@ -683,6 +1023,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
 
     if (mounted) {
+      setState(() {});
       final updatedService = appState.getServiceById(service.id);
       if (updatedService != null) {
         final newTotal = updatedService.totalPrice;
@@ -694,10 +1035,27 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('✅ Extra items updated!',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('New Total: SAR ${newTotal.toStringAsFixed(2)}'),
-                Text('Required Credit: SAR ${newRequired.toStringAsFixed(2)}'),
+                Text(
+                    WorkerTranslations.getBilingual(
+                        '✅ Extra items updated!',
+                        '✅ تم تحديث العناصر الإضافية!'
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+                ),
+                Text(
+                    WorkerTranslations.getBilingual(
+                        'New Total: SAR ${newTotal.toStringAsFixed(2)}',
+                        'الإجمالي الجديد: ${newTotal.toStringAsFixed(2)} ريال'
+                    ),
+                    style: const TextStyle(fontSize: 11)
+                ),
+                Text(
+                    WorkerTranslations.getBilingual(
+                        'Required Credit: SAR ${newRequired.toStringAsFixed(2)}',
+                        'الرصيد المطلوب: ${newRequired.toStringAsFixed(2)} ريال'
+                    ),
+                    style: const TextStyle(fontSize: 11)
+                ),
               ],
             ),
             backgroundColor: Colors.green,
@@ -709,14 +1067,18 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   }
 
   void _completeService(BuildContext context, AppStateProvider appState, ServiceRequest service) async {
-    // ✅ Get invoice to check payment method
     final invoiceService = InvoiceService();
     final invoice = invoiceService.getInvoiceByServiceId(service.id);
 
     if (invoice == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Invoice not found. Please generate invoice first.'),
+        SnackBar(
+          content: Text(
+              WorkerTranslations.getBilingual(
+                  '❌ Invoice not found. Please generate invoice first.',
+                  '❌ لم يتم العثور على الفاتورة. يرجى إنشاء الفاتورة أولاً.'
+              )
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -729,31 +1091,97 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Cannot Complete Service')
+              const Icon(Icons.warning, color: Colors.red, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish('Cannot Complete Service'),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic('Cannot Complete Service'),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Insufficient credit to complete service.',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              Text('Required: SAR ${requiredCredit.toStringAsFixed(2)}'),
-              Text('Available: SAR ${appState.creditBalance.toStringAsFixed(2)}'),
-              Text('Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)}',
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              const Text('Please top-up your credit to continue.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      WorkerTranslations.getEnglish(
+                          'Insufficient credit to complete service.'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+                  ),
+                  Text(
+                      WorkerTranslations.getArabic(
+                          'Insufficient credit to complete service.'),
+                      style: const TextStyle(fontSize: 11)
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                  WorkerTranslations.getBilingual(
+                      'Required: SAR ${requiredCredit.toStringAsFixed(2)}',
+                      'المطلوب: ${requiredCredit.toStringAsFixed(2)} ريال'
+                  ),
+                  style: const TextStyle(fontSize: 11)
+              ),
+              Text(
+                  WorkerTranslations.getBilingual(
+                      'Available: SAR ${appState.creditBalance.toStringAsFixed(2)}',
+                      'المتاح: ${appState.creditBalance.toStringAsFixed(2)} ريال'
+                  ),
+                  style: const TextStyle(fontSize: 11)
+              ),
+              Text(
+                  'Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} • النقص: ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} ريال',
+                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11)
+              ),
+              const SizedBox(height: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      WorkerTranslations.getEnglish(
+                          'Please top-up your credit to continue.'),
+                      style: const TextStyle(fontSize: 10, color: Colors.grey)
+                  ),
+                  Text(
+                      WorkerTranslations.getArabic(
+                          'Please top-up your credit to continue.'),
+                      style: const TextStyle(fontSize: 9, color: Colors.grey)
+                  ),
+                ],
+              ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.cancelBtn),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                )
+            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -761,7 +1189,16 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                     context, MaterialPageRoute(builder: (context) => const CreditScreen()));
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6B5B9A)),
-              child: const Text('Top-up Credit'),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(WorkerTranslations.getEnglish(WorkerTranslations.topUpNow)),
+                  Text(
+                    WorkerTranslations.getArabic(WorkerTranslations.topUpNow),
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -769,25 +1206,52 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       return;
     }
 
-    // ✅ Show confirmation with invoice details
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Complete Service'),
+            const Icon(Icons.check_circle, color: Colors.green, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    WorkerTranslations.getEnglish('Complete Service'),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    WorkerTranslations.getArabic('Complete Service'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Complete service for ${service.customerName}?'),
-            const SizedBox(height: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                    WorkerTranslations.getEnglish(
+                        'Complete service for ${service.customerName}?'),
+                    style: const TextStyle(fontSize: 12)
+                ),
+                Text(
+                    WorkerTranslations.getArabic(
+                        'Complete service for ${service.customerName}?'),
+                    style: const TextStyle(fontSize: 11)
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -798,34 +1262,71 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Invoice:'),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish('Invoice:'),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic('Invoice:'),
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
                       Text(
                         invoice.invoiceNumber,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Payment:'),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish('Payment:'),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic('Payment:'),
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
                       Text(
                         invoice.paymentMethod,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Amount:'),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish('Total Amount:'),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic('Total Amount:'),
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
                       Text(
                         'SAR ${service.totalPrice.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -833,9 +1334,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -846,12 +1347,25 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Credit Deduction:'),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish('Credit Deduction:'),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          Text(
+                            WorkerTranslations.getArabic('Credit Deduction:'),
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
                       Text(
                         'SAR ${requiredCredit.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -864,14 +1378,22 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+                Text(
+                  WorkerTranslations.getArabic(WorkerTranslations.cancelBtn),
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
 
               try {
-                // ✅ Complete service with payment method from invoice
                 await appState.completeService(
                   service.id,
                   paymentMethod: invoice.paymentMethod,
@@ -880,10 +1402,32 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        '✅ Service completed!\n'
-                            'Invoice: ${invoice.invoiceNumber}\n'
-                            'Total: SAR ${service.totalPrice.toStringAsFixed(2)}',
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getBilingual(
+                                '✅ Service completed!',
+                                '✅ اكتملت الخدمة!'
+                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                          Text(
+                            WorkerTranslations.getBilingual(
+                                'Invoice: ${invoice.invoiceNumber}',
+                                'الفاتورة: ${invoice.invoiceNumber}'
+                            ),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          Text(
+                            WorkerTranslations.getBilingual(
+                                'Total: SAR ${service.totalPrice.toStringAsFixed(2)}',
+                                'الإجمالي: ${service.totalPrice.toStringAsFixed(2)} ريال'
+                            ),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                        ],
                       ),
                       backgroundColor: Colors.green,
                       duration: const Duration(seconds: 3),
@@ -895,7 +1439,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Error: $e'),
+                      content: Text(
+                          WorkerTranslations.getBilingual('❌ Error: $e', '❌ خطأ: $e')
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -903,10 +1449,25 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('Complete Service'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(WorkerTranslations.getEnglish('Complete Service')),
+                Text(
+                  WorkerTranslations.getArabic('Complete Service'),
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }

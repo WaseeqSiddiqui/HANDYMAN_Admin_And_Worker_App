@@ -1,10 +1,11 @@
 // models/customer_model.dart
 class Customer {
   final String id;
-  final String name;
+  final String name; // ✅ صرف ایک language میں name
   final String phone;
   final String? email;
   final DateTime registeredAt;
+  final String languagePreference; // 'english' or 'arabic'
 
   Customer({
     required this.id,
@@ -12,7 +13,11 @@ class Customer {
     required this.phone,
     this.email,
     required this.registeredAt,
+    required this.languagePreference, // ✅ Required field
   });
+
+  // Check if customer prefers Arabic
+  bool get prefersArabic => languagePreference == 'arabic';
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -20,6 +25,7 @@ class Customer {
     'phone': phone,
     'email': email,
     'registeredAt': registeredAt.toIso8601String(),
+    'languagePreference': languagePreference,
   };
 
   factory Customer.fromMap(Map<String, dynamic> map) => Customer(
@@ -28,24 +34,62 @@ class Customer {
     phone: map['phone'],
     email: map['email'],
     registeredAt: DateTime.parse(map['registeredAt']),
+    languagePreference: map['languagePreference'] ?? 'english',
   );
 
-  // Sample data for testing without Firebase
+  // ✅ UPDATED: Hardcoded customers - single language data
   static List<Customer> sampleData() {
     return [
+      // English-speaking customers - فقط English میں
       Customer(
-        id: 'c1',
+        id: 'C001',
         name: 'Ali Khan',
-        phone: '03001234567',
-        email: 'ali@example.com',
-        registeredAt: DateTime.now().subtract(const Duration(days: 5)),
+        phone: '+966501234567',
+        email: 'ali.khan@email.com',
+        registeredAt: DateTime.now().subtract(const Duration(days: 15)),
+        languagePreference: 'english',
       ),
       Customer(
-        id: 'c2',
-        name: 'Sara Ahmed',
-        phone: '03007654321',
+        id: 'C002',
+        name: 'Sarah Johnson',
+        phone: '+966502345678',
+        email: 'sarah.j@email.com',
+        registeredAt: DateTime.now().subtract(const Duration(days: 8)),
+        languagePreference: 'english',
+      ),
+      Customer(
+        id: 'C003',
+        name: 'Robert Smith',
+        phone: '+966503456789',
+        email: 'robert.smith@email.com',
+        registeredAt: DateTime.now().subtract(const Duration(days: 25)),
+        languagePreference: 'english',
+      ),
+
+      // Arabic-speaking customers - فقط Arabic میں
+      Customer(
+        id: 'C004',
+        name: 'فاطمة حسن',
+        phone: '+966504567890',
         email: null,
-        registeredAt: DateTime.now().subtract(const Duration(days: 2)),
+        registeredAt: DateTime.now().subtract(const Duration(days: 12)),
+        languagePreference: 'arabic',
+      ),
+      Customer(
+        id: 'C005',
+        name: 'محمد أحمد',
+        phone: '+966505678901',
+        email: 'm.ahmed@email.com',
+        registeredAt: DateTime.now().subtract(const Duration(days: 30)),
+        languagePreference: 'arabic',
+      ),
+      Customer(
+        id: 'C006',
+        name: 'نورة عبدالله',
+        phone: '+966506789012',
+        email: 'noura.a@email.com',
+        registeredAt: DateTime.now().subtract(const Duration(days: 5)),
+        languagePreference: 'arabic',
       ),
     ];
   }

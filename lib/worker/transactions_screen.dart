@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
 import '/models/transaction_model.dart';
+import '/utils/worker_translations.dart';
 
 class WorkerTransactionsScreen extends StatelessWidget {
   const WorkerTransactionsScreen({super.key});
@@ -10,13 +11,32 @@ class WorkerTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transaction History'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.transactionHistory),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              WorkerTranslations.getArabic(WorkerTranslations.transactionHistory),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6B5B9A),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
-          final transactions = appState.transactions; // ✅ Now returns List<Transaction>
+          final transactions = appState.transactions;
 
           if (transactions.isEmpty) {
             return Center(
@@ -26,7 +46,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                   Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text(
-                    'No transactions yet',
+                    WorkerTranslations.noTransactions,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                   ),
                 ],
@@ -51,30 +71,44 @@ class WorkerTransactionsScreen extends StatelessWidget {
     IconData icon;
     Color color;
     String title;
+    String subtitle;
 
-    // ✅ Use enum directly
     switch (transaction.type) {
       case TransactionType.creditTopup:
         icon = Icons.arrow_upward;
         color = Colors.green;
-        title = 'Credit Top-up';
+        title = 'Credit Top-up • شحن رصيد';
+        subtitle = 'Credit top-up via STC Pay • شحن رصيد عبر STC Pay';
         break;
       case TransactionType.walletEarning:
         icon = Icons.check_circle;
         color = Colors.blue;
-        title = 'Service Completed';
+        title = 'Service Completed • خدمة مكتملة';
+        subtitle = 'Service payment received • تم استلام دفعة الخدمة';
         break;
       case TransactionType.commission:
+        icon = Icons.arrow_downward;
+        color = Colors.red;
+        title = 'Commission • عمولة';
+        subtitle = 'Platform commission • عمولة المنصة';
+        break;
       case TransactionType.vat:
+        icon = Icons.arrow_downward;
+        color = Colors.red;
+        title = 'VAT • ضريبة القيمة المضافة';
+        subtitle = 'Value Added Tax • ضريبة القيمة المضافة';
+        break;
       case TransactionType.creditDeduction:
         icon = Icons.arrow_downward;
         color = Colors.red;
-        title = transaction.typeLabel;
+        title = 'Credit Deduction • خصم رصيد';
+        subtitle = 'Credit deduction for service • خصم رصيد للخدمة';
         break;
       case TransactionType.walletWithdrawal:
         icon = Icons.account_balance_wallet;
         color = Colors.orange;
-        title = 'Withdrawal';
+        title = 'Withdrawal • سحب';
+        subtitle = 'Wallet withdrawal request • طلب سحب من المحفظة';
         break;
     }
 
@@ -99,6 +133,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Bilingual Title - Fixed: Single text widget
                   Text(
                     title,
                     style: const TextStyle(
@@ -107,14 +142,18 @@ class WorkerTransactionsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
+
+                  // Bilingual Subtitle - Fixed: Single text widget
                   Text(
-                    transaction.description ?? transaction.typeLabel,
+                    subtitle,
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey.shade600,
                     ),
                   ),
                   const SizedBox(height: 4),
+
+                  // Date
                   Text(
                     _formatDate(transaction.createdAt),
                     style: TextStyle(
@@ -128,6 +167,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Amount in SAR only (once)
                 Text(
                   '${transaction.amount >= 0 ? '+' : ''}${transaction.amount.toStringAsFixed(2)} SAR',
                   style: TextStyle(
@@ -136,6 +176,9 @@ class WorkerTransactionsScreen extends StatelessWidget {
                     color: transaction.amount >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
+                const SizedBox(height: 4),
+
+                // Reference if available
                 if (transaction.reference != null)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
@@ -163,15 +206,30 @@ class WorkerTransactionsScreen extends StatelessWidget {
 
     if (diff.inDays == 0) {
       if (diff.inHours == 0) {
-        return '${diff.inMinutes} minutes ago';
+        if (diff.inMinutes == 0) {
+          return WorkerTranslations.justNow;
+        }
+        return WorkerTranslations.getBilingual(
+            '${diff.inMinutes} min ago',
+            '${diff.inMinutes} دقيقة مضت'
+        );
       }
-      return '${diff.inHours} hours ago';
+      return WorkerTranslations.getBilingual(
+          '${diff.inHours} h ago',
+          '${diff.inHours} ساعة مضت'
+      );
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return WorkerTranslations.yesterday;
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
+      return WorkerTranslations.getBilingual(
+          '${diff.inDays} days ago',
+          '${diff.inDays} أيام مضت'
+      );
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return WorkerTranslations.getBilingual(
+          '${date.day}/${date.month}/${date.year}',
+          '${date.day}/${date.month}/${date.year}'
+      );
     }
   }
 }

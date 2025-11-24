@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../services/financial_service.dart';
 import '../models/withdrawl_requests_model.dart';
+import '../utils/worker_translations.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -31,7 +32,26 @@ class _WalletScreenState extends State<WalletScreen> {
         return Scaffold(
           backgroundColor: bgColor,
           appBar: AppBar(
-            title: const Text('Wallet'),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(WorkerTranslations.wallet),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(WorkerTranslations.wallet),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: const Color(0xFF4CAF50),
             foregroundColor: Colors.white,
           ),
@@ -93,17 +113,32 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Withdrawal Restricted',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish(WorkerTranslations.withdrawalRestricted),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.withdrawalRestricted),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'You can request withdrawal after $daysRemaining day${daysRemaining > 1 ? 's' : ''} from your last service payment',
+                  WorkerTranslations.getBilingual(
+                      'You can request withdrawal after $daysRemaining day${daysRemaining > 1 ? 's' : ''} from your last service payment',
+                      'يمكنك طلب السحب بعد $daysRemaining ${daysRemaining > 1 ? WorkerTranslations.days : WorkerTranslations.day} ${WorkerTranslations.fromLastServicePayment}'
+                  ),
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.orange.shade800,
@@ -138,13 +173,25 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               const Icon(Icons.pending_actions, color: Colors.orange, size: 24),
               const SizedBox(width: 8),
-              Text(
-                'Pending Withdrawal Requests',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    WorkerTranslations.getEnglish(WorkerTranslations.pendingWithdrawalRequests),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  Text(
+                    WorkerTranslations.getArabic(WorkerTranslations.pendingWithdrawalRequests),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textColor,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -179,17 +226,33 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Withdrawal Request',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish(WorkerTranslations.withdrawalRequest),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic(WorkerTranslations.withdrawalRequest),
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  WorkerTranslations.getBilingual(
+                      'Request ID: ${request.id}',
+                      'معرف الطلب: ${request.id}'
+                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 Text(
-                  'Request ID: ${request.id}',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                ),
-                Text(
-                  _formatDate(request.requestDate),
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  WorkerTranslations.getBilingual(
+                      'Requested on: ${_formatDate(request.requestDate)}',
+                      'تم الطلب في: ${_formatDate(request.requestDate)}'
+                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
@@ -212,13 +275,26 @@ class _WalletScreenState extends State<WalletScreen> {
                   color: Colors.orange.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'PENDING',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.orange,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish('PENDING'),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      WorkerTranslations.getArabic('PENDING'),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -250,9 +326,18 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total Balance',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Balance',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    'الرصيد الإجمالي', // Fixed Arabic translation
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -260,11 +345,17 @@ class _WalletScreenState extends State<WalletScreen> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.account_balance_wallet, color: Colors.white, size: 16),
-                    SizedBox(width: 4),
-                    Text('Wallet', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text(
+                        WorkerTranslations.getEnglish('Wallet'),
+                        style: TextStyle(color: Colors.white, fontSize: 12)
+                    ),
+                    Text(
+                        'المحفظة', // Fixed Arabic translation
+                        style: TextStyle(color: Colors.white, fontSize: 10)
+                    ),
                   ],
                 ),
               ),
@@ -307,22 +398,58 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Request Withdrawal',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.requestWithdrawal),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              Text(
+                'طلب سحب', // Fixed Arabic translation
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor.withOpacity(0.8),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
+
+          // Amount Input Section
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.amountSAR),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
+                ),
+              ),
+              Text(
+                'المبلغ (ريال سعودي)', // Fixed Arabic translation
+                style: TextStyle(
+                  fontSize: 12,
+                  color: textColor.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: _withdrawalController,
             keyboardType: TextInputType.number,
             enabled: canWithdraw,
             decoration: InputDecoration(
-              labelText: 'Amount (SAR)',
-              hintText: canWithdraw ? 'Min. 100 SAR' : 'Withdrawal restricted',
+              hintText: canWithdraw
+                  ? WorkerTranslations.getBilingual('Enter amount (min: SAR 50.00)', 'أدخل المبلغ (الحد الأدنى: 50 ريال)')
+                  : WorkerTranslations.withdrawalRestricted,
               prefixIcon: Icon(
                 Icons.money,
                 color: canWithdraw ? Colors.green : Colors.grey,
@@ -344,7 +471,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   : Colors.red.withOpacity(0.05),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+
+          // Withdrawal Information
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -352,40 +481,40 @@ class _WalletScreenState extends State<WalletScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
                     Text(
-                      'Withdrawal Policy',
+                      WorkerTranslations.getEnglish(WorkerTranslations.withdrawalInfo),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    Text(
+                      'معلومات السحب', // Fixed Arabic translation
+                      style: TextStyle(
+                        fontSize: 12,
                         color: Colors.blue,
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(
-                  '• Minimum withdrawal: 100 SAR',
-                  style: TextStyle(fontSize: 12, color: Colors.blue),
-                ),
-                Text(
-                  '• Request after 7 days from last service',
-                  style: TextStyle(fontSize: 12, color: Colors.blue),
-                ),
-                Text(
-                  '• Admin will process within 24-48 hours',
-                  style: TextStyle(fontSize: 12, color: Colors.blue),
-                ),
+                _buildInfoLine(WorkerTranslations.minWithdrawalAmount),
+                _buildInfoLine(WorkerTranslations.processingTime),
+                _buildInfoLine(WorkerTranslations.fundsSentToSTC),
+                _buildInfoLine(WorkerTranslations.canWithdrawEvery7Days),
               ],
             ),
           ),
           const SizedBox(height: 16),
+
+          // Submit Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -409,18 +538,44 @@ class _WalletScreenState extends State<WalletScreen> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-                  : Text(
-                canWithdraw
-                    ? 'Send Withdrawal Request'
-                    : 'Available in $daysRemaining day${daysRemaining > 1 ? 's' : ''}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                  : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    canWithdraw
+                        ? WorkerTranslations.getEnglish(WorkerTranslations.submitRequest)
+                        : WorkerTranslations.getEnglish('Available in $daysRemaining day${daysRemaining > 1 ? 's' : ''}'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    canWithdraw
+                        ? 'إرسال الطلب' // Fixed Arabic translation
+                        : 'متاح خلال $daysRemaining ${daysRemaining > 1 ? 'أيام' : 'يوم'}', // Fixed Arabic translation
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoLine(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12, color: Colors.blue),
+        textAlign: TextAlign.start,
       ),
     );
   }
@@ -442,29 +597,41 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Earnings Summary',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.earningsBreakdown),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              Text(
+                'تفصيل الأرباح', // Fixed Arabic translation
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor.withOpacity(0.8),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           _buildEarningRow(
-            'Total Services',
+            WorkerTranslations.totalServices,
             '${appState.totalServicesCompleted}',
             Icons.build,
             Colors.blue,
           ),
           _buildEarningRow(
-            'Total Earnings',
+            WorkerTranslations.totalEarnings,
             'SAR ${appState.totalEarnings.toStringAsFixed(2)}',
             Icons.attach_money,
             Colors.green,
           ),
           _buildEarningRow(
-            'Avg per Service',
+            WorkerTranslations.avgEarningPerService,
             'SAR ${appState.averagePerService.toStringAsFixed(2)}',
             Icons.trending_up,
             Colors.orange,
@@ -489,7 +656,19 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 14)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(label),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  _getArabicTranslationForLabel(label), // Fixed Arabic translation
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
           Text(
             value,
@@ -498,6 +677,20 @@ class _WalletScreenState extends State<WalletScreen> {
         ],
       ),
     );
+  }
+
+  // Helper method to get Arabic translations for labels
+  String _getArabicTranslationForLabel(String label) {
+    switch (label) {
+      case WorkerTranslations.totalServices:
+        return 'إجمالي الخدمات';
+      case WorkerTranslations.totalEarnings:
+        return 'إجمالي الأرباح';
+      case WorkerTranslations.avgEarningPerService:
+        return 'متوسط الربح لكل خدمة';
+      default:
+        return label;
+    }
   }
 
   Widget _buildWithdrawalHistory(Color cardColor, Color textColor, AppStateProvider appState) {
@@ -521,13 +714,25 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Approved Withdrawals',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.withdrawalHistory),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              Text(
+                'سجل السحب', // Fixed Arabic translation
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor.withOpacity(0.8),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           if (withdrawals.isEmpty)
@@ -539,9 +744,30 @@ class _WalletScreenState extends State<WalletScreen> {
                     Icon(Icons.account_balance_wallet_outlined,
                         size: 48, color: Colors.grey.shade300),
                     const SizedBox(height: 8),
-                    Text(
-                      'No approved withdrawals yet',
-                      style: TextStyle(color: Colors.grey.shade600),
+                    Column(
+                      children: [
+                        Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.noWithdrawalsYet),
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                        Text(
+                          'لا توجد عمليات سحب حتى الآن', // Fixed Arabic translation
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: [
+                        Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.firstWithdrawalAppear),
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        ),
+                        Text(
+                          'سيظهر أول سحب لك هنا', // Fixed Arabic translation
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -577,17 +803,33 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Withdrawal Approved',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish('Withdrawal Approved'),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'تمت الموافقة على السحب', // Fixed Arabic translation
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  WorkerTranslations.getBilingual(
+                      'Processed: ${_formatDate(withdrawal.processedDate ?? withdrawal.requestDate)}',
+                      'تم المعالجة: ${_formatDate(withdrawal.processedDate ?? withdrawal.requestDate)}'
+                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 Text(
-                  _formatDate(withdrawal.processedDate ?? withdrawal.requestDate),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                Text(
-                  'ID: ${withdrawal.id}',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  WorkerTranslations.getBilingual(
+                      'ID: ${withdrawal.id}',
+                      'المعرف: ${withdrawal.id}'
+                  ),
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],
             ),
@@ -610,13 +852,26 @@ class _WalletScreenState extends State<WalletScreen> {
                   color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'COMPLETED',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      WorkerTranslations.getEnglish('COMPLETED'),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      'مكتمل', // Fixed Arabic translation
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -631,33 +886,47 @@ class _WalletScreenState extends State<WalletScreen> {
     final diff = now.difference(date);
 
     if (diff.inDays == 0) {
-      if (diff.inHours == 0) return 'Just now';
-      return '${diff.inHours}h ago';
+      if (diff.inHours == 0) return WorkerTranslations.justNow;
+      return WorkerTranslations.getBilingual(
+          '${diff.inHours}h ago',
+          '${diff.inHours}س مضت'
+      );
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return WorkerTranslations.yesterday;
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
+      return WorkerTranslations.getBilingual(
+          '${diff.inDays} days ago',
+          '${diff.inDays} منذ أيام'
+      );
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return WorkerTranslations.getBilingual(
+          '${date.day}/${date.month}/${date.year}',
+          '${date.day}/${date.month}/${date.year}'
+      );
     }
   }
 
   void _createWithdrawalRequest(AppStateProvider appState) async {
     final amount = double.tryParse(_withdrawalController.text) ?? 0;
 
-    if (amount < 100) {
-      _showError('Minimum withdrawal amount is 100 SAR');
+    if (amount < 50) {
+      _showError(WorkerTranslations.minWithdrawalIs);
       return;
     }
 
     if (amount > appState.walletBalance) {
-      _showError('Insufficient balance');
+      _showError(WorkerTranslations.cannotExceedBalance);
       return;
     }
 
     if (!appState.canWithdraw()) {
       final days = appState.getDaysUntilWithdrawal();
-      _showError('You can withdraw in $days day${days > 1 ? 's' : ''}');
+      _showError(
+          WorkerTranslations.getBilingual(
+              'You can withdraw in $days day${days > 1 ? 's' : ''}',
+              'يمكنك السحب خلال $days ${days > 1 ? 'أيام' : 'يوم'}'
+          )
+      );
       return;
     }
 
@@ -678,13 +947,23 @@ class _WalletScreenState extends State<WalletScreen> {
       });
 
       _showSuccess(
-          'Withdrawal request submitted!\n'
-              'Request ID: $requestId\n'
-              'Admin will process within 24-48 hours'
+          WorkerTranslations.getBilingual(
+              '✅ Withdrawal request submitted!\n'
+                  'Request ID: $requestId\n'
+                  'Admin will process within 1-3 business days',
+              '✅ تم إرسال طلب السحب بنجاح!\n'
+                  'معرف الطلب: $requestId\n'
+                  'سيقوم المشرف بمعالجة الطلب خلال 1-3 أيام عمل'
+          )
       );
     } catch (e) {
       setState(() => _isLoading = false);
-      _showError('Failed to create withdrawal request: $e');
+      _showError(
+          WorkerTranslations.getBilingual(
+              'Failed to create withdrawal request: $e',
+              'فشل إنشاء طلب السحب: $e'
+          )
+      );
     }
   }
 
