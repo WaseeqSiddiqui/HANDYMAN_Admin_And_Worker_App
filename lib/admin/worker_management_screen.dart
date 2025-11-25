@@ -95,7 +95,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: const Color(0xFFF2F2F2),
+
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +120,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -144,7 +145,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddWorkerDialog,
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF3B82F6),
         icon: const Icon(Icons.person_add),
         label: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -313,10 +314,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6B5B9A) : Colors.white,
+          color: isSelected ? const Color(0xFF7C3AED) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF6B5B9A) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF7C3AED) : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -422,7 +423,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: const Color(0xFF6B5B9A).withOpacity(0.1),
+                    backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
                     child: Text(
                       (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF6B5B9A)),
@@ -499,7 +500,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       AdminTranslations.split(AdminTranslations.credit)[1],
                       'SAR ${(worker['creditBalance'] as double).toStringAsFixed(0)}',
                       Icons.credit_card,
-                      const Color(0xFF6B5B9A)
+                      const Color(0xFF7C3AED)
                   )),
                 ],
               ),
@@ -758,7 +759,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF3B82F6),
               foregroundColor: Colors.white,
             ),
             child: Row(
@@ -810,7 +811,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: const Color(0xFF6B5B9A).withOpacity(0.1),
+                      backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
                       child: Text(
                         (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
                         style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF6B5B9A)),
@@ -904,7 +905,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                           ],
                         ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF6B5B9A),
+                          foregroundColor: const Color(0xFF7C3AED),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
@@ -962,7 +963,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       ],
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B5B9A),
+                      backgroundColor: const Color(0xFF3B82F6),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),

@@ -26,15 +26,15 @@ class AdminWorkerApp extends StatelessWidget {
 
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6B5B9A),
+            seedColor: const Color(0xFF7C3AED), // Updated to deep purple
             brightness: Brightness.light,
           ),
           useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA), // Updated to match customer app
         ),
         darkTheme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6B5B9A),
+            seedColor: const Color(0xFF7C3AED), // Updated to deep purple
             brightness: Brightness.dark,
           ),
           useMaterial3: true,

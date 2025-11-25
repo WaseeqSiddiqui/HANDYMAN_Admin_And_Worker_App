@@ -5,7 +5,7 @@ import '/services/financial_service.dart';
 import '/providers/app_state_provider.dart';
 import '/models/financial_transaction_model.dart';
 import '/utils/admin_translations.dart';
-import '/widgets/bilingual_text.dart'; // Add this import
+import '/widgets/bilingual_text.dart';
 
 // Import admin screens
 import '/admin/admin_wallet_screen.dart';
@@ -64,7 +64,6 @@ class AdminDashboardState extends State<AdminDashboard> {
 
     final appState = Provider.of<AppStateProvider>(context, listen: false);
 
-    // ✅ FIXED: Count ALL active services using string comparison
     final activeServices = appState.adminAllActiveServices.where((service) {
       final statusString = service.status.toString().toLowerCase();
       return !statusString.contains('completed') &&
@@ -76,13 +75,13 @@ class AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: BilingualText( // ✅ Bilingual app bar title
+        title: BilingualText(
           english: AdminTranslations.split(AdminTranslations.adminDashboard)[0],
           arabic: AdminTranslations.split(AdminTranslations.adminDashboard)[1],
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF3B82F6), // Electric Blue as primary
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -143,7 +142,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                     _buildQuickAccessGrid(),
                     const SizedBox(height: 20),
                     _buildRecentActivity(),
-                    const SizedBox(height: 20), // Extra bottom padding to prevent overflow
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -163,7 +162,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF6B5B9A), Color(0xFF4A3B7A)],
+                colors: [Color(0xFF3B82F6), Color(0xFF14B8A6)], // Electric Blue to Accent Teal
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -179,10 +178,10 @@ class AdminDashboardState extends State<AdminDashboard> {
                     const CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.admin_panel_settings, size: 32, color: Color(0xFF6B5B9A)),
+                      child: Icon(Icons.admin_panel_settings, size: 32, color: Color(0xFF3B82F6)), // Electric Blue
                     ),
                     const SizedBox(height: 12),
-                    BilingualText( // ✅ Bilingual admin panel title
+                    BilingualText(
                       english: AdminTranslations.split(AdminTranslations.adminPanel)[0],
                       arabic: AdminTranslations.split(AdminTranslations.adminPanel)[1],
                       englishStyle: const TextStyle(
@@ -276,7 +275,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // ✅ FIXED: Logout button layout to match worker dashboard
+          // Logout button
           const Divider(height: 1),
           SafeArea(
             top: false,
@@ -319,7 +318,7 @@ class AdminDashboardState extends State<AdminDashboard> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: BilingualText( // ✅ Bilingual section titles
+          child: BilingualText(
             english: titleParts[0],
             arabic: titleParts[1],
             englishStyle: TextStyle(
@@ -344,8 +343,8 @@ class AdminDashboardState extends State<AdminDashboard> {
     final titleParts = AdminTranslations.split(bilingualTitle);
 
     return ListTile(
-      leading: Icon(icon, size: 22, color: const Color(0xFF6B5B9A)),
-      title: BilingualText( // ✅ Bilingual drawer items
+      leading: Icon(icon, size: 22, color: const Color(0xFF3B82F6)), // Electric Blue
+      title: BilingualText(
         english: titleParts[0],
         arabic: titleParts[1],
         englishStyle: const TextStyle(fontSize: 15),
@@ -414,14 +413,14 @@ class AdminDashboardState extends State<AdminDashboard> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF6B5B9A), Color(0xFF4A3B7A)],
+          colors: [Color(0xFF3B82F6), Color(0xFF14B8A6)], // Electric Blue to Accent Teal
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6B5B9A).withOpacity(0.3),
+            color: const Color(0xFF3B82F6).withOpacity(0.3), // Electric Blue shadow
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -434,7 +433,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             children: [
               const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
               const SizedBox(width: 8),
-              BilingualText( // ✅ Bilingual financial overview title
+              BilingualText(
                 english: AdminTranslations.split(AdminTranslations.financialOverview)[0],
                 arabic: AdminTranslations.split(AdminTranslations.financialOverview)[1],
                 englishStyle: const TextStyle(
@@ -451,7 +450,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             ],
           ),
           const SizedBox(height: 20),
-          // ✅ CURRENT BALANCE - Most Prominent (matches admin wallet screen)
+          // CURRENT BALANCE
           Center(
             child: Column(
               children: [
@@ -481,7 +480,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             color: Colors.white.withOpacity(0.2),
           ),
           const SizedBox(height: 16),
-          // ✅ Total Revenue
+          // Total Revenue
           _buildFinancialMetric(
             AdminTranslations.totalRevenue,
             'SAR ${totalRevenue.toStringAsFixed(2)}',
@@ -489,7 +488,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             Colors.greenAccent,
           ),
           const SizedBox(height: 12),
-          // ✅ Commission & VAT
+          // Commission & VAT
           Row(
             children: [
               Expanded(
@@ -543,7 +542,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BilingualText( // ✅ Bilingual metric labels
+                BilingualText(
                   english: labelParts[0],
                   arabic: labelParts[1],
                   englishStyle: TextStyle(
@@ -583,7 +582,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             AdminTranslations.activeServices,
             activeServices.toString(),
             Icons.pending_actions,
-            Colors.blue,
+            Color(0xFF3B82F6), // Electric Blue
           ),
         ),
         const SizedBox(width: 12),
@@ -592,7 +591,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             AdminTranslations.completed,
             completedServices.toString(),
             Icons.check_circle,
-            Colors.green,
+            Color(0xFF14B8A6), // Accent Teal
           ),
         ),
       ],
@@ -635,7 +634,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
           const SizedBox(height: 4),
-          BilingualText( // ✅ Bilingual stat labels
+          BilingualText(
             english: labelParts[0],
             arabic: labelParts[1],
             englishStyle: TextStyle(
@@ -658,7 +657,7 @@ class AdminDashboardState extends State<AdminDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BilingualText( // ✅ Bilingual quick access title
+        BilingualText(
           english: AdminTranslations.split(AdminTranslations.quickAccess)[0],
           arabic: AdminTranslations.split(AdminTranslations.quickAccess)[1],
           englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -671,24 +670,24 @@ class AdminDashboardState extends State<AdminDashboard> {
           crossAxisCount: 3,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.0, // Reduced from 1.1 to prevent overflow
+          childAspectRatio: 1.0,
           children: [
             _buildQuickAccessCard(
               AdminTranslations.wallet,
               Icons.account_balance_wallet,
-              Colors.blue,
+              Color(0xFF3B82F6), // Electric Blue
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen())),
             ),
             _buildQuickAccessCard(
               AdminTranslations.commission,
               Icons.money,
-              Colors.purple,
+              Color(0xFF14B8A6), // Accent Teal
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen())),
             ),
             _buildQuickAccessCard(
               AdminTranslations.vat,
               Icons.receipt_long,
-              Colors.orange,
+              Color(0xFF7C3AED), // Deep Purple (secondary)
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen())),
             ),
             _buildQuickAccessCard(
@@ -700,7 +699,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             _buildQuickAccessCard(
               AdminTranslations.services,
               Icons.assignment,
-              Colors.red,
+              Colors.orange,
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen())),
             ),
             _buildQuickAccessCard(
@@ -712,7 +711,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             _buildQuickAccessCard(
               AdminTranslations.serviceMgmt,
               Icons.build,
-              Colors.deepPurple,
+              Color(0xFF3B82F6), // Electric Blue
                   () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen())),
             ),
           ],
@@ -737,21 +736,21 @@ class AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 28), // Reduced from 32
-            const SizedBox(height: 6), // Reduced from 8
-            BilingualText( // ✅ Bilingual quick access labels
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 6),
+            BilingualText(
               english: labelParts[0],
               arabic: labelParts[1],
               englishStyle: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: 11, // Reduced from 12
+                fontSize: 11,
                 height: 1.2,
               ),
               arabicStyle: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: 10, // Reduced from 11
+                fontSize: 10,
                 height: 1.2,
               ),
               textAlign: TextAlign.center,
@@ -771,7 +770,7 @@ class AdminDashboardState extends State<AdminDashboard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            BilingualText( // ✅ Bilingual recent services title
+            BilingualText(
               english: AdminTranslations.split(AdminTranslations.recentServices)[0],
               arabic: AdminTranslations.split(AdminTranslations.recentServices)[1],
               englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -786,7 +785,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                 english: AdminTranslations.split(AdminTranslations.viewAll)[0],
                 arabic: AdminTranslations.split(AdminTranslations.viewAll)[1],
                 englishStyle: const TextStyle(fontSize: 14),
-                arabicStyle: const TextStyle(fontSize: 13), // Smaller Arabic font size
+                arabicStyle: const TextStyle(fontSize: 13),
               ),
             ),
           ],
@@ -804,7 +803,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                 children: [
                   Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
                   const SizedBox(height: 12),
-                  BilingualText( // ✅ Bilingual empty state
+                  BilingualText(
                     english: AdminTranslations.split(AdminTranslations.noRecentServices)[0],
                     arabic: AdminTranslations.split(AdminTranslations.noRecentServices)[1],
                     englishStyle: TextStyle(color: Colors.grey[600]),
@@ -876,7 +875,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
-                  color: Color(0xFF6B5B9A),
+                  color: Color(0xFF3B82F6), // Electric Blue
                 ),
               ),
               Text(
