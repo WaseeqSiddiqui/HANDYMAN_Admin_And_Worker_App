@@ -396,17 +396,34 @@ class AppStateProvider with ChangeNotifier {
 
     currentWorkerName = workerData.name;
 
-    // ✅ FIXED: Preserve existing worker data if already exists
+    // ✅ FIXED: Initialize worker with correct credit and proper initial transaction
     if (!_workerData.containsKey(workerId)) {
-      // First time login: Initialize with default/saved credit balance
+      // First time login: Initialize with saved credit balance
       _workerData[workerId] = WorkerFinancialData(
         workerId: workerId,
         creditBalance: workerData.creditBalance,
         walletBalance: 0.0,
       );
+
+      // ✅ CRITICAL FIX: Clear default 100 SAR transaction and add correct initial transaction
+      _workerData[workerId]!.transactions.clear();
+
+      // Add initial credit transaction with correct amount
+      _workerData[workerId]!.transactions.add(Transaction(
+        id: 'TXN1001',
+        workerId: workerId,
+        workerName: workerData.name,
+        type: TransactionType.creditTopup,
+        amount: workerData.creditBalance,
+        balanceBefore: 0.0,
+        balanceAfter: workerData.creditBalance,
+        description: 'Initial credit top-up',
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ));
+
       debugPrint('✅ Worker $workerId ($currentWorkerName) initialized with credit: SAR ${workerData.creditBalance.toStringAsFixed(2)}');
     } else {
-      // Worker already exists: Keep existing balances (DON'T RESET)
+      // Worker already exists: Keep existing balances
       debugPrint('✅ Worker $workerId ($currentWorkerName) re-logged in');
       debugPrint('   Existing Credit: SAR ${_workerData[workerId]!.creditBalance.toStringAsFixed(2)}');
       debugPrint('   Existing Wallet: SAR ${_workerData[workerId]!.walletBalance.toStringAsFixed(2)}');
@@ -687,8 +704,7 @@ class AppStateProvider with ChangeNotifier {
 
     final totalPrice = service.totalPrice;
 
-    // ✅ FIXED: Update wallet balance ONLY for ONLINE payments
-    // Cash payments: Worker already received cash, no wallet update needed
+    // ✅ Update wallet balance ONLY for ONLINE payments
     if (paymentMethod != 'Cash') {
       _currentWorkerData.walletBalance += totalPrice;
       debugPrint('💰 Worker wallet updated: +SAR ${totalPrice.toStringAsFixed(2)} (ONLINE payment)');
@@ -703,11 +719,11 @@ class AppStateProvider with ChangeNotifier {
         ? PaymentMethod.cash
         : PaymentMethod.online;
 
-    // ✅ FIXED: Create completed service with all original fields preserved including customer language
+    // ✅ Create completed service with all original fields preserved
     final completedService = ServiceRequest(
       id: service.id,
       customerId: service.customerId,
-      customerName: service.customerName, // ✅ Customer کی entered language preserve
+      customerName: service.customerName,
       serviceId: service.serviceId,
       serviceName: service.serviceName,
       workerId: service.workerId,
@@ -715,14 +731,14 @@ class AppStateProvider with ChangeNotifier {
       workerNameArabic: service.workerNameArabic,
       requestedDate: service.requestedDate,
       requestedTime: service.requestedTime,
-      address: service.address, // ✅ Customer کی entered language preserve
-      customerNotes: service.customerNotes, // ✅ Customer کی entered language preserve
-      customerLanguage: service.customerLanguage, // ✅ Customer language preserve
+      address: service.address,
+      customerNotes: service.customerNotes,
+      customerLanguage: service.customerLanguage,
       status: ServiceRequestStatus.completed,
       basePrice: service.basePrice,
       commission: service.commission,
       vat: service.vat,
-      extraItems: service.extraItems, // ✅ Preserve extra items
+      extraItems: service.extraItems,
       completedDate: DateTime.now(),
       paymentMethod: paymentMethodEnum,
       createdAt: service.createdAt,
@@ -732,7 +748,7 @@ class AppStateProvider with ChangeNotifier {
     _currentWorkerData.completedServices.insert(0, completedService);
     _serviceRequests.removeAt(serviceIndex);
 
-    // ✅ FIXED: Add wallet earning transaction ONLY for ONLINE payments
+    // ✅ Add wallet earning transaction ONLY for ONLINE payments
     if (paymentMethod != 'Cash') {
       _currentWorkerData.transactions.insert(0, Transaction(
         id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
@@ -747,13 +763,12 @@ class AppStateProvider with ChangeNotifier {
         createdAt: DateTime.now(),
       ));
     } else {
-      // CASH payment: Add transaction record showing cash was received directly
       _currentWorkerData.transactions.insert(0, Transaction(
         id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
         workerId: currentWorkerId!,
         workerName: currentWorkerName!,
         type: TransactionType.walletEarning,
-        amount: 0, // No wallet earning for cash
+        amount: 0,
         balanceBefore: _currentWorkerData.walletBalance,
         balanceAfter: _currentWorkerData.walletBalance,
         serviceRequestId: service.id,
@@ -762,7 +777,7 @@ class AppStateProvider with ChangeNotifier {
       ));
     }
 
-    // ✅ Credit deduction happens for BOTH payment methods
+    // ✅ Credit deduction for BOTH payment methods
     _currentWorkerData.transactions.insert(0, Transaction(
       id: 'TXN${DateTime.now().millisecondsSinceEpoch + 1}',
       workerId: currentWorkerId!,
@@ -778,7 +793,8 @@ class AppStateProvider with ChangeNotifier {
 
     _currentWorkerData.lastWalletCreditDate = DateTime.now();
 
-    // ✅ Pass payment method to financial service
+    // ✅ FIXED: processCompletedService will handle invoice creation
+    // No need to create invoice here - it's handled in financial_service
     await _financialService.processCompletedService(
       serviceId: service.id,
       serviceName: service.serviceName,
@@ -791,15 +807,15 @@ class AppStateProvider with ChangeNotifier {
       paymentMethod: paymentMethod,
     );
 
-    // ✅ Create invoice from ServiceRequest model with payment method
-    final invoice = ServiceInvoice.fromServiceRequest(completedService);
-    await _invoiceService.saveInvoice(invoice);
+    // ❌ REMOVED: Duplicate invoice creation
+    // The invoice is already created inside processCompletedService()
+    // final invoice = ServiceInvoice.fromServiceRequest(completedService);
+    // await _invoiceService.saveInvoice(invoice);
 
     _currentWorkerData.calculatePendingAmount(activeServices);
     debugPrint('✅ Service $serviceId completed with payment method: $paymentMethod');
     notifyListeners();
   }
-
   // ✅ FIXED: Add validation for postponeService
 
   void reschedulePostponedService({
@@ -1028,10 +1044,12 @@ class AppStateProvider with ChangeNotifier {
     }
 
     final workerData = _workerData[workerId]!;
-    final balanceBefore = workerData.creditBalance;
-    workerData.creditBalance += amount;
 
-    // Add transaction record
+    // ✅ Calculate balanceBefore based on current balance and amount
+    final balanceAfter = workerData.creditBalance;
+    final balanceBefore = balanceAfter - amount;
+
+    // ✅ Only add transaction record - DON'T modify credit balance!
     workerData.transactions.insert(0, Transaction(
       id: 'ADM${DateTime.now().millisecondsSinceEpoch}',
       workerId: workerId,
@@ -1039,13 +1057,14 @@ class AppStateProvider with ChangeNotifier {
       type: TransactionType.creditTopup,
       amount: amount,
       balanceBefore: balanceBefore,
-      balanceAfter: workerData.creditBalance,
+      balanceAfter: balanceAfter,
       description: description,
       reference: 'ADMIN_ADDED',
       createdAt: DateTime.now(),
     ));
 
-    debugPrint('✅ Credit added with transaction for worker $workerId: +SAR ${amount.toStringAsFixed(2)}');
+    debugPrint('✅ Transaction added for worker $workerId: +SAR ${amount.toStringAsFixed(2)}');
+    debugPrint('   Balance: ${balanceBefore.toStringAsFixed(2)} → ${balanceAfter.toStringAsFixed(2)}');
 
     // Notify if this is the current worker
     if (workerId == currentWorkerId) {
@@ -1089,19 +1108,9 @@ class WorkerFinancialData {
     required this.walletBalance,
     this.lastWalletCreditDate,
   }) {
-    transactions = [
-      Transaction(
-        id: 'TXN1001',
-        workerId: workerId,
-        workerName: 'Worker',
-        type: TransactionType.creditTopup,
-        amount: 100.0,
-        balanceBefore: 0.0,
-        balanceAfter: 100.0,
-        description: 'Initial credit top-up via STC Pay',
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-      ),
-    ];
+    // ✅ FIXED: Don't add any default transaction here
+    // Transaction will be added in setCurrentWorker with correct amount
+    transactions = [];
     _calculateBalances();
   }
 

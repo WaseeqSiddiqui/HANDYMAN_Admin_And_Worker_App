@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '/services/worker_auth_service.dart';
+import '/providers/app_state_provider.dart';
 import '/utils/admin_translations.dart';
 import '/models/worker_data_model.dart';
-import '/providers/app_state_provider.dart';
-import 'package:provider/provider.dart';
 
 class WorkerManagementScreen extends StatefulWidget {
   const WorkerManagementScreen({super.key});
@@ -92,72 +92,6 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     return filtered;
   }
 
-  // Top SnackBar utility function
-  void _showTopSnackBar(BuildContext context, String messageEn, String messageAr, Color backgroundColor) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 16,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // English text
-                Text(
-                  messageEn,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                // Arabic text
-                Text(
-                  messageAr,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                  textDirection: TextDirection.rtl,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Insert overlay
-    overlay.insert(overlayEntry);
-
-    // Remove after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,7 +101,6 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // English text - top with font size 16
             Text(
               AdminTranslations.split(AdminTranslations.workerManagement)[0],
               style: const TextStyle(
@@ -176,7 +109,6 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               ),
             ),
             const SizedBox(height: 2),
-            // Arabic text - bottom with font size 14
             Text(
               AdminTranslations.split(AdminTranslations.workerManagement)[1],
               style: const TextStyle(
@@ -198,7 +130,12 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             child: _filteredWorkers.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 100, // ✅ FIXED: Extra padding for FAB
+              ),
               itemCount: _filteredWorkers.length,
               itemBuilder: (context, index) => _buildWorkerCard(_filteredWorkers[index]),
             ),
@@ -209,18 +146,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         onPressed: _showAddWorkerDialog,
         backgroundColor: const Color(0xFF6B5B9A),
         icon: const Icon(Icons.person_add),
-        label: Column(
+        label: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // English text - top
             Text(
-              AdminTranslations.split(AdminTranslations.addWorker)[0],
-              style: const TextStyle(fontSize: 14),
+              'Add Worker',
+              style: TextStyle(fontSize: 14),
             ),
-            // Arabic text - bottom
             Text(
-              AdminTranslations.split(AdminTranslations.addWorker)[1],
-              style: const TextStyle(fontSize: 12),
+              'إضافة عامل',
+              style: TextStyle(fontSize: 12),
               textDirection: TextDirection.rtl,
             ),
           ],
@@ -309,6 +244,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
+          // Search Field
           TextField(
             controller: _searchController,
             onChanged: (_) => setState(() {}),
@@ -331,20 +267,84 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               filled: true,
               fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.all)[0], AdminTranslations.split(AdminTranslations.all)[1]),
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.active)[0], AdminTranslations.split(AdminTranslations.active)[1]),
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.blocked)[0], AdminTranslations.split(AdminTranslations.blocked)[1]),
-              ],
-            ),
+
+          // ✅ FIXED: Filter Buttons with better spacing
+          Row(
+            children: [
+              Expanded(
+                child: _buildFilterButton(
+                  AdminTranslations.split(AdminTranslations.all)[0],
+                  AdminTranslations.split(AdminTranslations.all)[1],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterButton(
+                  AdminTranslations.split(AdminTranslations.active)[0],
+                  AdminTranslations.split(AdminTranslations.active)[1],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterButton(
+                  AdminTranslations.split(AdminTranslations.blocked)[0],
+                  AdminTranslations.split(AdminTranslations.blocked)[1],
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
         ],
+      ),
+    );
+  }
+
+// ✅ NEW: Better filter button widget
+  Widget _buildFilterButton(String statusEn, String statusAr) {
+    final isSelected = _filterStatus == statusEn;
+
+    return InkWell(
+      onTap: () => setState(() => _filterStatus = statusEn),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF6B5B9A) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6B5B9A) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              statusEn,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              statusAr,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white.withOpacity(0.9) : Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -685,23 +685,33 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   stcPayController.text.isEmpty ||
                   addressController.text.isEmpty ||
                   addressArabicController.text.isEmpty) {
-                _showTopSnackBar(
-                    context,
-                    'Please fill all fields',
-                    'يرجى ملء جميع الحقول',
-                    Colors.red
-                );
+
+                // Close dialog first, then show snackbar in main context
+                Navigator.of(dialogContext).pop();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _showCustomSnackBar(
+                    AdminTranslations.split(AdminTranslations.fillAllFields)[0],
+                    AdminTranslations.split(AdminTranslations.fillAllFields)[1],
+                    Colors.red,
+                  );
+                });
                 return;
               }
 
               final initialCredit = double.tryParse(initialCreditController.text.trim());
               if (initialCredit == null || initialCredit < 0) {
-                _showTopSnackBar(
-                    context,
-                    'Please enter a valid credit amount',
-                    'يرجى إدخال مبلغ رصيد صحيح',
-                    Colors.red
-                );
+
+                // Close dialog first, then show snackbar in main context
+                Navigator.of(dialogContext).pop();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _showCustomSnackBar(
+                    AdminTranslations.split(AdminTranslations.validCreditAmount)[0],
+                    AdminTranslations.split(AdminTranslations.validCreditAmount)[1],
+                    Colors.red,
+                  );
+                });
                 return;
               }
 
@@ -724,25 +734,26 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               );
 
               final success = _authService.addWorker(newWorker);
+
+              // ✅ CRITICAL: Initialize credit in AppStateProvider for new worker
+              if (success) {
+                Provider.of<AppStateProvider>(context, listen: false)
+                    .syncWorkerCredit(newWorkerId, initialCredit);
+              }
+
               Navigator.of(dialogContext).pop();
 
               if (success) {
-                // ✅ NEW: Initialize worker in AppStateProvider
-                final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
-                appStateProvider.syncWorkerCredit(newWorkerId, initialCredit);
-
-                _showTopSnackBar(
-                    context,
-                    'Worker added successfully',
-                    'تم إضافة العامل بنجاح',
-                    Colors.green
+                _showCustomSnackBar(
+                  '${AdminTranslations.split(AdminTranslations.workerAdded)[0]} - ${nameController.text.trim()}',
+                  '${AdminTranslations.split(AdminTranslations.workerAdded)[1]} - ${nameArabicController.text.trim()}',
+                  Colors.green,
                 );
               } else {
-                _showTopSnackBar(
-                    context,
-                    'Worker already exists with this phone number',
-                    'موجود بالفعل عامل بهذا الرقم',
-                    Colors.red
+                _showCustomSnackBar(
+                  AdminTranslations.split(AdminTranslations.workerExists)[0],
+                  AdminTranslations.split(AdminTranslations.workerExists)[1],
+                  Colors.red,
                 );
               }
             },
@@ -965,6 +976,71 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     );
   }
 
+  void _showCustomSnackBar(String messageEn, String messageAr, Color backgroundColor) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // English text
+                Text(
+                  messageEn,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // Arabic text
+                Text(
+                  messageAr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                  textDirection: TextDirection.rtl,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert overlay
+    overlay.insert(overlayEntry);
+
+    // Remove after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
   void _showAddCreditDialog(Map<String, dynamic> worker) {
     final amountController = TextEditingController();
 
@@ -1091,27 +1167,30 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 return;
               }
 
-              final newBalance = (worker['creditBalance'] as double) + amount;
+              final currentBalance = worker['creditBalance'] as double;
+              final newBalance = currentBalance + amount;
+
+              // ✅ STEP 1: Update credit in WorkerAuthService
               final success = _authService.updateWorkerCredit(worker['phone'], newBalance);
 
-              // ✅ CRITICAL: AppStateProvider ko bhi sync karo WITH TRANSACTION
+              // ✅ STEP 2: Sync with AppStateProvider
               if (success) {
                 final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
 
-                // ✅ SYNC CREDIT BALANCE
+                // ✅ Sync the new balance
                 appStateProvider.syncWorkerCredit(worker['id'], newBalance);
 
-                // ✅ ADD TRANSACTION RECORD
-                final description = 'Credit added by administrator';
-
+                // ✅ Add transaction record (this will NOT modify balance again)
                 appStateProvider.addCreditWithTransaction(
                     worker['id'],
                     amount,
-                    description
+                    'Credit added by administrator'
                 );
 
-                debugPrint('✅ Credit updated for worker ${worker['id']}: SAR ${newBalance.toStringAsFixed(2)}');
-                debugPrint('✅ Transaction added for worker ${worker['id']}');
+                debugPrint('✅ Credit added successfully');
+                debugPrint('   Worker: ${worker['name']} (${worker['id']})');
+                debugPrint('   Amount: +SAR ${amount.toStringAsFixed(2)}');
+                debugPrint('   Balance: ${currentBalance.toStringAsFixed(2)} → ${newBalance.toStringAsFixed(2)}');
               }
 
               Navigator.pop(context);
@@ -1153,6 +1232,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       ),
     );
   }
+
 
   Widget _buildBilingualDetailRow(IconData icon, String labelEn, String labelAr, String valueEnglish, String valueArabic) {
     return Padding(
@@ -1409,9 +1489,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 return;
               }
 
-              final credit = double.tryParse(creditController.text) ?? worker['creditBalance'];
+              final newCredit = double.tryParse(creditController.text) ?? worker['creditBalance'];
               final oldCredit = worker['creditBalance'] as double;
-              final creditDifference = credit - oldCredit;
+              final creditDifference = newCredit - oldCredit;
 
               final updatedWorker = WorkerData(
                 id: worker['id'],
@@ -1426,21 +1506,21 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 status: worker['status'],
                 joinedDate: worker['joinDate'],
                 completedServices: worker['totalServices'],
-                creditBalance: credit,
+                creditBalance: newCredit,
               );
 
               Navigator.of(dialogContext).pop();
 
               final success = _authService.updateWorker(worker['phone'], updatedWorker);
 
-              // ✅ CRITICAL: Credit change hai to AppStateProvider ko bhi sync karo WITH TRANSACTION
+              // ✅ FIXED: Sync credit correctly
               if (success) {
                 final appStateProvider = Provider.of<AppStateProvider>(context, listen: false);
 
-                // Sync credit balance
-                appStateProvider.syncWorkerCredit(worker['id'], credit);
+                // ✅ Sync the new credit balance
+                appStateProvider.syncWorkerCredit(worker['id'], newCredit);
 
-                // ✅ ADD TRANSACTION FOR CREDIT DIFFERENCE (only if credit changed)
+                // ✅ Add transaction ONLY if credit changed
                 if (creditDifference != 0) {
                   final transactionDescription = creditDifference > 0
                       ? 'Credit increased by administrator'
@@ -1452,10 +1532,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       transactionDescription
                   );
 
-                  debugPrint('✅ Credit transaction added for worker ${worker['id']}: ${creditDifference > 0 ? '+' : ''}${creditDifference.toStringAsFixed(2)}');
+                  debugPrint('✅ Credit transaction added');
+                  debugPrint('   Worker: ${worker['name']} (${worker['id']})');
+                  debugPrint('   Change: ${creditDifference > 0 ? '+' : ''}${creditDifference.toStringAsFixed(2)}');
+                  debugPrint('   Balance: ${oldCredit.toStringAsFixed(2)} → ${newCredit.toStringAsFixed(2)}');
                 }
-
-                debugPrint('✅ Credit synced for worker ${worker['id']}: SAR ${credit.toStringAsFixed(2)}');
               }
 
               if (success) {
@@ -1507,6 +1588,71 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         ],
       ),
     );
+  }
+
+  void _showTopSnackBar(BuildContext context, String messageEn, String messageAr, Color backgroundColor) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // English text
+                Text(
+                  messageEn,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // Arabic text
+                Text(
+                  messageAr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                  textDirection: TextDirection.rtl,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert overlay
+    overlay.insert(overlayEntry);
+
+    // Remove after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
 
   void _toggleWorkerStatus(Map<String, dynamic> worker) {
@@ -1576,11 +1722,27 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               final success = _authService.toggleWorkerStatus(worker['phone']);
 
               if (success) {
-                _showTopSnackBar(
-                    context,
-                    'Worker ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? 'unblocked' : 'blocked'} successfully',
-                    'تم ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? 'فك الحظر' : 'الحظر'} للعامل بنجاح',
-                    newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text('${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[0] : AdminTranslations.split(AdminTranslations.workerBlocked)[0]}'),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[1] : AdminTranslations.split(AdminTranslations.workerBlocked)[1]}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        Text(worker['nameArabic']?.toString() ?? '', textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                    backgroundColor: newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red,
+                  ),
                 );
               }
             },

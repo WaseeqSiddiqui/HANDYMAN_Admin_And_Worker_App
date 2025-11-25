@@ -1,5 +1,5 @@
 // ---------------------------------------------------------
-// INVOICE SERVICE - ENHANCED WITH STC ACCOUNT DISPLAY
+// INVOICE SERVICE - ENGLISH ONLY (NO ARABIC FONT NEEDED)
 // ---------------------------------------------------------
 
 import 'dart:io';
@@ -17,9 +17,16 @@ class InvoiceService {
 
   final List<ServiceInvoice> _invoices = [];
 
-  // ✅ ADMIN STC BANK ACCOUNT - Configure this as needed
   static const String ADMIN_STC_ACCOUNT = '+966-50-123-4567';
   static const String ADMIN_BANK_NAME = 'STC Pay / Bank Transfer';
+
+  // ✅ Extract English text only from bilingual strings
+  String _getEnglishOnly(String text) {
+    if (text.contains('•')) {
+      return text.split('•')[0].trim();
+    }
+    return text;
+  }
 
   Future<void> saveInvoice(ServiceInvoice invoice) async {
     _invoices.insert(0, invoice);
@@ -66,6 +73,7 @@ class InvoiceService {
                         style: pw.TextStyle(
                           fontSize: 32,
                           fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.purple900,
                         ),
                       ),
                       pw.SizedBox(height: 8),
@@ -89,11 +97,11 @@ class InvoiceService {
                         ),
                       ),
                       pw.SizedBox(height: 4),
-                      pw.Text('Address Line 1',
-                          style: const pw.TextStyle(fontSize: 10)),
-                      pw.Text('Address Line 2',
+                      pw.Text('Riyadh, Saudi Arabia',
                           style: const pw.TextStyle(fontSize: 10)),
                       pw.Text('Phone: +966 XXX XXX XXX',
+                          style: const pw.TextStyle(fontSize: 10)),
+                      pw.Text('Email: info@company.com',
                           style: const pw.TextStyle(fontSize: 10)),
                     ],
                   ),
@@ -101,7 +109,7 @@ class InvoiceService {
               ),
 
               pw.SizedBox(height: 20),
-              pw.Divider(),
+              pw.Divider(thickness: 2),
               pw.SizedBox(height: 20),
 
               // CUSTOMER + SERVICE INFO
@@ -109,57 +117,62 @@ class InvoiceService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        'BILL TO:',
-                        style: pw.TextStyle(
-                          fontSize: 12,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.grey700,
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'BILL TO:',
+                          style: pw.TextStyle(
+                            fontSize: 12,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.purple900,
+                          ),
                         ),
-                      ),
-                      pw.SizedBox(height: 8),
-                      pw.Text(
-                        invoice.customerName,
-                        style: pw.TextStyle(
-                          fontSize: 14,
-                          fontWeight: pw.FontWeight.bold,
+                        pw.SizedBox(height: 8),
+                        pw.Text(
+                          _getEnglishOnly(invoice.customerName),
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        invoice.customerAddress,
-                        style: const pw.TextStyle(fontSize: 10),
-                      ),
-                    ],
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          _getEnglishOnly(invoice.customerAddress),
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          'Phone: ${invoice.customerId}',
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
                   ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text(
-                        'SERVICE INFO:',
-                        style: pw.TextStyle(
-                          fontSize: 12,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.grey700,
+                  pw.SizedBox(width: 20),
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text(
+                          'SERVICE INFO:',
+                          style: pw.TextStyle(
+                            fontSize: 12,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.purple900,
+                          ),
                         ),
-                      ),
-                      pw.SizedBox(height: 8),
-                      _buildInfoRow('Service:', invoice.serviceName),
-                      _buildInfoRow('Worker:', invoice.workerName),
-                      _buildInfoRow(
-                        'Date:',
-                        '${invoice.completionDate.day}/${invoice.completionDate.month}/${invoice.completionDate.year}',
-                      ),
-                      _buildInfoRow(
-                        'Payment:',
-                        invoice.paymentMethod.toLowerCase() == 'cash'
-                            ? 'Paid by Cash'
-                            : 'Paid via STC Account',
-                      ),
-                    ],
+                        pw.SizedBox(height: 8),
+                        _buildInfoRow('Service:', _getEnglishOnly(invoice.serviceName)),
+                        _buildInfoRow('Worker:', _getEnglishOnly(invoice.workerName)),
+                        _buildInfoRow(
+                          'Date:',
+                          '${invoice.completionDate.day}/${invoice.completionDate.month}/${invoice.completionDate.year}',
+                        ),
+                        _buildInfoRow('Status:', 'Completed'),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -169,9 +182,14 @@ class InvoiceService {
               // ITEMS TABLE
               pw.Table(
                 border: pw.TableBorder.all(color: PdfColors.grey300),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3),
+                  1: const pw.FlexColumnWidth(1),
+                  2: const pw.FlexColumnWidth(1.5),
+                },
                 children: [
                   pw.TableRow(
-                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    decoration: pw.BoxDecoration(color: PdfColors.purple50),
                     children: [
                       _buildTableHeader('Description'),
                       _buildTableHeader('Type'),
@@ -180,7 +198,7 @@ class InvoiceService {
                   ),
                   pw.TableRow(
                     children: [
-                      _buildTableCell(invoice.serviceName),
+                      _buildTableCell(_getEnglishOnly(invoice.serviceName)),
                       _buildTableCell('Service'),
                       _buildTableCell('SAR ${invoice.basePrice.toStringAsFixed(2)}'),
                     ],
@@ -188,7 +206,7 @@ class InvoiceService {
                   ...invoice.extraItems.map((item) {
                     return pw.TableRow(
                       children: [
-                        _buildTableCell(item.name),
+                        _buildTableCell(_getEnglishOnly(item.name)),
                         _buildTableCell(item.type),
                         _buildTableCell('SAR ${item.price.toStringAsFixed(2)}'),
                       ],
@@ -204,6 +222,11 @@ class InvoiceService {
                 alignment: pw.Alignment.centerRight,
                 child: pw.Container(
                   width: 250,
+                  padding: const pw.EdgeInsets.all(16),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.grey300),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                  ),
                   child: pw.Column(
                     children: [
                       _buildTotalRow(
@@ -214,7 +237,7 @@ class InvoiceService {
                         'VAT (15%):',
                         'SAR ${invoice.vat.toStringAsFixed(2)}',
                       ),
-                      pw.Divider(),
+                      pw.Divider(thickness: 2),
                       _buildTotalRow(
                         'TOTAL:',
                         'SAR ${invoice.totalAmount.toStringAsFixed(2)}',
@@ -227,13 +250,13 @@ class InvoiceService {
 
               pw.SizedBox(height: 30),
 
-              // ✅ ENHANCED PAYMENT SECTION WITH STC ACCOUNT
+              // PAYMENT SECTION
               pw.Container(
                 padding: const pw.EdgeInsets.all(16),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey300),
+                  border: pw.Border.all(color: PdfColors.grey300, width: 1.5),
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-                  color: PdfColors.grey100,
+                  color: PdfColors.grey50,
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -257,10 +280,13 @@ class InvoiceService {
                               invoice.paymentMethod.toLowerCase() == 'cash'
                                   ? 'Paid by Cash at Service Location'
                                   : 'Paid via STC Pay / Bank Transfer',
-                              style: const pw.TextStyle(fontSize: 12),
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                             ),
 
-                            // ✅ SHOW STC ACCOUNT FOR ONLINE PAYMENTS
+                            // STC Account for Online Payments
                             if (invoice.paymentMethod.toLowerCase() != 'cash') ...[
                               pw.SizedBox(height: 12),
                               pw.Container(
@@ -283,7 +309,7 @@ class InvoiceService {
                                     ),
                                     pw.SizedBox(height: 4),
                                     pw.Text(
-                                      'Account: $ADMIN_STC_ACCOUNT',
+                                      'STC Account: $ADMIN_STC_ACCOUNT',
                                       style: pw.TextStyle(
                                         fontSize: 11,
                                         fontWeight: pw.FontWeight.bold,
@@ -291,7 +317,7 @@ class InvoiceService {
                                       ),
                                     ),
                                     pw.Text(
-                                      'Name: Admin Account',
+                                      'Account Name: Admin Account',
                                       style: const pw.TextStyle(
                                         fontSize: 9,
                                         color: PdfColors.blue700,
@@ -309,6 +335,7 @@ class InvoiceService {
                           decoration: pw.BoxDecoration(
                             color: PdfColors.green100,
                             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                            border: pw.Border.all(color: PdfColors.green300),
                           ),
                           child: pw.Text(
                             'PAID',
@@ -380,15 +407,18 @@ class InvoiceService {
 
   // Helper Widgets
   pw.Widget _buildInfoRow(String label, String value) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Text(label,
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-        pw.SizedBox(width: 10),
-        pw.Text(value,
-            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-      ],
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(label,
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+          pw.SizedBox(width: 10),
+          pw.Text(value,
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        ],
+      ),
     );
   }
 
