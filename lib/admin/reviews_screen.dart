@@ -90,10 +90,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF3B82F6), // Updated to match customer app
+      backgroundColor: const Color(0xFF005DFF), // Updated to match customer app
       appBar: AppBar(
         title: const Text('Customer Reviews'),
-        backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+        backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -218,7 +218,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 onSelected: (selected) {
                   setState(() => _filterRating = filter);
                 },
-                selectedColor: const Color(0xFF3B82F6), // Updated to deep purple
+                selectedColor: const Color(0xFF005DFF), // Updated to deep purple
                 backgroundColor: Colors.white,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : Colors.black87,
@@ -705,7 +705,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF3B82F6)], // Updated to deep purple gradient
+                    colors: [Color(0xFF7C3AED), Color(0xFF005DFF)], // Updated to deep purple gradient
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),

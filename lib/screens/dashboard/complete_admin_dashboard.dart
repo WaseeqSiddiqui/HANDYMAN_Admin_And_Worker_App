@@ -81,7 +81,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF3B82F6), // Electric Blue as primary
+        backgroundColor: const Color(0xFF005DFF), // Electric Blue as primary
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
