@@ -24,7 +24,7 @@ class CompletedServicesScreen extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(
@@ -182,7 +182,7 @@ class CompletedServicesScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF6B5B9A),
+                        color: Color(0xFF005DFF),
                       ),
                     ),
                   ],

@@ -49,7 +49,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -58,7 +58,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFF6B5B9A).withOpacity(0.1),
+            color: const Color(0xFF005DFF).withOpacity(0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -177,7 +177,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B5B9A),
+                      color: const Color(0xFF005DFF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -252,7 +252,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                           ],
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6B5B9A),
+                          backgroundColor: const Color(0xFF005DFF),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -340,7 +340,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                  color: const Color(0xFF005DFF).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -348,7 +348,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                     Text(
                       'Enter name in English or Arabic',
                       style: TextStyle(
-                        color: const Color(0xFF6B5B9A),
+                        color: const Color(0xFF005DFF),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -356,7 +356,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                     Text(
                       'أدخل الاسم بالإنجليزية أو العربية',
                       style: TextStyle(
-                        color: const Color(0xFF6B5B9A),
+                        color: const Color(0xFF005DFF),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -481,7 +481,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           ElevatedButton(
             onPressed: () => _addItem(type),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

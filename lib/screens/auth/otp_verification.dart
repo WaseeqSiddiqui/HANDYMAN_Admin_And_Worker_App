@@ -114,7 +114,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
             ],
           ),
-          backgroundColor: const Color(0xFF6B5B9A),
+          backgroundColor: const Color(0xFF005DFF),
         ),
       );
     }
@@ -166,7 +166,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6B5B9A).withOpacity(0.3),
+                        color: const Color(0xFF005DFF).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -180,7 +180,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business,
-                          color: Color(0xFF6B5B9A),
+                          color: Color(0xFF005DFF),
                           size: 50,
                         );
                       },
@@ -294,7 +294,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _verifyOTP,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6B5B9A),
+                    backgroundColor: const Color(0xFF005DFF),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -345,7 +345,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getEnglish(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getEnglish(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getEnglish(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF6B5B9A) : subtitleColor,
+                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -355,7 +355,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getArabic(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getArabic(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getArabic(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF6B5B9A) : subtitleColor,
+                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
                           fontSize: 12,
                         ),
                       ),

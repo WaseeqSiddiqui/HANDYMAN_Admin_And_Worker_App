@@ -28,7 +28,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           return Scaffold(
             appBar: AppBar(
               title: Text(AdminTranslations.split(AdminTranslations.generateInvoice)[0]),
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
             ),
             body: Center(

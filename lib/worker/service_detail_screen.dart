@@ -76,7 +76,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   ),
                 ],
               ),
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -347,7 +347,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.person, color: Color(0xFF6B5B9A), size: 20),
+                const Icon(Icons.person, color: Color(0xFF005DFF), size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -379,7 +379,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on, color: Color(0xFF6B5B9A), size: 18),
+                const Icon(Icons.location_on, color: Color(0xFF005DFF), size: 18),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -558,7 +558,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             const SizedBox(height: 12),
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 12),
-            _buildRow(WorkerTranslations.total, totalPrice, isBold: true, color: const Color(0xFF6B5B9A), fontSize: 16),
+            _buildRow(WorkerTranslations.total, totalPrice, isBold: true, color: const Color(0xFF005DFF), fontSize: 16),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
@@ -933,7 +933,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   ],
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B5B9A),
+                  backgroundColor: const Color(0xFF005DFF),
                   minimumSize: const Size(double.infinity, 44),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   disabledBackgroundColor: Colors.grey,
@@ -996,10 +996,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   ],
                 ),
                 style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF6B5B9A),
+                    foregroundColor: const Color(0xFF005DFF),
                     minimumSize: const Size(double.infinity, 44),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    side: const BorderSide(color: Color(0xFF6B5B9A))),
+                    side: const BorderSide(color: Color(0xFF005DFF))),
               ),
             ),
           ],
@@ -1188,7 +1188,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 Navigator.push(
                     context, MaterialPageRoute(builder: (context) => const CreditScreen()));
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6B5B9A)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF005DFF)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

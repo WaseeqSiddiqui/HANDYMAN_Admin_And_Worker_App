@@ -60,7 +60,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
       'isRead': true,
       'timestamp': DateTime.now().subtract(const Duration(days: 2)),
       'icon': Icons.system_update,
-      'color': const Color(0xFF6B5B9A),
+      'color': const Color(0xFF005DFF),
     },
     {
       'id': '6',
@@ -117,7 +117,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
               ),
           ],
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
         actions: [
           if (_unreadCount > 0)
@@ -199,7 +199,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                     onSelected: (selected) {
                       setState(() => _selectedFilter = filter);
                     },
-                    selectedColor: const Color(0xFF6B5B9A),
+                    selectedColor: const Color(0xFF005DFF),
                     labelStyle: TextStyle(
                       color: _selectedFilter == filter ? Colors.white : null,
                       fontWeight: _selectedFilter == filter ? FontWeight.w600 : FontWeight.normal,
@@ -449,7 +449,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6B5B9A),
+                backgroundColor: const Color(0xFF005DFF),
               ),
               child: const Text('View Service'),
             ),
@@ -556,7 +556,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
             ),
             child: const Text('Save'),
           ),

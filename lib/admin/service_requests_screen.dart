@@ -56,7 +56,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
-            backgroundColor: const Color(0xFF6B5B9A),
+            backgroundColor: const Color(0xFF005DFF),
             foregroundColor: Colors.white,
             bottom: TabBar(
               controller: _tabController,
@@ -189,7 +189,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.tealAccent, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -446,7 +446,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.tealAccent, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -675,7 +675,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.tealAccent, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -846,7 +846,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.tealAccent, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

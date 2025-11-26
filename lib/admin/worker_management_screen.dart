@@ -135,7 +135,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 left: 16,
                 right: 16,
                 top: 16,
-                bottom: 100, // ✅ FIXED: Extra padding for FAB
+                bottom: 100,
               ),
               itemCount: _filteredWorkers.length,
               itemBuilder: (context, index) => _buildWorkerCard(_filteredWorkers[index]),

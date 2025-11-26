@@ -48,7 +48,7 @@ class CommissionManagementScreenState
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: Column(

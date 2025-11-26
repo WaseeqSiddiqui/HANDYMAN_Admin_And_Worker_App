@@ -164,7 +164,7 @@ class ServiceCompletionHandler {
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
             ),
             child: const Text('Done'),

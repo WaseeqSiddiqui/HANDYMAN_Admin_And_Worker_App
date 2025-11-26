@@ -31,7 +31,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(

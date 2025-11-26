@@ -16,7 +16,7 @@ class AdminWorkerApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppStateProvider(),
       child: MaterialApp(
-        title: 'Aidea Admin & Worker Panel',
+        title: 'Handyman Admin & Worker Panel',
         debugShowCheckedModeBanner: false,
 
         // ✅ Localization removed - simple and clean
@@ -26,7 +26,7 @@ class AdminWorkerApp extends StatelessWidget {
 
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF7C3AED), // Updated to deep purple
+            seedColor: const Color(0xFF005DFF),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
@@ -34,7 +34,7 @@ class AdminWorkerApp extends StatelessWidget {
         ),
         darkTheme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF7C3AED), // Updated to deep purple
+            seedColor: const Color(0xFF005DFF),
             brightness: Brightness.dark,
           ),
           useMaterial3: true,

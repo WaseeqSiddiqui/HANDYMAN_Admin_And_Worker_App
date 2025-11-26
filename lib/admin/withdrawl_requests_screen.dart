@@ -44,7 +44,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       backgroundColor: bgColor,
       appBar: AppBar(
         title: Text(AdminTranslations.split(AdminTranslations.withdrawalRequests)[0]),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [

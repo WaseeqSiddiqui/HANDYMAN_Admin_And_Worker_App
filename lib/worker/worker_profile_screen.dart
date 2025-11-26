@@ -54,7 +54,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(WorkerTranslations.profile),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -87,14 +87,14 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF6B5B9A), Color(0xFF8B7AB8)],
+          colors: [Color(0xFF005DFF), Color(0xFF8B7AB8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6B5B9A).withOpacity(0.3),
+            color: const Color(0xFF005DFF).withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -112,7 +112,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               style: const TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF6B5B9A),
+                color: Color(0xFF005DFF),
               ),
             ),
           ),
@@ -272,7 +272,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                         WorkerTranslations.getEnglish(WorkerTranslations.walletBalance),
                         '${WorkerTranslations.sar.split(' • ')[0]} ${appState.walletBalance.toStringAsFixed(0)}',
                         Icons.account_balance_wallet,
-                        const Color(0xFF6B5B9A),
+                        const Color(0xFF005DFF),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -300,7 +300,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF6B5B9A), size: 20),
+          Icon(icon, color: const Color(0xFF005DFF), size: 20),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -490,7 +490,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
             ),
             child: Text(WorkerTranslations.saveBtn),

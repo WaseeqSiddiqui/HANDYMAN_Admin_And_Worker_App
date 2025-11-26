@@ -17,7 +17,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Send Notifications'),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -39,7 +39,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 onSelected: (selected) {
                   setState(() => _recipientType = type);
                 },
-                selectedColor: const Color(0xFF6B5B9A),
+                selectedColor: const Color(0xFF005DFF),
                 labelStyle: TextStyle(
                   color: _recipientType == type ? Colors.white : null,
                 ),
@@ -73,7 +73,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 icon: const Icon(Icons.send),
                 label: const Text('Send Notification'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B5B9A),
+                  backgroundColor: const Color(0xFF005DFF),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -100,7 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       itemBuilder: (context, index) => Card(
         margin: const EdgeInsets.only(bottom: 8),
         child: ListTile(
-          leading: const Icon(Icons.notifications, color: Color(0xFF6B5B9A)),
+          leading: const Icon(Icons.notifications, color: Color(0xFF005DFF)),
           title: Text('System Maintenance Notice'),
           subtitle: Text('Sent to All • Oct 23, 2025'),
           trailing: const Icon(Icons.check_circle, color: Colors.green),

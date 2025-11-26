@@ -49,7 +49,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                   ),
                 ],
               ),
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
             ),
             body: const Center(
@@ -88,7 +88,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF6B5B9A),
+            backgroundColor: const Color(0xFF005DFF),
             foregroundColor: Colors.white,
           ),
           body: SafeArea(
@@ -142,7 +142,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                               ? null
                               : () => _generateInvoice(appState, service),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6B5B9A),
+                            backgroundColor: const Color(0xFF005DFF),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -430,7 +430,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
               WorkerTranslations.totalPrice,
               'SAR ${total.toStringAsFixed(2)}',
               isBold: true,
-              color: const Color(0xFF6B5B9A),
+              color: const Color(0xFF005DFF),
             ),
             const SizedBox(height: 12),
             Container(
@@ -703,13 +703,13 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _paymentMethod == 'STC/Bank'
-                        ? const Color(0xFF6B5B9A)
+                        ? const Color(0xFF005DFF)
                         : Colors.grey.shade300,
                     width: _paymentMethod == 'STC/Bank' ? 2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(12),
                   color: _paymentMethod == 'STC/Bank'
-                      ? const Color(0xFF6B5B9A).withOpacity(0.05)
+                      ? const Color(0xFF005DFF).withOpacity(0.05)
                       : Colors.transparent,
                 ),
                 child: Row(
@@ -717,12 +717,12 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                        color: const Color(0xFF005DFF).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                           Icons.account_balance,
-                          color: Color(0xFF6B5B9A),
+                          color: Color(0xFF005DFF),
                           size: 20
                       ),
                     ),
@@ -750,7 +750,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                             'Admin: ${InvoiceService.ADMIN_STC_ACCOUNT}',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF6B5B9A),
+                              color: Color(0xFF005DFF),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -762,7 +762,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                       groupValue: _paymentMethod,
                       onChanged: (value) =>
                           setState(() => _paymentMethod = value!),
-                      activeColor: const Color(0xFF6B5B9A),
+                      activeColor: const Color(0xFF005DFF),
                     ),
                   ],
                 ),

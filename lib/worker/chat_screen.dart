@@ -42,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _buildServiceInfoBanner(),
           Expanded(
             child: Container(
-              color: const Color(0xFFF8F9FA),
+              color: const Color(0xFF005DFF),
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
@@ -89,10 +89,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildServiceInfoBanner() {
     return Container(
       padding: const EdgeInsets.all(12),
-      color: const Color(0xFF6B5B9A).withOpacity(0.1),
+      color: const Color(0xFF005DFF).withOpacity(0.1),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, size: 20, color: Color(0xFF6B5B9A)),
+          const Icon(Icons.info_outline, size: 20, color: Color(0xFF005DFF)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -127,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isWorker ? const Color(0xFF6B5B9A) : Colors.grey.shade200,
+                color: isWorker ? const Color(0xFF005DFF) : Colors.grey.shade200,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -161,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: const Color(0xFF6B5B9A),
+              backgroundColor: const Color(0xFF005DFF),
               child: const Icon(Icons.person, size: 20, color: Colors.white),
             ),
           ],
@@ -205,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Color(0xFF6B5B9A), width: 2),
+                  borderSide: const BorderSide(color: Color(0xFF005DFF), width: 2),
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -219,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
           CircleAvatar(
             radius: 24,
-            backgroundColor: const Color(0xFF6B5B9A),
+            backgroundColor: const Color(0xFF005DFF),
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white, size: 20),
               onPressed: _sendMessage,
@@ -271,7 +271,7 @@ class _ChatScreenState extends State<ChatScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${WorkerTranslations.getEnglish(WorkerTranslations.calling)} ${widget.serviceRequest.customerName}...'),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         duration: const Duration(seconds: 2),
       ),
     );

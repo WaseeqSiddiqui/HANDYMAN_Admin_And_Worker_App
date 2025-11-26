@@ -48,7 +48,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF6B5B9A),
+            backgroundColor: const Color(0xFF005DFF),
             foregroundColor: Colors.white,
           ),
           body: SafeArea(
@@ -95,12 +95,12 @@ class _CreditScreenState extends State<CreditScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6B5B9A), Color(0xFF7C3AED)],
+                  colors: [Color(0xFF6B5B9A), Color(0xFF005DFF)],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6B5B9A).withOpacity(0.3),
+                    color: const Color(0xFF005DFF).withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -501,7 +501,7 @@ class _CreditScreenState extends State<CreditScreen> {
                     Text(
                       'View All',
                       style: TextStyle(
-                        color: const Color(0xFF6B5B9A),
+                        color: const Color(0xFF005DFF),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -509,7 +509,7 @@ class _CreditScreenState extends State<CreditScreen> {
                     Text(
                       'عرض الكل',
                       style: TextStyle(
-                        color: const Color(0xFF6B5B9A),
+                        color: const Color(0xFF005DFF),
                         fontSize: 10,
                       ),
                     ),

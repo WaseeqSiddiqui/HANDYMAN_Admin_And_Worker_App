@@ -21,7 +21,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AdminTranslations.split(AdminTranslations.customerManagement)[0]),
-        backgroundColor: const Color(0xFF6B5B9A),
+        backgroundColor: const Color(0xFF005DFF),
         foregroundColor: Colors.white,
       ),
       body: Consumer<AppStateProvider>(
@@ -58,7 +58,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF6B5B9A), Color(0xFF8B7AB8)],
+                    colors: [Color(0xFF005DFF), Color(0xFF005DFF)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -194,7 +194,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: const Color(0xFF6B5B9A),
+                    backgroundColor: const Color(0xFF005DFF),
                     radius: 28,
                     child: Text(
                       customer.name[0].toUpperCase(),
@@ -325,7 +325,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: const Color(0xFF6B5B9A),
+                      backgroundColor: const Color(0xFF005DFF),
                       radius: 32,
                       child: Text(
                         customer.name[0].toUpperCase(),
@@ -435,7 +435,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                         'SAR ${service.price.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF6B5B9A),
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -444,7 +444,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6B5B9A),
+                    backgroundColor: const Color(0xFF005DFF),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: Text(AdminTranslations.split(AdminTranslations.closeBtn)[0]),
