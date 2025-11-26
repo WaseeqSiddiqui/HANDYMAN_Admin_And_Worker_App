@@ -149,7 +149,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 color: const Color(0xFF005DFF).withOpacity(0.1), // Updated to deep purple
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(category.icon as IconData, color: const Color(0xFF7C3AED)), // Updated to deep purple
+              child: Icon(category.icon as IconData, color: const Color(0xFF005DFF)), // Updated to deep purple
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +276,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Color(0xFF7C3AED), size: 20), // Updated to deep purple
+                      icon: const Icon(Icons.edit, color: Color(0xFF005DFF), size: 20), // Updated to deep purple
                       onPressed: () => _showEditSubcategoryDialog(category, index),
                     ),
                     IconButton(
