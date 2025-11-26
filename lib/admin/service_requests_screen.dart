@@ -189,7 +189,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.tealAccent, // Black card
+      color: Colors.lightBlue, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -446,7 +446,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.tealAccent, // Black card
+      color: Colors.lightBlue, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -675,7 +675,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.tealAccent, // Black card
+      color: Colors.lightBlue, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -846,7 +846,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.tealAccent, // Black card
+      color: Colors.lightBlue, // Black card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
