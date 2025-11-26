@@ -404,7 +404,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isAssigned ? Colors.grey[600] : const Color(0xFF6B5B9A),
+                      backgroundColor: isAssigned ? Colors.grey[600] : const Color(0xFF005DFF),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1199,7 +1199,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
         builder: (context, setState) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.person_add, color: Color(0xFF6B5B9A)),
+              const Icon(Icons.person_add, color: Color(0xFF005DFF)),
               const SizedBox(width: 8),
               BilingualText(
                 english: AdminTranslations.split(AdminTranslations.assignWorker)[0],
