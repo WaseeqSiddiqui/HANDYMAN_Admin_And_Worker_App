@@ -162,7 +162,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)], // Electric Blue to Accent Teal
+                colors: [Color(0xFF3B82F6), Color(0xFF1DE9B6)], // Electric Blue to Accent Teal
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
