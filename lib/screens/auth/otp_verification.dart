@@ -175,7 +175,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.asset(
-                      'assets/images/Aidea_logo.png',
+                      'assets/images/logoFinal.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(

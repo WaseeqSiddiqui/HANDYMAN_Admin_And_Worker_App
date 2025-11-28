@@ -21,6 +21,18 @@ class RoleSelectionScreen extends StatelessWidget {
               children: [
                 // Logo
                 Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/logoFinal.png'),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                Container(
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(

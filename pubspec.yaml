@@ -40,3 +40,9 @@ dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+  assets:
+    - assets/images/
+    # Or if you want to specify individual files:
+    # - assets/images/logo.png
+    # - assets/images/icon.png
