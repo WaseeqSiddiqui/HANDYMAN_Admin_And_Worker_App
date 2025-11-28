@@ -1,7 +1,7 @@
-// worker_dashboard.dart - SCROLLABLE VERSION WITH ENGLISH NOTIFICATIONS
+// worker_dashboard.dart - SCROLLABLE VERSION WITH LIGHT GRAY BACKGROUND
+// ✅ Fixed: Changed background color to light gray
 // ✅ Fixed: Screen is now fully scrollable
 // ✅ Fixed: Notifications badge shows only English numbers
-// ✅ Fixed: All previous translation fixes maintained
 
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +89,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF005DFF),
+          backgroundColor: const Color(0xFFF5F5F5), // ✅ CHANGED: Light gray background
           appBar: _buildAppBar(),
           drawer: _buildDrawer(appState),
           body: SingleChildScrollView( // ✅ MADE ENTIRE SCREEN SCROLLABLE
@@ -119,12 +119,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF3B82F6),
+      backgroundColor: const Color(0xFF3B82F6), // Keeping app bar blue for contrast
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ✅ FIXED: Using proper translation constant
           Text(
             WorkerTranslations.getEnglish(WorkerTranslations.workerDashboard),
             style: const TextStyle(
@@ -602,7 +601,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ FIXED: Using proper translation constant
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -627,7 +625,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             children: [
               Expanded(
                 child: _buildActionButton(
-                  WorkerTranslations.topupCredit, // Using constant
+                  WorkerTranslations.topupCredit,
                   Icons.add_circle_outline,
                   const Color(0xFF3B82F6),
                       () => Navigator.push(
@@ -639,7 +637,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildActionButton(
-                  WorkerTranslations.wallet, // Using constant
+                  WorkerTranslations.wallet,
                   Icons.account_balance_wallet_outlined,
                   Colors.green,
                       () => Navigator.push(
@@ -712,7 +710,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
 
   Widget _buildServicesSection(AppStateProvider appState) {
     return Container(
-      height: 400, // ✅ FIXED: Fixed height for services section
+      height: 400,
       child: DefaultTabController(
         length: 4,
         child: Column(
@@ -829,7 +827,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               color: Colors.grey[300],
             ),
             const SizedBox(height: 16),
-            // ✅ FIXED: Using proper translation constant
             Column(
               children: [
                 Text(
@@ -980,7 +977,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ✅ FIXED: Using proper translation constant
                       Text(
                         WorkerTranslations.getEnglish(WorkerTranslations.dateTime),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -993,8 +989,8 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10), // ✅ REDUCED from 12 to prevent overflow
-              const Divider(height: 12), // ✅ REDUCED height
+              const SizedBox(height: 10),
+              const Divider(height: 12),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1029,6 +1025,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       ),
     );
   }
+
 
   Widget _buildActionButtons(ServiceRequest service, String type, AppStateProvider appState) {
     switch (type) {
