@@ -81,7 +81,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF005DFF), // Electric Blue as primary
+        backgroundColor: const Color(0xFF3B82F6), // Electric Blue as primary
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -162,7 +162,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF14B8A6)], // Electric Blue to Accent Teal
+                colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)], // Electric Blue to Accent Teal
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -413,7 +413,7 @@ class AdminDashboardState extends State<AdminDashboard> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF14B8A6)], // Electric Blue to Accent Teal
+          colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)], // Electric Blue to Accent Teal
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

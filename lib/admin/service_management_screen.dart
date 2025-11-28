@@ -51,7 +51,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
@@ -96,7 +96,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddDialog(),
-        backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+        backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
         icon: const Icon(Icons.add, color: Colors.white),
         label: BilingualText( // ✅ Bilingual FAB label
           english: 'Add New',
@@ -184,7 +184,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Color(0xFF005DFF)), // Updated to deep purple
+                  icon: const Icon(Icons.edit, color: Color(0xFF3B82F6)), // Updated to deep purple
                   onPressed: () => _showEditCategoryDialog(category),
                 ),
                 IconButton(
@@ -276,7 +276,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Color(0xFF005DFF), size: 20), // Updated to deep purple
+                      icon: const Icon(Icons.edit, color: Color(0xFF3B82F6), size: 20), // Updated to deep purple
                       onPressed: () => _showEditSubcategoryDialog(category, index),
                     ),
                     IconButton(
@@ -416,7 +416,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       icon: const Icon(Icons.edit, size: 18),
                       label: Text(AdminTranslations.split(AdminTranslations.editBtn)[0]),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF005DFF), // Updated to deep purple
+                        foregroundColor: const Color(0xFF3B82F6), // Updated to deep purple
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -543,7 +543,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: const Text('Add'),
@@ -656,7 +656,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+                backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
                 foregroundColor: Colors.white,
               ),
               child: const Text('Add'),
@@ -868,7 +868,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+                  backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Add'),
@@ -938,7 +938,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
@@ -1006,7 +1006,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
@@ -1110,7 +1110,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),

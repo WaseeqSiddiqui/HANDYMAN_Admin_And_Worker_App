@@ -119,7 +119,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF005DFF),
+      backgroundColor: const Color(0xFF3B82F6),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -181,7 +181,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           DrawerHeader(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF005DFF), Color(0xFF8B7AB8)],
+                colors: [Color(0xFF3B82F6), Color(0xFF8B7AB8)],
               ),
             ),
             child: Column(
@@ -190,7 +190,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 36, color: Color(0xFF005DFF)),
+                  child: Icon(Icons.person, size: 36, color: Color(0xFF3B82F6)),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -210,7 +210,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
 
           ListTile(
-            leading: const Icon(Icons.account_balance_wallet, color: Color(0xFF005DFF)),
+            leading: const Icon(Icons.account_balance_wallet, color: Color(0xFF3B82F6)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -239,7 +239,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
 
           ListTile(
-            leading: const Icon(Icons.credit_card, color: Color(0xFF005DFF)),
+            leading: const Icon(Icons.credit_card, color: Color(0xFF3B82F6)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -270,7 +270,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           const Divider(),
 
           ListTile(
-            leading: const Icon(Icons.receipt_long, color: Color(0xFF005DFF)),
+            leading: const Icon(Icons.receipt_long, color: Color(0xFF3B82F6)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -295,7 +295,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
 
           ListTile(
-            leading: const Icon(Icons.check_circle_outline, color: Color(0xFF005DFF)),
+            leading: const Icon(Icons.check_circle_outline, color: Color(0xFF3B82F6)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -326,7 +326,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           const Divider(),
 
           ListTile(
-            leading: const Icon(Icons.person_outline, color: Color(0xFF005DFF)),
+            leading: const Icon(Icons.person_outline, color: Color(0xFF3B82F6)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -435,14 +435,14 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF005DFF), Color(0xFF8B7AB8)],
+          colors: [Color(0xFF3B82F6), Color(0xFF8B7AB8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF005DFF).withOpacity(0.3),
+            color: const Color(0xFF3B82F6).withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -629,7 +629,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 child: _buildActionButton(
                   WorkerTranslations.topupCredit, // Using constant
                   Icons.add_circle_outline,
-                  const Color(0xFF005DFF),
+                  const Color(0xFF3B82F6),
                       () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CreditScreen()),
@@ -731,9 +731,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ],
               ),
               child: TabBar(
-                labelColor: const Color(0xFF005DFF),
+                labelColor: const Color(0xFF3B82F6),
                 unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFF005DFF),
+                indicatorColor: const Color(0xFF3B82F6),
                 indicatorWeight: 3,
                 labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                 tabs: [
@@ -1015,7 +1015,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF6B5B9A),
+                          color: Color(0xFF3B82F6),
                         ),
                       ),
                     ],
@@ -1105,8 +1105,8 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF005DFF),
-                side: const BorderSide(color: Color(0xFF005DFF)),
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF3B82F6)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1137,7 +1137,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               ).then((_) => setState(() {})),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF005DFF),
+                backgroundColor: const Color(0xFF3B82F6),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1316,7 +1316,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   MaterialPageRoute(builder: (context) => const CreditScreen()),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF005DFF)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6)),
               child: Text(WorkerTranslations.getEnglish(WorkerTranslations.topupCredit)),
             ),
           ],

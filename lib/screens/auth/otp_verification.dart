@@ -114,7 +114,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
             ],
           ),
-          backgroundColor: const Color(0xFF005DFF),
+          backgroundColor: const Color(0xFF3B82F6),
         ),
       );
     }
@@ -166,7 +166,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF005DFF).withOpacity(0.3),
+                        color: const Color(0xFF3B82F6).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -180,7 +180,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business,
-                          color: Color(0xFF005DFF),
+                          color: Color(0xFF3B82F6),
                           size: 50,
                         );
                       },
@@ -246,7 +246,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _otpControllers[index].text.isNotEmpty
-                              ? const Color(0xFF6B5B9A)
+                              ? const Color(0xFF3B82F6)
                               : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                           width: 2,
                         ),
@@ -294,7 +294,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _verifyOTP,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005DFF),
+                    backgroundColor: const Color(0xFF3B82F6),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -345,7 +345,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getEnglish(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getEnglish(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getEnglish(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
+                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -355,7 +355,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getArabic(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getArabic(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getArabic(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
+                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
                           fontSize: 12,
                         ),
                       ),

@@ -26,7 +26,7 @@ class AdminWorkerApp extends StatelessWidget {
 
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF005DFF),
+            seedColor: const Color(0xFF3B82F6),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
@@ -34,7 +34,7 @@ class AdminWorkerApp extends StatelessWidget {
         ),
         darkTheme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF005DFF),
+            seedColor: const Color(0xFF3B82F6),
             brightness: Brightness.dark,
           ),
           useMaterial3: true,

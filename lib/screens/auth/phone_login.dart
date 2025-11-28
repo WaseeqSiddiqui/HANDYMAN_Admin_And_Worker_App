@@ -154,7 +154,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF005DFF).withOpacity(0.3),
+                        color: const Color(0xFF3B82F6).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -168,7 +168,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business,
-                          color: Color(0xFF005DFF),
+                          color: Color(0xFF3B82F6),
                           size: 50,
                         );
                       },
@@ -333,7 +333,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _sendOTP,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005DFF),
+                    backgroundColor: const Color(0xFF3B82F6),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -376,17 +376,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF005DFF).withOpacity(0.1),
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFF005DFF).withOpacity(0.3),
+                    color: const Color(0xFF3B82F6).withOpacity(0.3),
                   ),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,
-                      color: Color(0xFF005DFF),
+                      color: Color(0xFF3B82F6),
                       size: 20,
                     ),
                     const SizedBox(width: 12),

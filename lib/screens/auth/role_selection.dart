@@ -28,7 +28,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF005DFF).withAlpha((0.3 * 255).round()),
+                        color: const Color(0xFF3B82F6).withAlpha((0.3 * 255).round()),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -42,7 +42,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business,
-                          color: Color(0xFF005DFF),
+                          color: Color(0xFF3B82F6),
                           size: 60,
                         );
                       },
@@ -123,7 +123,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   icon: Icons.admin_panel_settings,
                   title: AuthTranslations.admin,
                   description: AuthTranslations.adminDescription,
-                  color: const Color(0xFF005DFF),
+                  color: const Color(0xFF3B82F6),
                   onTap: () {
                     Navigator.push(
                       context,

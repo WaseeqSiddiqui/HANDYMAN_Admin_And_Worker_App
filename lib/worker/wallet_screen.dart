@@ -52,7 +52,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF4CAF50),
+            backgroundColor: const Color(0xFF3B82F6),
             foregroundColor: Colors.white,
           ),
           body: SingleChildScrollView(
