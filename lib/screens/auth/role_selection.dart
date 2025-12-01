@@ -21,46 +21,25 @@ class RoleSelectionScreen extends StatelessWidget {
               children: [
                 // Logo
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    image: const DecorationImage(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                    image: DecorationImage(
                       image: AssetImage('assets/images/logoFinal.png'),
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withAlpha((0.3 * 255).round()),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/images/Aidea_logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.business,
-                          color: Color(0xFF3B82F6),
-                          size: 60,
-                        );
-                      },
-                    ),
-                  ),
-                ),
+
                 const SizedBox(height: 32),
 
                 // Company Name - Column Format
