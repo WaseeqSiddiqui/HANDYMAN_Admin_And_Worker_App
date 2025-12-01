@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
-import '/services/worker_auth_service.dart';
+import '/services/firebase_auth_service.dart';
 import '/utils/auth_translations.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
@@ -15,97 +15,151 @@ class PhoneLoginScreen extends StatefulWidget {
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
+  final FirebaseAuthService _authService = FirebaseAuthService();
   bool _isLoading = false;
 
-  void _sendOTP() {
-    if (_phoneController.text.length == 10) {
-      String phoneInput = _phoneController.text.trim();
-      final fullPhoneNumber = '+966$phoneInput';
+  String _formatPhoneNumber(String phone) {
+    // Remove any spaces or special characters
+    phone = phone.replaceAll(RegExp(r'[^\d+]'), '');
 
-      debugPrint('🔍 Login attempt: $fullPhoneNumber for role: ${widget.role}');
+    // If phone starts with 05, convert to +9665
+    if (phone.startsWith('05')) {
+      phone = '+966${phone.substring(1)}';
+    }
+    // If phone starts with 5 (without 0), add +966
+    else if (phone.startsWith('5') && !phone.startsWith('+')) {
+      phone = '+966$phone';
+    }
+    // If phone doesn't have country code, assume Saudi Arabia
+    else if (!phone.startsWith('+')) {
+      phone = '+966$phone';
+    }
 
-      if (widget.role == 'Worker') {
-        final authService = WorkerAuthService();
+    return phone;
+  }
 
-        final allWorkers = authService.getAllWorkers();
-        debugPrint('📋 Total registered workers: ${allWorkers.length}');
-        for (var w in allWorkers) {
-          debugPrint('   ✓ ${w.phone} - ${w.name} (${w.status})');
-        }
+  bool _isValidSaudiPhone(String phone) {
+    // Remove country code for validation
+    String digits = phone.replaceAll('+966', '').replaceAll(RegExp(r'\s+'), '');
 
-        if (!authService.isWorkerRegistered(fullPhoneNumber)) {
-          debugPrint('❌ Worker NOT registered: $fullPhoneNumber');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(AuthTranslations.getEnglish(AuthTranslations.workerNotRegistered)),
-                  Text('Phone: $fullPhoneNumber'),
-                  Text(AuthTranslations.getEnglish(AuthTranslations.contactAdmin)),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-            ),
-          );
-          return;
-        }
+    // Saudi mobile numbers: 5XXXXXXXX (9 digits starting with 5)
+    return digits.length == 9 && digits.startsWith('5');
+  }
 
-        final worker = authService.getWorkerByPhone(fullPhoneNumber);
-        debugPrint('✅ Found worker: ${worker?.name} - Status: ${worker?.status}');
+  void _sendOTP() async {
+    String phone = _phoneController.text.trim();
 
-        if (worker?.status != 'Active') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(AuthTranslations.getEnglish(AuthTranslations.accountBlocked)),
-                  Text(AuthTranslations.getEnglish(AuthTranslations.accountBlockedMessage)),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          return;
-        }
-      }
+    if (phone.isEmpty) {
+      _showError(
+        AuthTranslations.getEnglish(AuthTranslations.phoneRequired),
+        AuthTranslations.getArabic(AuthTranslations.phoneRequired),
+      );
+      return;
+    }
 
-      setState(() => _isLoading = true);
+    // Format phone number
+    String formattedPhone = _formatPhoneNumber(phone);
 
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
+    // Validate phone number
+    if (!_isValidSaudiPhone(formattedPhone)) {
+      _showError(
+        'Please enter a valid Saudi phone number (e.g., 0512345678)',
+        'يرجى إدخال رقم هاتف سعودي صحيح (مثال: 0512345678)',
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.sendOTP(
+        phoneNumber: formattedPhone,
+        onCodeSent: (verificationId) {
           setState(() => _isLoading = false);
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
+                  Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
+                ],
+              ),
+              backgroundColor: const Color(0xFF005DFF),
+            ),
+          );
+
+          // Navigate to OTP verification screen
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => OTPVerificationScreen(
-                phoneNumber: fullPhoneNumber,
+                phoneNumber: formattedPhone,
                 role: widget.role,
+                verificationId: verificationId,
               ),
             ),
           );
-        }
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(AuthTranslations.getEnglish(AuthTranslations.validPhoneError)),
-              Text(AuthTranslations.getArabic(AuthTranslations.validPhoneError)),
-            ],
-          ),
-          backgroundColor: Colors.red,
-        ),
+        },
+        onError: (error) {
+          setState(() => _isLoading = false);
+          _showError(
+            'Error: $error',
+            'خطأ: $error',
+          );
+        },
+        onAutoVerify: (credential) async {
+          // Auto verification happened (Android only)
+          setState(() => _isLoading = false);
+
+          // Show success and navigate
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Phone verified automatically!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to appropriate dashboard
+          _navigateToDashboard(formattedPhone);
+        },
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showError(
+        'Failed to send OTP: ${e.toString()}',
+        'فشل في إرسال رمز التحقق: ${e.toString()}',
       );
     }
+  }
+
+  void _navigateToDashboard(String phoneNumber) {
+    if (widget.role == 'Worker') {
+      // Navigate to worker dashboard
+      // Import your worker dashboard and navigate
+    } else {
+      // Navigate to admin dashboard
+      // Import your admin dashboard and navigate
+    }
+  }
+
+  void _showError(String englishMessage, String arabicMessage) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(englishMessage),
+            Text(arabicMessage),
+          ],
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -178,12 +232,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Welcome - Column Format
+              // Login As - Column Format
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${AuthTranslations.getEnglish(AuthTranslations.welcome)}, ${widget.role}',
+                    '${AuthTranslations.getEnglish(AuthTranslations.loginAs)} ${widget.role}',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -191,7 +245,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     ),
                   ),
                   Text(
-                    '${AuthTranslations.getArabic(AuthTranslations.welcome)}, ${widget.role == 'Admin' ? 'مشرف' : 'عامل'}',
+                    '${AuthTranslations.getArabic(AuthTranslations.loginAs)} ${AuthTranslations.getArabic(widget.role == 'Admin' ? AuthTranslations.admin : AuthTranslations.worker)}',
                     style: TextStyle(
                       fontSize: 20,
                       color: subtitleColor,
@@ -206,14 +260,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AuthTranslations.getEnglish(AuthTranslations.enterPhoneToContinue),
+                    AuthTranslations.getEnglish(AuthTranslations.enterPhone),
                     style: TextStyle(
                       fontSize: 16,
                       color: subtitleColor,
                     ),
                   ),
                   Text(
-                    AuthTranslations.getArabic(AuthTranslations.enterPhoneToContinue),
+                    AuthTranslations.getArabic(AuthTranslations.enterPhone),
                     style: TextStyle(
                       fontSize: 14,
                       color: subtitleColor,
@@ -221,109 +275,95 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+
+              // Phone Number - Column Format
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AuthTranslations.getEnglish(AuthTranslations.phoneNumber),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  Text(
+                    AuthTranslations.getArabic(AuthTranslations.phoneNumber),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: subtitleColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
 
               Container(
-                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
+                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Phone Number Label - Column Format
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AuthTranslations.getEnglish(AuthTranslations.phoneNumber),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                          ),
-                        ),
-                        Text(
-                          AuthTranslations.getArabic(AuthTranslations.phoneNumber),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: subtitleColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                        ),
-                      ),
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: textColor,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                    LengthLimitingTextInputFormatter(13), // +966XXXXXXXXX
+                  ],
+                  decoration: InputDecoration(
+                    hintText: '05XXXXXXXX',
+                    hintStyle: TextStyle(color: subtitleColor),
+                    prefixIcon: Container(
+                      padding: const EdgeInsets.all(12),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                right: BorderSide(
-                                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                                ),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  '🇸🇦',
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '+966',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            '🇸🇦',
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '+966',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
                             ),
                           ),
-                          Expanded(
-                            child: TextField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: textColor,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: AuthTranslations.phoneHint,
-                                hintStyle: TextStyle(color: subtitleColor),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                              ),
-                            ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 1,
+                            height: 24,
+                            color: subtitleColor.withOpacity(0.3),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -369,53 +409,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF005DFF).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF005DFF).withOpacity(0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF005DFF),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.role == 'Worker'
-                                ? AuthTranslations.getEnglish(AuthTranslations.workersMustBeRegistered)
-                                : AuthTranslations.getEnglish(AuthTranslations.otpInfo),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: subtitleColor,
-                            ),
-                          ),
-                          Text(
-                            widget.role == 'Worker'
-                                ? AuthTranslations.getArabic(AuthTranslations.workersMustBeRegistered)
-                                : AuthTranslations.getArabic(AuthTranslations.otpInfo),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: subtitleColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
