@@ -88,7 +88,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
                 ],
               ),
-              backgroundColor: const Color(0xFF005DFF),
+              backgroundColor: const Color(0xFF3B82F6),
             ),
           );
 
@@ -231,7 +231,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFF005DFF) : const Color(0xFF005DFF),
+                                    color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF3B82F6),
                                   ),
                                 ),
                               ),
@@ -248,7 +248,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF005DFF),
+                            color: isDark ? Colors.white : const Color(0xFF3B82F6),
                           ),
                         ),
                         Text(
@@ -405,7 +405,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _sendOTP,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005DFF),
+                    backgroundColor: const Color(0xFF3B82F6),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

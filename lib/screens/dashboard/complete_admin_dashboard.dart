@@ -280,7 +280,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           SafeArea(
             top: false,
             child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
+              leading: const Icon(Icons.logout, color: Colors.orangeAccent),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
