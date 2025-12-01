@@ -217,7 +217,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         child: Image.asset(
                           'assets/images/logoFinal.png',
                           fit: BoxFit.contain,
-                          color: isDark ? const Color(0xFF005DFF) : null, // Blue color on dark mode
+                          color: isDark ? const Color(0xFF3B82F6) : null, // Blue color on dark mode
                           colorBlendMode: isDark ? BlendMode.srcIn : null,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
