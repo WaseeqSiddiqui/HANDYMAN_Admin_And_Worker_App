@@ -63,8 +63,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     // Validate phone number
     if (!_isValidSaudiPhone(formattedPhone)) {
       _showError(
-        'Please enter a valid Saudi phone number (e.g., 0512345678)',
-        'يرجى إدخال رقم هاتف سعودي صحيح (مثال: 0512345678)',
+        'Please enter a valid Saudi phone number (e.g., 512345678)',
+        'يرجى إدخال رقم هاتف سعودي صحيح (مثال: 512345678)',
       );
       return;
     }
@@ -199,35 +199,68 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // HANDYMAN Logo - Clean without shadow/cloud
               Center(
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF005DFF).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                child: Column(
+                  children: [
+                    // Logo Container without shadow/cloud effect
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        // REMOVED: BoxShadow to eliminate blue cloud effect
                       ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/images/logoFinal.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.business,
-                          color: Color(0xFF005DFF),
-                          size: 50,
-                        );
-                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/logoFinal.png',
+                          fit: BoxFit.contain,
+                          color: isDark ? const Color(0xFF005DFF) : null, // Blue color on dark mode
+                          colorBlendMode: isDark ? BlendMode.srcIn : null,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'HM',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? const Color(0xFF005DFF) : const Color(0xFF005DFF),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Column(
+                      children: [
+                        Text(
+                          'HANDYMAN',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF005DFF),
+                          ),
+                        ),
+                        Text(
+                          'عامل الماهر',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 32),
@@ -254,7 +287,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-
               // Enter Phone - Column Format
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +361,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     LengthLimitingTextInputFormatter(13), // +966XXXXXXXXX
                   ],
                   decoration: InputDecoration(
-                    hintText: '05XXXXXXXX',
+                    hintText: '5XXXXXXXX',
                     hintStyle: TextStyle(color: subtitleColor),
                     prefixIcon: Container(
                       padding: const EdgeInsets.all(12),

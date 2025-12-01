@@ -1,4 +1,3 @@
-// lib/models/worker_data_model.dart
 class WorkerData {
   final String id;
   final String name;
