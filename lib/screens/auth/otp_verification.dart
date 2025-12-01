@@ -3,16 +3,19 @@ import 'package:flutter/services.dart';
 import '../dashboard/complete_admin_dashboard.dart';
 import '../dashboard/worker_dashboard.dart';
 import '/services/worker_auth_service.dart';
+import '/services/firebase_auth_service.dart';
 import '/utils/auth_translations.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String phoneNumber;
   final String role;
+  final String verificationId;
 
   const OTPVerificationScreen({
     super.key,
     required this.phoneNumber,
     required this.role,
+    required this.verificationId,
   });
 
   @override
@@ -25,6 +28,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  final FirebaseAuthService _authService = FirebaseAuthService();
+
   bool _isLoading = false;
   int _resendTimer = 60;
   bool _canResend = false;
@@ -46,16 +51,48 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     });
   }
 
-  void _verifyOTP() {
+  void _verifyOTP() async {
     String otp = _otpControllers.map((c) => c.text).join();
 
-    if (otp.length == 6) {
-      setState(() => _isLoading = true);
+    if (otp.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AuthTranslations.getEnglish(AuthTranslations.completeOtpError)),
+              Text(AuthTranslations.getArabic(AuthTranslations.completeOtpError)),
+            ],
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
 
+    try {
+      // Verify OTP with Firebase
+      final result = await _authService.verifyOTP(
+        otp: otp,
+        verificationId: widget.verificationId,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+
+        if (result['success']) {
+          // OTP verified successfully
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Phone verified successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to appropriate dashboard
           if (widget.role == 'Worker') {
             final authService = WorkerAuthService();
             final worker = authService.getWorkerByPhone(widget.phoneNumber);
@@ -77,47 +114,96 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   (route) => false,
             );
           }
+        } else {
+          // Verification failed
+          _showError(
+            result['message'] ?? 'Verification failed',
+            'فشل التحقق: ${result['message'] ?? 'فشل التحقق'}',
+          );
         }
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(AuthTranslations.getEnglish(AuthTranslations.completeOtpError)),
-              Text(AuthTranslations.getArabic(AuthTranslations.completeOtpError)),
-            ],
-          ),
-          backgroundColor: Colors.red,
-        ),
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showError(
+          'Error verifying OTP: ${e.toString()}',
+          'خطأ في التحقق من الرمز: ${e.toString()}',
+        );
+      }
+    }
+  }
+
+  void _resendOTP() async {
+    if (!_canResend) return;
+
+    setState(() {
+      _canResend = false;
+      _resendTimer = 60;
+      _isLoading = true;
+    });
+    _startResendTimer();
+
+    try {
+      // Reset verification and send new OTP
+      _authService.resetVerification();
+
+      await _authService.sendOTP(
+        phoneNumber: widget.phoneNumber,
+        onCodeSent: (verificationId) {
+          setState(() => _isLoading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
+                  Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
+                ],
+              ),
+              backgroundColor: const Color(0xFF005DFF),
+            ),
+          );
+
+          // Update verification ID
+          // Note: You might want to update the parent widget's verificationId here
+        },
+        onError: (error) {
+          setState(() => _isLoading = false);
+          _showError(
+            'Failed to resend OTP: $error',
+            'فشل في إعادة إرسال الرمز: $error',
+          );
+        },
+        onAutoVerify: (credential) {
+          setState(() => _isLoading = false);
+          // Auto-verified
+        },
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showError(
+        'Error resending OTP: ${e.toString()}',
+        'خطأ في إعادة إرسال الرمز: ${e.toString()}',
       );
     }
   }
 
-  void _resendOTP() {
-    if (_canResend) {
-      setState(() {
-        _canResend = false;
-        _resendTimer = 60;
-      });
-      _startResendTimer();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
-              Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
-            ],
-          ),
-          backgroundColor: const Color(0xFF3B82F6),
+  void _showError(String englishMessage, String arabicMessage) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(englishMessage),
+            Text(arabicMessage),
+          ],
         ),
-      );
-    }
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -166,7 +252,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
+                        color: const Color(0xFF005DFF).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -175,12 +261,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.asset(
-                      'assets/images/logoFinal.png',
+                      'assets/images/Aidea_logo.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business,
-                          color: Color(0xFF3B82F6),
+                          color: Color(0xFF005DFF),
                           size: 50,
                         );
                       },
@@ -246,7 +332,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _otpControllers[index].text.isNotEmpty
-                              ? const Color(0xFF3B82F6)
+                              ? const Color(0xFF6B5B9A)
                               : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                           width: 2,
                         ),
@@ -294,7 +380,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _verifyOTP,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
+                    backgroundColor: const Color(0xFF005DFF),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -345,7 +431,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getEnglish(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getEnglish(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getEnglish(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
+                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -355,7 +441,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             ? AuthTranslations.getArabic(AuthTranslations.resendOtp)
                             : '${AuthTranslations.getArabic(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getArabic(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
+                          color: _canResend ? const Color(0xFF005DFF) : subtitleColor,
                           fontSize: 12,
                         ),
                       ),

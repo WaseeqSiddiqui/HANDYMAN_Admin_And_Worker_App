@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'providers/app_state_provider.dart';
 import 'screens/auth/role_selection.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
   runApp(const AdminWorkerApp());
 }
 
@@ -30,7 +35,7 @@ class AdminWorkerApp extends StatelessWidget {
             brightness: Brightness.light,
           ),
           useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA), // Updated to match customer app
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         ),
         darkTheme: ThemeData(
           colorScheme: ColorScheme.fromSeed(

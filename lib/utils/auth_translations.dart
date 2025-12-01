@@ -11,10 +11,13 @@ class AuthTranslations {
 
   // Phone Login Screen
   static const String welcome = 'Welcome\nمرحباً';
+  static const String loginAs = 'Login as\nتسجيل الدخول كـ';
+  static const String enterPhone = 'Enter your phone number to receive verification code\nأدخل رقم هاتفك لاستلام رمز التحقق';
   static const String enterPhoneToContinue = 'Enter your phone number to continue\nأدخل رقم هاتفك للمتابعة';
   static const String phoneNumber = 'Phone Number\nرقم الهاتف';
   static const String saudiArabia = 'Saudi Arabia\nالسعودية';
   static const String phoneHint = '5XXXXXXXX';
+  static const String phoneRequired = 'Phone number is required\nرقم الهاتف مطلوب';
   static const String sendOtp = 'Send OTP\nإرسال الرمز';
   static const String workersMustBeRegistered = 'Workers must be registered by admin before login\nيجب تسجيل العمال من قبل المشرف قبل تسجيل الدخول';
   static const String otpInfo = 'We will send you a one-time password to verify your account\nسنرسل لك كلمة مرور لمرة واحدة للتحقق من حسابك';
