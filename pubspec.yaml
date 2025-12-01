@@ -18,6 +18,28 @@ dependencies:
   # File storage
   path_provider: ^2.1.3
 
+  firebase_core: ^2.24.0
+
+  # Firebase Authentication
+  firebase_auth: ^4.17.3
+
+  # Cloud Firestore Database
+  cloud_firestore: ^4.13.3
+
+  # Firebase Storage for files
+  firebase_storage: ^11.5.3
+
+  # Firebase Cloud Messaging (Push Notifications)
+  firebase_messaging: ^14.7.3
+
+  # Firebase Analytics
+  firebase_analytics: ^10.8.3
+
+  # Firebase Crashlytics
+  firebase_crashlytics: ^3.2.3
+
+
+
   # File opener
   open_filex: ^4.7.0
 
