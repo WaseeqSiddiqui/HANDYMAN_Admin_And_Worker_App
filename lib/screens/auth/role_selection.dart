@@ -19,48 +19,8 @@ class RoleSelectionScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/logoFinal.png'),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withAlpha((0.3 * 255).round()),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/images/Aidea_logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.business,
-                          color: Color(0xFF3B82F6),
-                          size: 60,
-                        );
-                      },
-                    ),
-                  ),
-                ),
+                // Logo Section - HANDYMAN Logo (Clean without shadow)
+                _buildLogoSection(isDark),
                 const SizedBox(height: 32),
 
                 // Company Name - Column Format
@@ -132,6 +92,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 // Admin Card
                 _buildRoleCard(
                   context,
+                  isDark: isDark,
                   icon: Icons.admin_panel_settings,
                   title: AuthTranslations.admin,
                   description: AuthTranslations.adminDescription,
@@ -150,6 +111,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 // Worker Card
                 _buildRoleCard(
                   context,
+                  isDark: isDark,
                   icon: Icons.construction,
                   title: AuthTranslations.worker,
                   description: AuthTranslations.workerDescription,
@@ -171,15 +133,80 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLogoSection(bool isDark) {
+    return Column(
+      children: [
+        // HANDYMAN Logo - Clean without shadow/cloud
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/images/logoFinal.png',
+              fit: BoxFit.contain,
+              color: isDark ? const Color(0xFF3B82F6) : null,
+              colorBlendMode: isDark ? BlendMode.srcIn : null,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'HANDYMAN',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF3B82F6),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Logo text below
+        Column(
+          children: [
+            Text(
+              'HANDYMAN',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF3B82F6),
+              ),
+            ),
+            Text(
+              'عامل الماهر',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildRoleCard(
       BuildContext context, {
+        required bool isDark,
         required IconData icon,
         required String title,
         required String description,
         required Color color,
         required VoidCallback onTap,
       }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 
     return InkWell(

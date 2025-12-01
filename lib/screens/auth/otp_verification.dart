@@ -29,6 +29,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
   final FirebaseAuthService _authService = FirebaseAuthService();
+  final WorkerAuthService _workerAuthService = WorkerAuthService();
 
   bool _isLoading = false;
   int _resendTimer = 60;
@@ -49,6 +50,54 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         setState(() => _canResend = true);
       }
     });
+  }
+
+  // 🔥 NEW: Check if worker exists in local database
+  bool _checkWorkerExists(String phoneNumber) {
+    try {
+      final workers = _workerAuthService.getAllWorkers();
+      return workers.any((worker) => worker.phone == phoneNumber);
+    } catch (e) {
+      debugPrint('Error checking worker: $e');
+      return false;
+    }
+  }
+
+  // 🔥 NEW: Activate worker (change status from Pending to Active)
+  Future<bool> _activateWorker(String phoneNumber) async {
+    try {
+      final workers = _workerAuthService.getAllWorkers();
+      final workerIndex = workers.indexWhere((w) => w.phone == phoneNumber);
+
+      if (workerIndex != -1) {
+        final worker = workers[workerIndex];
+
+        // Check if worker is already active
+        if (worker.status == 'Active') {
+          debugPrint('✅ Worker already active');
+          return true;
+        }
+
+        // Create updated worker with Active status
+        final updatedWorker = worker.copyWith(status: 'Active');
+
+        // Update worker in service
+        final success = _workerAuthService.updateWorker(phoneNumber, updatedWorker);
+
+        if (success) {
+          debugPrint('✅ Worker activated successfully');
+          debugPrint('   Worker: ${worker.name} (${worker.id})');
+          debugPrint('   Status: Pending → Active');
+          return true;
+        }
+      }
+
+      debugPrint('❌ Worker not found or activation failed');
+      return false;
+    } catch (e) {
+      debugPrint('❌ Error activating worker: $e');
+      return false;
+    }
   }
 
   void _verifyOTP() async {
@@ -84,29 +133,88 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         setState(() => _isLoading = false);
 
         if (result['success']) {
-          // OTP verified successfully
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Phone verified successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate to appropriate dashboard
+          // 🔥 NEW: Handle Worker Login & Activation
           if (widget.role == 'Worker') {
-            final authService = WorkerAuthService();
-            final worker = authService.getWorkerByPhone(widget.phoneNumber);
+            // Check if worker exists in local database
+            final workerExists = _checkWorkerExists(widget.phoneNumber);
 
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => WorkerDashboardScreen(
-                  phoneNumber: widget.phoneNumber,
-                  workerName: worker!.name,
+            if (!workerExists) {
+              // Worker not added by admin yet
+              _showError(
+                'Your account is not registered. Please contact administrator.',
+                'حسابك غير مسجل. يرجى الاتصال بالمسؤول.',
+              );
+
+              // Sign out from Firebase and go back
+              await _authService.signOut();
+              if (mounted) {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
+              return;
+            }
+
+            // Worker exists, activate account
+            final activationSuccess = await _activateWorker(widget.phoneNumber);
+
+            if (!activationSuccess) {
+              _showError(
+                'Failed to activate account. Please contact administrator.',
+                'فشل في تفعيل الحساب. يرجى الاتصال بالمسؤول.',
+              );
+              return;
+            }
+
+            // Get updated worker data
+            final worker = _workerAuthService.getWorkerByPhone(widget.phoneNumber);
+
+            if (worker == null) {
+              _showError(
+                'Failed to load worker data. Please try again.',
+                'فشل في تحميل بيانات العامل. يرجى المحاولة مرة أخرى.',
+              );
+              return;
+            }
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('✅ Phone verified! Account activated successfully!'),
+                    Text('✅ تم التحقق من الهاتف! تم تفعيل الحساب بنجاح!'),
+                  ],
                 ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
               ),
-                  (route) => false,
             );
+
+            // Navigate to worker dashboard
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => WorkerDashboardScreen(
+                    phoneNumber: widget.phoneNumber,
+                    workerName: worker.name,
+                  ),
+                ),
+                    (route) => false,
+              );
+            }
           } else {
+            // Admin login
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Phone verified successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => AdminDashboard(phoneNumber: widget.phoneNumber),
@@ -165,9 +273,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               backgroundColor: const Color(0xFF005DFF),
             ),
           );
-
-          // Update verification ID
-          // Note: You might want to update the parent widget's verificationId here
         },
         onError: (error) {
           setState(() => _isLoading = false);
@@ -178,7 +283,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         },
         onAutoVerify: (credential) {
           setState(() => _isLoading = false);
-          // Auto-verified
         },
       );
     } catch (e) {
@@ -202,6 +306,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           ],
         ),
         backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
       ),
     );
   }

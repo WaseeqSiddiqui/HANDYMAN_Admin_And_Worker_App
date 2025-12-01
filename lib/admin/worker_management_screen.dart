@@ -4,6 +4,7 @@ import '/services/worker_auth_service.dart';
 import '/providers/app_state_provider.dart';
 import '/utils/admin_translations.dart';
 import '/models/worker_data_model.dart';
+import 'package:flutter/services.dart';
 
 class WorkerManagementScreen extends StatefulWidget {
   const WorkerManagementScreen({super.key});
@@ -90,6 +91,36 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     }
 
     return filtered;
+  }
+
+  // 🔥 ADD: Phone number formatting function
+  String _formatPhoneNumber(String phone) {
+    // Remove any spaces or special characters
+    phone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // If phone starts with 05, convert to +9665
+    if (phone.startsWith('05')) {
+      phone = '+966${phone.substring(1)}';
+    }
+    // If phone starts with 5 (without 0), add +966
+    else if (phone.startsWith('5') && !phone.startsWith('+')) {
+      phone = '+966$phone';
+    }
+    // If phone doesn't have country code, assume Saudi Arabia
+    else if (!phone.startsWith('+')) {
+      phone = '+966$phone';
+    }
+
+    return phone;
+  }
+
+// 🔥 ADD: Phone number validation function
+  bool _isValidSaudiPhone(String phone) {
+    // Remove country code for validation
+    String digits = phone.replaceAll('+966', '').replaceAll(RegExp(r'\s+'), '');
+
+    // Saudi mobile numbers: 5XXXXXXXX (9 digits starting with 5)
+    return digits.length == 9 && digits.startsWith('5');
   }
 
   @override
@@ -405,8 +436,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
   Widget _buildWorkerCard(Map<String, dynamic> worker) {
     final status = worker['status'] as String;
-    final isActive = status == AdminTranslations.split(AdminTranslations.active)[0];
-
+    final isActive = status == 'Active';  // 🔥 SIMPLIFIED
+    final isPending = status == 'Pending';
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -452,13 +483,20 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                      color: isPending ? Colors.orange.withOpacity(0.1) :  // 🔥 NEW: Orange for pending
+                      isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(isActive ? Icons.check_circle : Icons.block, size: 14, color: isActive ? Colors.green : Colors.red),
+                        Icon(
+                            isPending ? Icons.pending :  // 🔥 NEW: Pending icon
+                            isActive ? Icons.check_circle : Icons.block,
+                            size: 14,
+                            color: isPending ? Colors.orange :  // 🔥 NEW: Orange for pending
+                            isActive ? Colors.green : Colors.red
+                        ),
                         const SizedBox(width: 4),
                         Column(
                           mainAxisSize: MainAxisSize.min,
@@ -601,12 +639,18 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                  LengthLimitingTextInputFormatter(13),
+                ],
                 decoration: InputDecoration(
                   labelText: AdminTranslations.split(AdminTranslations.phoneNumber)[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.phone),
                   border: const OutlineInputBorder(),
-                  hintText: AdminTranslations.split(AdminTranslations.phonePlaceholder)[0],
+                  hintText: '5XXXXXXXX',
+                  helperText: 'Format: 5XXXXXXXX ',
+                  helperStyle: const TextStyle(fontSize: 10),
                 ),
               ),
               const SizedBox(height: 12),
@@ -716,6 +760,21 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 return;
               }
 
+              String formattedPhone = _formatPhoneNumber(phoneController.text.trim());
+
+              if (!_isValidSaudiPhone(formattedPhone)) {
+                Navigator.of(dialogContext).pop();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _showCustomSnackBar(
+                    'Invalid Saudi phone number. Use format: 5XXXXXXXX',
+                    'رقم هاتف سعودي غير صالح. استخدم التنسيق: 5XXXXXXXX',
+                    Colors.red,
+                  );
+                });
+                return;
+              }
+
               // Create worker data
               final newWorkerId = 'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
               final newWorker = WorkerData(
@@ -724,11 +783,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 nameArabic: nameArabicController.text.trim(),
                 nationalId: nationalIdController.text.trim(),
                 email: emailController.text.trim(),
-                phone: phoneController.text.trim(),
+                phone: formattedPhone,  // 🔥 USE FORMATTED PHONE
                 stcPayId: stcPayController.text.trim(),
                 address: addressController.text.trim(),
                 addressArabic: addressArabicController.text.trim(),
-                status: AdminTranslations.split(AdminTranslations.active)[0],
+                status: 'Pending',  // 🔥 SET AS PENDING (not Active!)
                 joinedDate: DateTime.now(),
                 completedServices: 0,
                 creditBalance: initialCredit,
