@@ -120,7 +120,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -145,7 +145,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddWorkerDialog,
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         icon: const Icon(Icons.person_add),
         label: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -314,10 +314,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF005DFF) : Colors.white,
+          color: isSelected ? const Color(0xFF3B82F6) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF005DFF) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF3B82F6) : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -364,7 +364,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         ),
         selected: isSelected,
         onSelected: (selected) => setState(() => _filterStatus = statusEn),
-        selectedColor: const Color(0xFF005DFF),
+        selectedColor: const Color(0xFF3B82F6),
         backgroundColor: Colors.white,
         labelStyle: TextStyle(
           color: isSelected ? Colors.white : Colors.black87,
@@ -423,10 +423,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: const Color(0xFF005DFF).withOpacity(0.1),
+                    backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
                     child: Text(
                       (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF005DFF)),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
                     ),
                   ),
                   const SizedBox(width: 16),

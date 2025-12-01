@@ -48,7 +48,7 @@ class VATManagementScreenState
           englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -189,7 +189,7 @@ class VATManagementScreenState
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF6B5B9A) : Colors.transparent,
+                  color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(

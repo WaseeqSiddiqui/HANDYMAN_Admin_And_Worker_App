@@ -21,7 +21,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AdminTranslations.split(AdminTranslations.invoiceManagement)[0]),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
           Padding(

@@ -54,7 +54,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(WorkerTranslations.profile),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
           IconButton(

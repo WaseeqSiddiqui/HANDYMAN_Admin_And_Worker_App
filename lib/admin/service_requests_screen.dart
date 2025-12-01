@@ -56,7 +56,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
-            backgroundColor: const Color(0xFF005DFF),
+            backgroundColor: const Color(0xFF3B82F6),
             foregroundColor: Colors.white,
             bottom: TabBar(
               controller: _tabController,
@@ -404,7 +404,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isAssigned ? Colors.grey[600] : const Color(0xFF005DFF),
+                      backgroundColor: isAssigned ? Colors.grey[600] : const Color(0xFF3B82F6),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

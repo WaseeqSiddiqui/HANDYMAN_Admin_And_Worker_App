@@ -148,7 +148,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           englishStyle: TextStyle(color: Colors.white, fontSize: 16),
           arabicStyle:  TextStyle(color: Colors.white, fontSize: 14),
         ),
-        backgroundColor: const Color(0xFF005DFF),
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -226,14 +226,14 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF005DFF), Color(0xFF4A3B7A)],
+          colors: [Color(0xFF3B82F6), Color(0xFF4A3B7A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF005DFF).withOpacity(0.3),
+            color: const Color(0xFF3B82F6).withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),

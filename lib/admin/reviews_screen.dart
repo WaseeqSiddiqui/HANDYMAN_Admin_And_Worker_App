@@ -90,10 +90,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF005DFF), // Updated to match customer app
+      backgroundColor: const Color(0xFF3B82F6), // Updated to match customer app
       appBar: AppBar(
         title: const Text('Customer Reviews'),
-        backgroundColor: const Color(0xFF005DFF), // Updated to deep purple
+        backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
         foregroundColor: Colors.white,
         actions: [
           IconButton(
