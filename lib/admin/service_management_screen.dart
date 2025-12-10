@@ -3,13 +3,15 @@ import 'package:flutter/services.dart';
 import '/utils/admin_translations.dart';
 import '/widgets/bilingual_text.dart';
 import '/services/service_management_service.dart';
-import '/models/service_model.dart';
+import '/models/service_model.dart' hide ServiceCategory;
+import '/models/service_category_model.dart';
 
 class ServiceManagementScreen extends StatefulWidget {
   const ServiceManagementScreen({super.key});
 
   @override
-  State<ServiceManagementScreen> createState() => _ServiceManagementScreenState();
+  State<ServiceManagementScreen> createState() =>
+      _ServiceManagementScreenState();
 }
 
 class _ServiceManagementScreenState extends State<ServiceManagementScreen>
@@ -40,16 +42,29 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
+    final backgroundColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF8F9FA);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: BilingualText( // ✅ Bilingual app bar title
-          english: AdminTranslations.split(AdminTranslations.serviceManagement)[0],
-          arabic: AdminTranslations.split(AdminTranslations.serviceManagement)[1],
-          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        title: BilingualText(
+          // ✅ Bilingual app bar title
+          english: AdminTranslations.split(
+            AdminTranslations.serviceManagement,
+          )[0],
+          arabic: AdminTranslations.split(
+            AdminTranslations.serviceManagement,
+          )[1],
+          englishStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
@@ -60,27 +75,56 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           unselectedLabelColor: Colors.white70,
           tabs: [
             Tab(
-              child: BilingualText( // ✅ Bilingual tab
-                english: AdminTranslations.split(AdminTranslations.categories)[0],
-                arabic: AdminTranslations.split(AdminTranslations.categories)[1],
-                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              child: BilingualText(
+                // ✅ Bilingual tab
+                english: AdminTranslations.split(
+                  AdminTranslations.categories,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.categories,
+                )[1],
+                englishStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                arabicStyle: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             Tab(
-              child: BilingualText( // ✅ Bilingual tab
-                english: AdminTranslations.split(AdminTranslations.subcategories)[0],
-                arabic: AdminTranslations.split(AdminTranslations.subcategories)[1],
-                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              child: BilingualText(
+                // ✅ Bilingual tab
+                english: AdminTranslations.split(
+                  AdminTranslations.subcategories,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.subcategories,
+                )[1],
+                englishStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                arabicStyle: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             Tab(
-              child: BilingualText( // ✅ Bilingual tab
+              child: BilingualText(
+                // ✅ Bilingual tab
                 english: AdminTranslations.split(AdminTranslations.services)[0],
                 arabic: AdminTranslations.split(AdminTranslations.services)[1],
-                englishStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                arabicStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                englishStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                arabicStyle: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -98,7 +142,8 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         onPressed: () => _showAddDialog(),
         backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
         icon: const Icon(Icons.add, color: Colors.white),
-        label: BilingualText( // ✅ Bilingual FAB label
+        label: BilingualText(
+          // ✅ Bilingual FAB label
           english: 'Add New',
           arabic: 'إضافة جديد',
           englishStyle: const TextStyle(color: Colors.white, fontSize: 14),
@@ -119,13 +164,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.category_outlined, size: 64, color: textColor.withOpacity(0.3)),
+            Icon(
+              Icons.category_outlined,
+              size: 64,
+              color: textColor.withOpacity(0.3),
+            ),
             const SizedBox(height: 16),
             BilingualText(
               english: 'No categories yet',
               arabic: 'لا توجد فئات حتى الآن',
-              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
-              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
+              englishStyle: TextStyle(
+                fontSize: 18,
+                color: textColor.withOpacity(0.6),
+              ),
+              arabicStyle: TextStyle(
+                fontSize: 16,
+                color: textColor.withOpacity(0.6),
+              ),
             ),
           ],
         ),
@@ -140,16 +195,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         return Card(
           color: cardColor,
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF005DFF).withOpacity(0.1), // Updated to deep purple
+                color: const Color(
+                  0xFF005DFF,
+                ).withOpacity(0.1), // Updated to deep purple
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(category.icon as IconData, color: const Color(0xFF005DFF)), // Updated to deep purple
+              child: Icon(
+                _getIconData(category.icon),
+                color: const Color(0xFF005DFF),
+              ), // Updated to deep purple
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +246,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Color(0xFF3B82F6)), // Updated to deep purple
+                  icon: const Icon(
+                    Icons.edit,
+                    color: Color(0xFF3B82F6),
+                  ), // Updated to deep purple
                   onPressed: () => _showEditCategoryDialog(category),
                 ),
                 IconButton(
@@ -210,13 +275,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.list_alt_outlined, size: 64, color: textColor.withOpacity(0.3)),
+            Icon(
+              Icons.list_alt_outlined,
+              size: 64,
+              color: textColor.withOpacity(0.3),
+            ),
             const SizedBox(height: 16),
             BilingualText(
               english: 'No categories available',
               arabic: 'لا توجد فئات متاحة',
-              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
-              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
+              englishStyle: TextStyle(
+                fontSize: 18,
+                color: textColor.withOpacity(0.6),
+              ),
+              arabicStyle: TextStyle(
+                fontSize: 16,
+                color: textColor.withOpacity(0.6),
+              ),
             ),
           ],
         ),
@@ -232,61 +307,92 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         return Card(
           color: cardColor,
           margin: const EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ExpansionTile(
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   category.name,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
                 Text(
                   category.nameArabic,
-                  style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textColor.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
             children: category.subcategories.isEmpty
                 ? [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: BilingualText(
-                  english: 'No subcategories',
-                  arabic: 'لا توجد فئات فرعية',
-                  englishStyle: TextStyle(color: textColor.withOpacity(0.5)),
-                  arabicStyle: TextStyle(color: textColor.withOpacity(0.5)),
-                ),
-              )
-            ]
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: BilingualText(
+                        english: 'No subcategories',
+                        arabic: 'لا توجد فئات فرعية',
+                        englishStyle: TextStyle(
+                          color: textColor.withOpacity(0.5),
+                        ),
+                        arabicStyle: TextStyle(
+                          color: textColor.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                  ]
                 : List.generate(category.subcategories.length, (index) {
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(category.subcategories[index], style: TextStyle(color: textColor)),
-                    Text(
-                      category.subcategoriesArabic[index],
-                      style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6)),
-                    ),
-                  ],
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Color(0xFF3B82F6), size: 20), // Updated to deep purple
-                      onPressed: () => _showEditSubcategoryDialog(category, index),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                      onPressed: () => _confirmDeleteSubcategory(category, index),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category.subcategories[index],
+                            style: TextStyle(color: textColor),
+                          ),
+                          Text(
+                            category.subcategoriesArabic[index],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textColor.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: Color(0xFF3B82F6),
+                              size: 20,
+                            ), // Updated to deep purple
+                            onPressed: () =>
+                                _showEditSubcategoryDialog(category, index),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            onPressed: () =>
+                                _confirmDeleteSubcategory(category, index),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
           ),
         );
       },
@@ -304,13 +410,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.room_service_outlined, size: 64, color: textColor.withOpacity(0.3)),
+            Icon(
+              Icons.room_service_outlined,
+              size: 64,
+              color: textColor.withOpacity(0.3),
+            ),
             const SizedBox(height: 16),
             BilingualText(
               english: 'No services yet',
               arabic: 'لا توجد خدمات حتى الآن',
-              englishStyle: TextStyle(fontSize: 18, color: textColor.withOpacity(0.6)),
-              arabicStyle: TextStyle(fontSize: 16, color: textColor.withOpacity(0.6)),
+              englishStyle: TextStyle(
+                fontSize: 18,
+                color: textColor.withOpacity(0.6),
+              ),
+              arabicStyle: TextStyle(
+                fontSize: 16,
+                color: textColor.withOpacity(0.6),
+              ),
             ),
           ],
         ),
@@ -325,7 +441,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         return Card(
           color: cardColor,
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -375,7 +493,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       onChanged: (value) {
                         _serviceManager.toggleServiceStatus(service.id);
                       },
-                      activeColor: const Color(0xFF005DFF), // Updated to deep purple
+                      activeColor: const Color(
+                        0xFF005DFF,
+                      ), // Updated to deep purple
                     ),
                   ],
                 ),
@@ -414,19 +534,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     TextButton.icon(
                       onPressed: () => _showEditServiceDialog(service),
                       icon: const Icon(Icons.edit, size: 18),
-                      label: Text(AdminTranslations.split(AdminTranslations.editBtn)[0]),
+                      label: Text(
+                        AdminTranslations.split(AdminTranslations.editBtn)[0],
+                      ),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+                        foregroundColor: const Color(
+                          0xFF3B82F6,
+                        ), // Updated to deep purple
                       ),
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => _confirmDeleteService(service),
                       icon: const Icon(Icons.delete, size: 18),
-                      label: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
+                      label: Text(
+                        AdminTranslations.split(AdminTranslations.deleteBtn)[0],
                       ),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
                   ],
                 ),
@@ -517,21 +641,29 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+            onPressed: () async {
+              if (nameController.text.isNotEmpty &&
+                  nameArabicController.text.isNotEmpty) {
                 final newCategory = ServiceCategory(
                   id: _serviceManager.generateCategoryId(),
-                  name: nameController.text,
+                  nameEnglish: nameController.text, // Updated constructor
                   nameArabic: nameArabicController.text,
-                  icon: Icons.category,
+                  descriptionEnglish: '', // Added required field
+                  descriptionArabic: '', // Added required field
+                  basePrice: 0.0, // Added required field
+                  icon:
+                      "category", // ServiceCategory expects String or null, using string
                   subcategories: [],
                   subcategoriesArabic: [],
                 );
 
-                if (_serviceManager.addCategory(newCategory)) {
+                if (await _serviceManager.addCategory(newCategory)) {
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -543,7 +675,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+              backgroundColor: const Color(
+                0xFF3B82F6,
+              ), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: const Text('Add'),
@@ -574,7 +708,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(AdminTranslations.split(AdminTranslations.addSubcategory)[0]),
+          title: Text(
+            AdminTranslations.split(AdminTranslations.addSubcategory)[0],
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -595,7 +731,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                           Text(cat.name),
                           Text(
                             cat.nameArabic,
-                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -633,7 +772,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+              child: Text(
+                AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -656,7 +797,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+                backgroundColor: const Color(
+                  0xFF3B82F6,
+                ), // Updated to deep purple
                 foregroundColor: Colors.white,
               ),
               child: const Text('Add'),
@@ -697,7 +840,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               : null;
 
           return AlertDialog(
-            title: Text(AdminTranslations.split(AdminTranslations.addService)[0]),
+            title: Text(
+              AdminTranslations.split(AdminTranslations.addService)[0],
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -738,7 +883,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                             Text(cat.name),
                             Text(
                               cat.nameArabic,
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -752,32 +900,35 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     },
                   ),
                   const SizedBox(height: 12),
-                  if (selectedCat != null && selectedCat.subcategories.isNotEmpty)
+                  if (selectedCat != null &&
+                      selectedCat.subcategories.isNotEmpty)
                     DropdownButtonFormField<int>(
                       value: selectedSubcategoryIndex,
                       decoration: const InputDecoration(
                         labelText: 'Subcategory',
                         border: OutlineInputBorder(),
                       ),
-                      items: List.generate(
-                        selectedCat.subcategories.length,
-                            (index) {
-                          return DropdownMenuItem<int>(
-                            value: index,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(selectedCat.subcategories[index]),
-                                Text(
-                                  selectedCat.subcategoriesArabic[index],
-                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      items: List.generate(selectedCat.subcategories.length, (
+                        index,
+                      ) {
+                        return DropdownMenuItem<int>(
+                          value: index,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(selectedCat.subcategories[index]),
+                              Text(
+                                selectedCat.subcategoriesArabic[index],
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                       onChanged: (value) {
                         setDialogState(() {
                           selectedSubcategoryIndex = value;
@@ -787,7 +938,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   const SizedBox(height: 12),
                   TextField(
                     controller: priceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'Base Price (SAR)',
                       border: OutlineInputBorder(),
@@ -797,7 +950,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   const SizedBox(height: 12),
                   TextField(
                     controller: commissionController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'Commission (%)',
                       border: OutlineInputBorder(),
@@ -807,7 +962,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   const SizedBox(height: 12),
                   TextField(
                     controller: vatController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'VAT (%)',
                       border: OutlineInputBorder(),
@@ -820,10 +977,12 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+                child: Text(
+                  AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+                ),
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (nameController.text.isNotEmpty &&
                       nameArabicController.text.isNotEmpty &&
                       selectedCategoryId != null &&
@@ -832,24 +991,27 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       commissionController.text.isNotEmpty &&
                       vatController.text.isNotEmpty &&
                       selectedCat != null) {
-
                     final newService = Service(
                       id: _serviceManager.generateServiceId(),
                       name: nameController.text,
                       nameArabic: nameArabicController.text,
                       categoryId: selectedCategoryId!,
-                      category: selectedCat.name,
+                      category: selectedCat.nameEnglish, // Use English name
                       categoryArabic: selectedCat.nameArabic,
-                      subcategoryId: '${selectedCategoryId}_$selectedSubcategoryIndex',
-                      subcategory: selectedCat.subcategories[selectedSubcategoryIndex!],
-                      subcategoryArabic: selectedCat.subcategoriesArabic[selectedSubcategoryIndex!],
+                      subcategoryId:
+                          '${selectedCategoryId}_$selectedSubcategoryIndex',
+                      subcategory:
+                          selectedCat.subcategories[selectedSubcategoryIndex!],
+                      subcategoryArabic: selectedCat
+                          .subcategoriesArabic[selectedSubcategoryIndex!],
                       basePrice: double.parse(priceController.text),
                       commission: double.parse(commissionController.text),
                       vat: double.parse(vatController.text),
                       isActive: true,
                     );
 
-                    if (_serviceManager.addService(newService)) {
+                    if (await _serviceManager.addService(newService)) {
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -858,6 +1020,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                         ),
                       );
                     } else {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('❌ Failed to add service'),
@@ -868,7 +1031,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+                  backgroundColor: const Color(
+                    0xFF3B82F6,
+                  ), // Updated to deep purple
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Add'),
@@ -881,8 +1046,12 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
   }
 
   void _showEditCategoryDialog(ServiceCategory category) {
-    final nameController = TextEditingController(text: category.name);
-    final nameArabicController = TextEditingController(text: category.nameArabic);
+    final nameController = TextEditingController(
+      text: category.nameEnglish,
+    ); // Fix getter
+    final nameArabicController = TextEditingController(
+      text: category.nameArabic,
+    );
 
     showDialog(
       context: context,
@@ -916,17 +1085,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty &&
+                  nameArabicController.text.isNotEmpty) {
                 final updatedCategory = category.copyWith(
-                  name: nameController.text,
+                  nameEnglish: nameController.text, // Fix parameter
                   nameArabic: nameArabicController.text,
                 );
 
-                if (_serviceManager.updateCategory(category.id, updatedCategory)) {
+                if (_serviceManager.updateCategory(
+                  category.id,
+                  updatedCategory,
+                )) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -938,7 +1113,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+              backgroundColor: const Color(
+                0xFF3B82F6,
+              ), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
@@ -949,8 +1126,12 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
   }
 
   void _showEditSubcategoryDialog(ServiceCategory category, int index) {
-    final nameController = TextEditingController(text: category.subcategories[index]);
-    final nameArabicController = TextEditingController(text: category.subcategoriesArabic[index]);
+    final nameController = TextEditingController(
+      text: category.subcategories[index],
+    );
+    final nameArabicController = TextEditingController(
+      text: category.subcategoriesArabic[index],
+    );
 
     showDialog(
       context: context,
@@ -984,11 +1165,14 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty &&
+                  nameArabicController.text.isNotEmpty) {
                 if (_serviceManager.updateSubcategory(
                   category.id,
                   index,
@@ -1006,7 +1190,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+              backgroundColor: const Color(
+                0xFF3B82F6,
+              ), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
@@ -1018,9 +1204,15 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
   void _showEditServiceDialog(Service service) {
     final nameController = TextEditingController(text: service.name);
-    final nameArabicController = TextEditingController(text: service.nameArabic);
-    final priceController = TextEditingController(text: service.basePrice.toString());
-    final commissionController = TextEditingController(text: service.commission.toString());
+    final nameArabicController = TextEditingController(
+      text: service.nameArabic,
+    );
+    final priceController = TextEditingController(
+      text: service.basePrice.toString(),
+    );
+    final commissionController = TextEditingController(
+      text: service.commission.toString(),
+    );
     final vatController = TextEditingController(text: service.vat.toString());
 
     showDialog(
@@ -1052,7 +1244,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Base Price (SAR)',
                   border: OutlineInputBorder(),
@@ -1062,7 +1256,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: commissionController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Commission (%)',
                   border: OutlineInputBorder(),
@@ -1072,7 +1268,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: vatController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'VAT (%)',
                   border: OutlineInputBorder(),
@@ -1085,11 +1283,14 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty && nameArabicController.text.isNotEmpty) {
+            onPressed: () async {
+              if (nameController.text.isNotEmpty &&
+                  nameArabicController.text.isNotEmpty) {
                 final updatedService = service.copyWith(
                   name: nameController.text,
                   nameArabic: nameArabicController.text,
@@ -1098,7 +1299,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   vat: double.parse(vatController.text),
                 );
 
-                if (_serviceManager.updateService(service.id, updatedService)) {
+                if (await _serviceManager.updateService(
+                  service.id,
+                  updatedService,
+                )) {
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -1110,7 +1315,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+              backgroundColor: const Color(
+                0xFF3B82F6,
+              ), // Updated to deep purple
               foregroundColor: Colors.white,
             ),
             child: Text(AdminTranslations.split(AdminTranslations.saveBtn)[0]),
@@ -1125,11 +1332,15 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Category'),
-        content: Text('Are you sure you want to delete "${category.name}"?\n\nThis will also affect all related services.'),
+        content: Text(
+          'Are you sure you want to delete "${category.name}"?\n\nThis will also affect all related services.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1145,7 +1356,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('❌ Cannot delete category - services are using it'),
+                    content: Text(
+                      '❌ Cannot delete category - services are using it',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -1155,7 +1368,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.deleteBtn)[0],
+            ),
           ),
         ],
       ),
@@ -1173,7 +1388,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1189,7 +1406,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('❌ Cannot delete subcategory - services are using it'),
+                    content: Text(
+                      '❌ Cannot delete subcategory - services are using it',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -1199,7 +1418,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.deleteBtn)[0],
+            ),
           ),
         ],
       ),
@@ -1215,11 +1436,14 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (_serviceManager.deleteService(service.id)) {
+            onPressed: () async {
+              if (await _serviceManager.deleteService(service.id)) {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1233,10 +1457,42 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(AdminTranslations.split(AdminTranslations.deleteBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.deleteBtn)[0],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  // Helper method to get IconData from string name
+  IconData _getIconData(String? iconName) {
+    if (iconName == null) return Icons.category;
+
+    switch (iconName.toLowerCase()) {
+      case 'ac_unit':
+      case 'ac services':
+        return Icons.ac_unit;
+      case 'kitchen':
+      case 'appliances':
+        return Icons.kitchen;
+      case 'plumbing':
+        return Icons.plumbing;
+      case 'cleaning':
+        return Icons.cleaning_services;
+      case 'electrical':
+        return Icons.electrical_services;
+      case 'painting':
+        return Icons.format_paint;
+      case 'carpentry':
+        return Icons.carpenter;
+      case 'moving':
+        return Icons.local_shipping;
+      case 'pest control':
+        return Icons.pest_control;
+      default:
+        return Icons.category;
+    }
   }
 }

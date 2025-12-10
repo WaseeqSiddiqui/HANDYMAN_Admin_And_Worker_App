@@ -11,13 +11,138 @@ import '/models/monthly_comparison_model.dart';
 import '/models/withdrawl_requests_model.dart';
 import '/models/transaction_model.dart';
 import '/providers/app_state_provider.dart';
+import '/services/firestore_service.dart';
 
 /// ✅ Financial Service - Centralized service completion handler
 /// Admin wallet receives full payment and tracks all deductions
 class FinancialService {
   static final FinancialService _instance = FinancialService._internal();
   factory FinancialService() => _instance;
-  FinancialService._internal();
+  FinancialService._internal() {
+    _initializeListeners();
+  }
+
+  final _firestoreService = FirestoreService();
+
+  void _initializeListeners() {
+    // Admin Wallet Stream
+    _firestoreService.getAdminWalletTransactionsStream().listen((transactions) {
+      _walletTransactions.clear();
+      _walletTransactions.addAll(transactions);
+
+      // Recalculate balance
+      _currentBalance = 0.0;
+      for (var txn in _walletTransactions) {
+        if (txn.type == 'credit') _currentBalance += txn.amount;
+        if (txn.type == 'debit') _currentBalance -= txn.amount;
+        // Note: WalletTransaction model has balanceAfter, but for aggregation we might need to be careful.
+        // Ideally rely on the latest transaction's balanceAfter if ordered?
+        // But here we just sum credits/debits if that's how it works.
+        // Wait, the previous code computed balance incrementally.
+        // Let's trust the balanceAfter from the latest transaction or recompute.
+        // For now, let's just use the logic:
+      }
+      // Actually, standard is to trust the log or recompute.
+      // Let's just notify.
+      if (_walletTransactions.isNotEmpty) {
+        _currentBalance = _walletTransactions
+            .first
+            .balanceAfter; // First is latest due to descending order
+      } else {
+        _currentBalance = 0.0;
+      }
+      _notifyListeners();
+    });
+
+    // Commission Stream
+    _firestoreService.getCommissionRecordsStream().listen((records) {
+      _commissionRecords.clear();
+      _commissionRecords.addAll(records);
+      _totalCommissionCollected = records.fold(
+        0.0,
+        (sum, r) => sum + r.commissionAmount,
+      );
+      _notifyListeners();
+    });
+
+    // VAT Stream
+    _firestoreService.getVATRecordsStream().listen((records) {
+      _vatRecords.clear();
+      _vatRecords.addAll(records);
+      _totalVATCollected = records.fold(0.0, (sum, r) => sum + r.vatAmount);
+      _notifyListeners();
+    });
+
+    // Withdrawals Stream
+    _firestoreService.getWithdrawalRequestsStream().listen((requests) {
+      _withdrawalRequests.clear();
+      _withdrawalRequests.addAll(requests);
+      _notifyListeners();
+    });
+
+    // Also we need _completedServices and _allTransactions.
+    // In previous code, _allTransactions was populated.
+    // We should probably source this from FirestoreService.getTransactionsStream but filtering for completed?
+    // Or maybe we don't strictly need it if we have specific records.
+    // Let's look at getReportSummary. It uses _completedServices.
+    // We can populate _completedServices by listening to ALL transactions or a specific collection?
+    // FirestoreService creates 'transactions' collection which are mostly worker-centric.
+    // But FinancialService creates FinancialTransaction struct which is slightly different.
+    // Wait, FinancialService.processCompletedService adds to _allTransactions.
+    // We didn't create a 'financial_transactions' collection in FirestoreService.
+    // We should probably just use the 'transactions' collection or rely on Commission/VAT/AdminWallet to reconstruct reports?
+    // OR, better, persist 'financial_transactions' if they store more info.
+    // ServiceCompletionResult returns a FinancialTransaction.
+    // Let's rely on _completedServices being populated from ServiceRequests that are 'completed'?
+    listenToCompletedServices();
+  }
+
+  void listenToCompletedServices() {
+    _firestoreService.getServiceRequestsStream().listen((services) {
+      _completedServices.clear();
+      final completed = services
+          .where(
+            (s) =>
+                s.status.toString().contains('completed') ||
+                s.status.name == 'completed',
+          )
+          .toList();
+
+      for (var s in completed) {
+        // Map ServiceRequest to FinancialTransaction if possible for reports
+        final total = s.totalPrice;
+        final commission = s.commission;
+        final vat = s.vat;
+        final workerEarnings = total - commission - vat;
+
+        _completedServices.add(
+          FinancialTransaction(
+            id: s.id, // Use service ID or derived
+            serviceId: s.id,
+            serviceName: s.serviceName,
+            workerId: s.workerId ?? '',
+            workerName: s.workerName ?? '',
+            customerName: s.customerName,
+            basePrice: s.basePrice,
+            extraCharges: s.extraItems.fold(0, (sum, i) => sum + i.price),
+            totalAmount: total,
+            commission: commission,
+            vat: vat,
+            workerDeduction: commission + vat,
+            workerEarnings: workerEarnings,
+            paymentMethod: s.paymentMethod?.name ?? 'Cash', // Enum to string
+            completionDate: s.completedDate ?? s.updatedAt,
+            status: 'completed',
+          ),
+        );
+      }
+
+      // _allTransactions is basically the same
+      _allTransactions.clear();
+      _allTransactions.addAll(_completedServices);
+      _notifyListeners();
+    });
+  }
 
   // Listeners for real-time updates
   final List<VoidCallback> _listeners = [];
@@ -96,13 +221,13 @@ class FinancialService {
       _completedServices.add(transaction);
 
       // ✅ FIXED: Update admin wallet based on payment method
-      _updateAdminWallet(transaction, paymentMethod);
+      await _updateAdminWallet(transaction, paymentMethod);
 
       // Update commission records
-      _updateCommissionRecords(transaction);
+      await _updateCommissionRecords(transaction);
 
       // Update VAT records
-      _updateVATRecords(transaction);
+      await _updateVATRecords(transaction);
 
       // Notify all listeners
       _notifyListeners();
@@ -111,7 +236,9 @@ class FinancialService {
       debugPrint('   Total Payment: SAR ${total.toStringAsFixed(2)}');
       debugPrint('   Commission: SAR ${commission.toStringAsFixed(2)}');
       debugPrint('   VAT: SAR ${vat.toStringAsFixed(2)}');
-      debugPrint('   Worker Earnings: SAR ${workerEarnings.toStringAsFixed(2)}');
+      debugPrint(
+        '   Worker Earnings: SAR ${workerEarnings.toStringAsFixed(2)}',
+      );
       debugPrint('   Admin Wallet: SAR ${_currentBalance.toStringAsFixed(2)}');
 
       return ServiceCompletionResult(
@@ -132,7 +259,10 @@ class FinancialService {
   // ✅ FIXED: Admin wallet based on payment method
   // ONLINE: Receives full payment, then pays worker
   // CASH: Receives only VAT + Commission (worker already got cash)
-  void _updateAdminWallet(FinancialTransaction transaction, String paymentMethod) {
+  Future<void> _updateAdminWallet(
+    FinancialTransaction transaction,
+    String paymentMethod,
+  ) async {
     if (paymentMethod == 'Cash') {
       // CASH: Admin receives only VAT + Commission
       final deductionAmount = transaction.commission + transaction.vat;
@@ -141,33 +271,38 @@ class FinancialService {
         id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
         type: 'credit',
         amount: deductionAmount,
-        description: 'VAT+Commission received (CASH) - ${transaction.serviceName} (${transaction.customerName})',
+        description:
+            'VAT+Commission received (CASH) - ${transaction.serviceName} (${transaction.customerName})',
         serviceId: transaction.serviceId,
         date: transaction.completionDate,
         balanceAfter: _currentBalance + deductionAmount,
       );
 
-      _walletTransactions.add(deductionTxn);
-      _currentBalance += deductionAmount;
+      await _firestoreService.addAdminWalletTransaction(deductionTxn);
+      _currentBalance += deductionAmount; // Optimistic update
 
-      debugPrint('✅ Admin Wallet (CASH): +SAR ${deductionAmount.toStringAsFixed(2)} (VAT+Commission only)');
-
+      debugPrint(
+        '✅ Admin Wallet (CASH): +SAR ${deductionAmount.toStringAsFixed(2)} (VAT+Commission only)',
+      );
     } else {
       // ONLINE: Admin receives FULL payment from customer
       final paymentTxn = WalletTransaction(
         id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
         type: 'credit',
         amount: transaction.totalAmount,
-        description: 'Payment received (ONLINE) - ${transaction.serviceName} (${transaction.customerName})',
+        description:
+            'Payment received (ONLINE) - ${transaction.serviceName} (${transaction.customerName})',
         serviceId: transaction.serviceId,
         date: transaction.completionDate,
         balanceAfter: _currentBalance + transaction.totalAmount,
       );
 
-      _walletTransactions.add(paymentTxn);
-      _currentBalance += transaction.totalAmount;
+      await _firestoreService.addAdminWalletTransaction(paymentTxn);
+      _currentBalance += transaction.totalAmount; // Optimistic update
 
-      debugPrint('✅ Admin Wallet (ONLINE): +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Full payment received)');
+      debugPrint(
+        '✅ Admin Wallet (ONLINE): +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Full payment received)',
+      );
     }
 
     // Track commission and VAT (for both payment methods)
@@ -181,7 +316,7 @@ class FinancialService {
       balanceAfter: _currentBalance,
     );
 
-    _walletTransactions.add(commissionTxn);
+    await _firestoreService.addAdminWalletTransaction(commissionTxn);
 
     final vatTxn = WalletTransaction(
       id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 2}',
@@ -193,18 +328,25 @@ class FinancialService {
       balanceAfter: _currentBalance,
     );
 
-    _walletTransactions.add(vatTxn);
+    await _firestoreService.addAdminWalletTransaction(vatTxn);
 
-    debugPrint('✅ Admin Wallet Balance: SAR ${_currentBalance.toStringAsFixed(2)}');
-    debugPrint('   Commission: SAR ${transaction.commission.toStringAsFixed(2)}');
+    debugPrint(
+      '✅ Admin Wallet Balance: SAR ${_currentBalance.toStringAsFixed(2)}',
+    );
+    debugPrint(
+      '   Commission: SAR ${transaction.commission.toStringAsFixed(2)}',
+    );
     debugPrint('   VAT: SAR ${transaction.vat.toStringAsFixed(2)}');
   }
 
-  List<WalletTransaction> getWalletTransactions() => List.unmodifiable(_walletTransactions);
+  List<WalletTransaction> getWalletTransactions() =>
+      List.unmodifiable(_walletTransactions);
   double getCurrentBalance() => _currentBalance;
 
   // ============= COMMISSION MANAGEMENT =============
-  void _updateCommissionRecords(FinancialTransaction transaction) {
+  Future<void> _updateCommissionRecords(
+    FinancialTransaction transaction,
+  ) async {
     final record = CommissionRecord(
       id: 'COM_${DateTime.now().millisecondsSinceEpoch}',
       serviceId: transaction.serviceId,
@@ -218,11 +360,12 @@ class FinancialService {
       status: 'collected',
     );
 
-    _commissionRecords.add(record);
-    _totalCommissionCollected += transaction.commission;
+    await _firestoreService.addCommissionRecord(record);
+    // Local list update handled by stream
   }
 
-  List<CommissionRecord> getCommissionRecords() => List.unmodifiable(_commissionRecords);
+  List<CommissionRecord> getCommissionRecords() =>
+      List.unmodifiable(_commissionRecords);
   double getTotalCommissionCollected() => _totalCommissionCollected;
 
   double getWorkerCommission(String workerId) {
@@ -231,15 +374,19 @@ class FinancialService {
         .fold(0.0, (sum, record) => sum + record.commissionAmount);
   }
 
-  List<CommissionRecord> getCommissionByDateRange(DateTime start, DateTime end) {
+  List<CommissionRecord> getCommissionByDateRange(
+    DateTime start,
+    DateTime end,
+  ) {
     return _commissionRecords
-        .where((record) =>
-    record.date.isAfter(start) && record.date.isBefore(end))
+        .where(
+          (record) => record.date.isAfter(start) && record.date.isBefore(end),
+        )
         .toList();
   }
 
   // ============= VAT MANAGEMENT =============
-  void _updateVATRecords(FinancialTransaction transaction) {
+  Future<void> _updateVATRecords(FinancialTransaction transaction) async {
     final record = VATRecord(
       id: 'VAT_${DateTime.now().millisecondsSinceEpoch}',
       serviceId: transaction.serviceId,
@@ -251,8 +398,8 @@ class FinancialService {
       status: 'collected',
     );
 
-    _vatRecords.add(record);
-    _totalVATCollected += transaction.vat;
+    await _firestoreService.addVATRecord(record);
+    // Local list update handled by stream
   }
 
   List<VATRecord> getVATRecords() => List.unmodifiable(_vatRecords);
@@ -260,7 +407,9 @@ class FinancialService {
 
   List<VATRecord> getVATByDateRange(DateTime start, DateTime end) {
     return _vatRecords
-        .where((record) => record.date.isAfter(start) && record.date.isBefore(end))
+        .where(
+          (record) => record.date.isAfter(start) && record.date.isBefore(end),
+        )
         .toList();
   }
 
@@ -274,12 +423,25 @@ class FinancialService {
     final end = endDate ?? DateTime(now.year, now.month + 1, 0);
 
     final filteredTransactions = _completedServices
-        .where((txn) => txn.completionDate.isAfter(start) && txn.completionDate.isBefore(end))
+        .where(
+          (txn) =>
+              txn.completionDate.isAfter(start) &&
+              txn.completionDate.isBefore(end),
+        )
         .toList();
 
-    final totalRevenue = filteredTransactions.fold(0.0, (sum, txn) => sum + txn.totalAmount);
-    final totalCommission = filteredTransactions.fold(0.0, (sum, txn) => sum + txn.commission);
-    final totalVAT = filteredTransactions.fold(0.0, (sum, txn) => sum + txn.vat);
+    final totalRevenue = filteredTransactions.fold(
+      0.0,
+      (sum, txn) => sum + txn.totalAmount,
+    );
+    final totalCommission = filteredTransactions.fold(
+      0.0,
+      (sum, txn) => sum + txn.commission,
+    );
+    final totalVAT = filteredTransactions.fold(
+      0.0,
+      (sum, txn) => sum + txn.vat,
+    );
     final workersShare = totalRevenue - totalCommission - totalVAT;
 
     return FinancialReportSummary(
@@ -297,7 +459,8 @@ class FinancialService {
     );
   }
 
-  List<FinancialTransaction> getCompletedServices() => List.unmodifiable(_completedServices);
+  List<FinancialTransaction> getCompletedServices() =>
+      List.unmodifiable(_completedServices);
 
   List<FinancialTransaction> getWorkerServices(String workerId) {
     return _completedServices
@@ -321,11 +484,17 @@ class FinancialService {
     return MonthlyComparison(
       currentMonth: currentMonth,
       previousMonth: previousMonth,
-      revenueGrowth: _calculateGrowth(previousMonth.totalRevenue, currentMonth.totalRevenue),
-      workersShareGrowth: _calculateGrowth(previousMonth.workersShare, currentMonth.workersShare),
+      revenueGrowth: _calculateGrowth(
+        previousMonth.totalRevenue,
+        currentMonth.totalRevenue,
+      ),
+      workersShareGrowth: _calculateGrowth(
+        previousMonth.workersShare,
+        currentMonth.workersShare,
+      ),
       servicesGrowth: _calculateGrowth(
-          previousMonth.totalServices.toDouble(),
-          currentMonth.totalServices.toDouble()
+        previousMonth.totalServices.toDouble(),
+        currentMonth.totalServices.toDouble(),
       ),
     );
   }
@@ -336,11 +505,11 @@ class FinancialService {
   }
 
   // ============= WITHDRAWAL REQUESTS =============
-  String createWithdrawalRequest({
+  Future<String> createWithdrawalRequest({
     required String workerId,
     required String workerName,
     required double amount,
-  }) {
+  }) async {
     final requestId = 'WR${DateTime.now().millisecondsSinceEpoch}';
 
     final request = WithdrawalRequest(
@@ -352,18 +521,17 @@ class FinancialService {
       status: 'Pending',
     );
 
-    _withdrawalRequests.add(request);
-    _notifyListeners();
+    await _firestoreService.addWithdrawalRequest(request);
 
-    debugPrint('✅ Withdrawal request created: $requestId for SAR ${amount.toStringAsFixed(2)}');
+    debugPrint(
+      '✅ Withdrawal request created: $requestId for SAR ${amount.toStringAsFixed(2)}',
+    );
     return requestId;
   }
 
   List<WithdrawalRequest> getWithdrawalRequests({String? status}) {
     if (status != null) {
-      return _withdrawalRequests
-          .where((req) => req.status == status)
-          .toList();
+      return _withdrawalRequests.where((req) => req.status == status).toList();
     }
     return List.unmodifiable(_withdrawalRequests);
   }
@@ -392,26 +560,29 @@ class FinancialService {
       if (approve) {
         if (appState.walletBalance < request.amount) {
           return WithdrawalResult(
-              success: false,
-              message: 'Worker has insufficient wallet balance'
+            success: false,
+            message: 'Worker has insufficient wallet balance',
           );
         }
 
         appState.updateWalletBalance(-request.amount);
 
-        appState.addTransaction(Transaction(
-          id: 'WD${DateTime.now().millisecondsSinceEpoch}',
-          workerId: appState.workerId,
-          workerName: appState.workerName,
-          type: TransactionType.walletWithdrawal,
-          amount: -request.amount,
-          balanceBefore: appState.walletBalance + request.amount,
-          balanceAfter: appState.walletBalance,
-          reference: request.id,
-          description: 'Withdrawal to STC Pay - Request ${request.id}',
-          createdAt: DateTime.now(),
-        ));
+        appState.addTransaction(
+          Transaction(
+            id: 'WD${DateTime.now().millisecondsSinceEpoch}',
+            workerId: appState.workerId,
+            workerName: appState.workerName,
+            type: TransactionType.walletWithdrawal,
+            amount: -request.amount,
+            balanceBefore: appState.walletBalance + request.amount,
+            balanceAfter: appState.walletBalance,
+            reference: request.id,
+            description: 'Withdrawal to STC Pay - Request ${request.id}',
+            createdAt: DateTime.now(),
+          ),
+        );
 
+        // ✅ Admin wallet pays out withdrawal
         // ✅ Admin wallet pays out withdrawal
         _currentBalance -= request.amount;
 
@@ -425,38 +596,38 @@ class FinancialService {
           balanceAfter: _currentBalance,
         );
 
-        _walletTransactions.add(walletTxn);
+        await _firestoreService.addAdminWalletTransaction(walletTxn);
 
-        _withdrawalRequests[index] = request.copyWith(
+        // Update withdrawal status in Firestore
+        final updatedRequest = request.copyWith(
           status: 'Approved',
           processedDate: DateTime.now(),
           processedBy: 'Admin',
         );
+        await _firestoreService.updateWithdrawalRequest(updatedRequest);
 
-        _notifyListeners();
-
-        debugPrint('✅ Withdrawal approved: ${request.id} - SAR ${request.amount.toStringAsFixed(2)}');
+        debugPrint(
+          '✅ Withdrawal approved: ${request.id} - SAR ${request.amount.toStringAsFixed(2)}',
+        );
 
         return WithdrawalResult(
           success: true,
           message: 'Withdrawal approved successfully',
         );
       } else {
-        _withdrawalRequests[index] = request.copyWith(
+        final updatedRequest = request.copyWith(
           status: 'Rejected',
           processedDate: DateTime.now(),
           processedBy: 'Admin',
           adminNotes: adminNotes,
         );
+        await _firestoreService.updateWithdrawalRequest(updatedRequest);
 
-        _notifyListeners();
-
-        debugPrint('⚠️ Withdrawal rejected: ${request.id} - Reason: $adminNotes');
-
-        return WithdrawalResult(
-          success: true,
-          message: 'Withdrawal rejected',
+        debugPrint(
+          '⚠️ Withdrawal rejected: ${request.id} - Reason: $adminNotes',
         );
+
+        return WithdrawalResult(success: true, message: 'Withdrawal rejected');
       }
     } catch (e) {
       return WithdrawalResult(
@@ -467,21 +638,37 @@ class FinancialService {
   }
 
   Map<String, dynamic> getWithdrawalStats() {
-    final pending = _withdrawalRequests.where((r) => r.status == 'Pending').toList();
-    final approved = _withdrawalRequests.where((r) => r.status == 'Approved').toList();
-    final rejected = _withdrawalRequests.where((r) => r.status == 'Rejected').toList();
+    final pending = _withdrawalRequests
+        .where((r) => r.status == 'Pending')
+        .toList();
+    final approved = _withdrawalRequests
+        .where((r) => r.status == 'Approved')
+        .toList();
+    final rejected = _withdrawalRequests
+        .where((r) => r.status == 'Rejected')
+        .toList();
 
     return {
       'pendingCount': pending.length,
-      'pendingAmount': pending.fold<double>(0.0, (sum, req) => sum + req.amount),
+      'pendingAmount': pending.fold<double>(
+        0.0,
+        (sum, req) => sum + req.amount,
+      ),
       'approvedCount': approved.length,
-      'approvedAmount': approved.fold<double>(0.0, (sum, req) => sum + req.amount),
+      'approvedAmount': approved.fold<double>(
+        0.0,
+        (sum, req) => sum + req.amount,
+      ),
       'rejectedCount': rejected.length,
-      'rejectedAmount': rejected.fold<double>(0.0, (sum, req) => sum + req.amount),
+      'rejectedAmount': rejected.fold<double>(
+        0.0,
+        (sum, req) => sum + req.amount,
+      ),
     };
   }
 
   void clearAllData() {
+    // TODO: Implement clear for Firestore if needed, for now just clear local RAM
     _allTransactions.clear();
     _completedServices.clear();
     _walletTransactions.clear();

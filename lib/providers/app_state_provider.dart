@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import '/services/financial_service.dart';
 import 'package:flutter/scheduler.dart';
-import '/services/worker_auth_service.dart';
-import '/models/worker_data_model.dart';
+import '../services/worker_auth_service.dart';
+import '../services/firestore_service.dart';
+import '../models/worker_data_model.dart';
 import '/services/invoice_service.dart';
 import '/models/customer_model.dart';
 import '/models/customer_service_model.dart';
-import '/models/service_request_model.dart';
-import '/models/service_invoice_model.dart';
-import '/models/transaction_model.dart';
+import '../models/service_request_model.dart';
+import '../models/service_model.dart'
+    hide ServiceCategory; // ✅ Import Service model
+import '../models/service_category_model.dart';
+
+import '../models/transaction_model.dart';
 import '/utils/admin_translations.dart';
 
 class AppStateProvider with ChangeNotifier {
+  final _firestoreService = FirestoreService();
   final _financialService = FinancialService();
   final _workerAuthService = WorkerAuthService();
   final _invoiceService = InvoiceService();
@@ -23,6 +28,8 @@ class AppStateProvider with ChangeNotifier {
   String? currentWorkerId;
   String? currentWorkerName;
   List<ServiceRequest> _serviceRequests = [];
+  List<ServiceCategory> _serviceCategories = [];
+  List<ServiceCategory> get serviceCategories => _serviceCategories;
 
   // ✅ Getters for worker info
   String get workerId => currentWorkerId ?? 'UNKNOWN';
@@ -66,20 +73,46 @@ class AppStateProvider with ChangeNotifier {
   }
 
   void _initialize() {
-    debugPrint('🚀 Initializing AppStateProvider...');
+    debugPrint('🚀 Initializing AppStateProvider with Firestore...');
 
-    _serviceRequests = [
-      // ✅ English customer service requests - صرف English میں customer details
+    // Listen to Service Requests
+    _firestoreService.getServiceRequestsStream().listen((services) {
+      _serviceRequests = services;
+      notifyListeners();
+      debugPrint(
+        '🔄 AppStateProvider: Synced ${services.length} services from Firestore',
+      );
+    });
+
+    // Listen to Service Categories
+    _firestoreService.getServiceCategoriesStream().listen((categories) {
+      _serviceCategories = categories;
+      notifyListeners();
+      debugPrint(
+        '🔄 AppStateProvider: Synced ${categories.length} categories from Firestore',
+      );
+    });
+
+    _isInitialized = true;
+    notifyListeners();
+
+    // Attempt to seed data if empty (happens one time only)
+    seedInitialData();
+  }
+
+  Future<void> seedInitialData() async {
+    final hardcodedServices = [
+      // ✅ English customer service requests
       ServiceRequest(
         id: 'SR001',
         customerId: 'C001', // Ali Khan - English
-        customerName: 'Ali Khan', // ✅ صرف English میں
+        customerName: 'Ali Khan',
         serviceId: 'SV001',
         serviceName: AdminTranslations.getServiceName('ac_repair'),
         requestedDate: DateTime.now().add(const Duration(days: 2)),
         requestedTime: '10:00 AM',
-        address: 'Al Malqa, Riyadh 13521', // ✅ صرف English میں
-        customerNotes: 'Air conditioning not cooling properly', // ✅ صرف English میں
+        address: 'Al Malqa, Riyadh 13521',
+        customerNotes: 'Air conditioning not cooling properly',
         customerLanguage: 'english',
         status: ServiceRequestStatus.pending,
         basePrice: 250.0,
@@ -91,13 +124,13 @@ class AppStateProvider with ChangeNotifier {
       ServiceRequest(
         id: 'SR002',
         customerId: 'C002', // Sarah Johnson - English
-        customerName: 'Sarah Johnson', // ✅ صرف English میں
+        customerName: 'Sarah Johnson',
         serviceId: 'SV002',
         serviceName: AdminTranslations.getServiceName('plumbing'),
         requestedDate: DateTime.now().add(const Duration(days: 1)),
         requestedTime: '02:00 PM',
-        address: 'Al Hamra District, Jeddah 23323', // ✅ صرف English میں
-        customerNotes: 'Kitchen sink is leaking and needs repair', // ✅ صرف English میں
+        address: 'Al Hamra District, Jeddah 23323',
+        customerNotes: 'Kitchen sink is leaking and needs repair',
         customerLanguage: 'english',
         status: ServiceRequestStatus.pending,
         basePrice: 180.0,
@@ -106,23 +139,24 @@ class AppStateProvider with ChangeNotifier {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
-
-      // ✅ Arabic customer service requests - صرف Arabic میں customer details
+      // Arabic requests
       ServiceRequest(
         id: 'SR003',
-        customerId: 'C003', // Fatima Hassan - Arabic
-        customerName: 'فاطمة حسن', // ✅ صرف Arabic میں
+        customerId: 'C003',
+        customerName: 'فاطمة حسن',
         serviceId: 'SV003',
         serviceName: AdminTranslations.getServiceName('electrical'),
         requestedDate: DateTime.now().add(const Duration(days: 3)),
         requestedTime: '11:00 AM',
-        address: 'النخيل، الرياض 13325', // ✅ صرف Arabic میں
-        customerNotes: 'مشكلة في الأسلاك الكهربائية في غرفة المعيشة', // ✅ صرف Arabic میں
+        address: 'النخيل، الرياض 13325',
+        customerNotes: 'مشكلة في الأسلاك الكهربائية في غرفة المعيشة',
         customerLanguage: 'arabic',
         status: ServiceRequestStatus.assigned,
         workerId: 'W001',
         workerName: AdminTranslations.getWorkerName('ahmed'),
-        workerNameArabic: AdminTranslations.getArabic(AdminTranslations.getWorkerName('ahmed')),
+        workerNameArabic: AdminTranslations.getArabic(
+          AdminTranslations.getWorkerName('ahmed'),
+        ),
         basePrice: 300.0,
         commission: 25.0,
         vat: 18.0,
@@ -131,34 +165,36 @@ class AppStateProvider with ChangeNotifier {
       ),
       ServiceRequest(
         id: 'SR004',
-        customerId: 'C004', // Mohammed Ahmed - Arabic
-        customerName: 'محمد أحمد', // ✅ صرف Arabic میں
+        customerId: 'C004',
+        customerName: 'محمد أحمد',
         serviceId: 'SV004',
         serviceName: AdminTranslations.getServiceName('cleaning'),
         requestedDate: DateTime.now().add(const Duration(days: 4)),
         requestedTime: '09:00 AM',
-        address: 'الروضة، جدة 23456', // ✅ صرف Arabic میں
-        customerNotes: 'تنظيف عميق للشقة بالكامل قبل مناسبة خاصة', // ✅ صرف Arabic میں
+        address: 'الروضة، جدة 23456',
+        customerNotes: 'تنظيف عميق للشقة بالكامل قبل مناسبة خاصة',
         customerLanguage: 'arabic',
         status: ServiceRequestStatus.inProgress,
         workerId: 'W002',
         workerName: AdminTranslations.getWorkerName('fatima'),
-        workerNameArabic: AdminTranslations.getArabic(AdminTranslations.getWorkerName('fatima')),
+        workerNameArabic: AdminTranslations.getArabic(
+          AdminTranslations.getWorkerName('fatima'),
+        ),
         basePrice: 200.0,
         commission: 15.0,
         vat: 12.0,
         extraItems: [
           ExtraItem(
-              id: 'EXT001',
-              name: 'Window Cleaning • تنظيف النوافذ', // ✅ Extra items bilingual
-              type: 'service',
-              price: 50.0
+            id: 'EXT001',
+            name: 'Window Cleaning • تنظيف النوافذ',
+            type: 'service',
+            price: 50.0,
           ),
           ExtraItem(
-              id: 'EXT002',
-              name: 'Carpet Cleaning • تنظيف السجاد', // ✅ Extra items bilingual
-              type: 'service',
-              price: 80.0
+            id: 'EXT002',
+            name: 'Carpet Cleaning • تنظيف السجاد',
+            type: 'service',
+            price: 80.0,
           ),
         ],
         createdAt: DateTime.now(),
@@ -166,15 +202,134 @@ class AppStateProvider with ChangeNotifier {
       ),
     ];
 
-    _isInitialized = true;
-    debugPrint('✅ AppStateProvider initialized with ${_serviceRequests.length} services');
-    notifyListeners();
+    // Assuming we have workers from Auth Service, but easier to just mock one here for seeding
+    // In a real scenario, we'd fetch them or have them passed in.
+    // For now, let's just seed services.
+
+    // We also need some dummy workers if they don't exist
+    final workers = [
+      WorkerData(
+        id: 'W001',
+        name: 'Ahmed Ali',
+        nameArabic: 'أحمد علي',
+        phone: '+966500000001',
+        email: 'ahmed@example.com',
+        nationalId: '1000000001',
+        stcPayId: 'STC001',
+        address: 'Riyadh',
+        addressArabic: 'الرياض',
+        status: 'Active',
+        joinedDate: DateTime.now(),
+        creditBalance: 100.0,
+      ),
+      WorkerData(
+        id: 'W002',
+        name: 'Fatima Noor',
+        nameArabic: 'فاطمة نور',
+        phone: '+966500000002',
+        email: 'fatima@example.com',
+        nationalId: '1000000002',
+        stcPayId: 'STC002',
+        address: 'Jeddah',
+        addressArabic: 'جدة',
+        status: 'Active',
+        joinedDate: DateTime.now(),
+        creditBalance: 150.0,
+      ),
+    ];
+
+    // Seed categories
+    final categories = [
+      ServiceCategory(
+        id: 'CAT001',
+        nameEnglish: 'AC Repair',
+        nameArabic: 'تصليح مكيف',
+        descriptionEnglish: 'Air conditioning repair and maintenance',
+        descriptionArabic: 'صيانة وإصلاح المكيفات',
+        basePrice: 150.0,
+      ),
+      ServiceCategory(
+        id: 'CAT002',
+        nameEnglish: 'Plumbing',
+        nameArabic: 'سباكة',
+        descriptionEnglish: 'All plumbing services',
+        descriptionArabic: 'جميع خدمات السباكة',
+        basePrice: 100.0,
+      ),
+      ServiceCategory(
+        id: 'CAT003',
+        nameEnglish: 'Electrical',
+        nameArabic: 'كهرباء',
+        descriptionEnglish: 'Electrical wiring and repair',
+        descriptionArabic: 'التمديدات الكهربائية والإصلاح',
+        basePrice: 120.0,
+      ),
+      ServiceCategory(
+        id: 'CAT004',
+        nameEnglish: 'Cleaning',
+        nameArabic: 'تنظيف',
+        descriptionEnglish: 'Home and office cleaning',
+        descriptionArabic: 'تنظيف المنازل والمكاتب',
+        basePrice: 80.0,
+      ),
+    ];
+
+    // Access Service Management for offered services
+    // Create a temporary instance just to get the initial data if needed,
+    // or better, manually define them here to avoid circular dependency issues during init.
+    // However, ServiceManagementService is a singleton so it should be fine.
+
+    // We already have hardcodedCustomers getter below.
+
+    // For Offered Services (Catalogue):
+    // We need to define them here or get them from ServiceManagementService.
+    // Let's define the initial catalogue here for valid seeding.
+    final offeredServices = [
+      Service(
+        id: 'srv1',
+        name: 'AC Repair',
+        nameArabic: 'إصلاح التكييف',
+        categoryId: 'CAT001',
+        category: 'AC Repair',
+        categoryArabic: 'تصليح مكيف',
+        subcategoryId: 'cat1_0',
+        subcategory: 'Repair',
+        subcategoryArabic: 'إصلاح',
+        basePrice: 450.0,
+        commission: 10.0,
+        vat: 5.0,
+        isActive: true,
+      ),
+      Service(
+        id: 'srv2',
+        name: 'Washing Machine Service',
+        nameArabic: 'صيانة الغسالة',
+        categoryId: 'CAT002',
+        category:
+            'Plumbing', // Using Plumbing category for demo purposes based on ID match
+        categoryArabic: 'سباكة',
+        subcategoryId: 'cat2_0',
+        subcategory: 'Installation',
+        subcategoryArabic: 'تركيب',
+        basePrice: 300.0,
+        commission: 10.0,
+        vat: 5.0,
+        isActive: true,
+      ),
+    ];
+
+    await _firestoreService.seedInitialData(
+      workers: workers,
+      services: hardcodedServices,
+      transactions: [],
+      categories: categories,
+      customers: hardcodedCustomers,
+      offeredServices: offeredServices,
+    );
   }
 
   void loadMockData() {
-    if (_isInitialized) {
-      notifyListeners();
-    }
+    seedInitialData();
   }
 
   // ✅ ADD: Hardcoded customers list
@@ -183,7 +338,7 @@ class AppStateProvider with ChangeNotifier {
   // ✅ ADD: Get customer by ID
   Customer? getCustomerById(String customerId) {
     return hardcodedCustomers.firstWhere(
-          (customer) => customer.id == customerId,
+      (customer) => customer.id == customerId,
       orElse: () => Customer(
         id: 'unknown',
         name: 'Unknown Customer',
@@ -212,13 +367,18 @@ class AppStateProvider with ChangeNotifier {
   double get pendingAmount {
     _currentWorkerData.calculatePendingAmount(
       _serviceRequests
-          .where((s) => s.workerId == currentWorkerId && s.status == ServiceRequestStatus.inProgress)
+          .where(
+            (s) =>
+                s.workerId == currentWorkerId &&
+                s.status == ServiceRequestStatus.inProgress,
+          )
           .toList(),
     );
     return _currentWorkerData.pendingAmount;
   }
 
-  double get availableForWithdrawal => _currentWorkerData.availableForWithdrawal;
+  double get availableForWithdrawal =>
+      _currentWorkerData.availableForWithdrawal;
   double get pendingClearance => _currentWorkerData.pendingClearance;
 
   int get totalServicesCompleted => _currentWorkerData.totalServicesCompleted;
@@ -231,7 +391,9 @@ class AppStateProvider with ChangeNotifier {
     final lastCreditDate = _currentWorkerData.lastWalletCreditDate;
     if (lastCreditDate == null) return true;
 
-    final daysSinceLastCredit = DateTime.now().difference(lastCreditDate).inDays;
+    final daysSinceLastCredit = DateTime.now()
+        .difference(lastCreditDate)
+        .inDays;
     return daysSinceLastCredit >= 7;
   }
 
@@ -241,7 +403,9 @@ class AppStateProvider with ChangeNotifier {
     final lastCreditDate = _currentWorkerData.lastWalletCreditDate;
     if (lastCreditDate == null) return 0;
 
-    final daysSinceLastCredit = DateTime.now().difference(lastCreditDate).inDays;
+    final daysSinceLastCredit = DateTime.now()
+        .difference(lastCreditDate)
+        .inDays;
     final remaining = 7 - daysSinceLastCredit;
     return remaining > 0 ? remaining : 0;
   }
@@ -250,24 +414,35 @@ class AppStateProvider with ChangeNotifier {
   List<ServiceRequest> get availableServices => currentWorkerId == null
       ? []
       : _serviceRequests
-      .where((s) => s.workerId == currentWorkerId && s.status == ServiceRequestStatus.assigned)
-      .toList();
+            .where(
+              (s) =>
+                  s.workerId == currentWorkerId &&
+                  s.status == ServiceRequestStatus.assigned,
+            )
+            .toList();
 
   List<ServiceRequest> get activeServices => currentWorkerId == null
       ? []
       : _serviceRequests
-      .where((s) => s.workerId == currentWorkerId && s.status == ServiceRequestStatus.inProgress)
-      .toList();
+            .where(
+              (s) =>
+                  s.workerId == currentWorkerId &&
+                  s.status == ServiceRequestStatus.inProgress,
+            )
+            .toList();
 
-  List<ServiceRequest> get completedServices => currentWorkerId == null
-      ? []
-      : _currentWorkerData.completedServices;
+  List<ServiceRequest> get completedServices =>
+      currentWorkerId == null ? [] : _currentWorkerData.completedServices;
 
   List<ServiceRequest> get postponedServices => currentWorkerId == null
       ? []
       : _serviceRequests
-      .where((s) => s.workerId == currentWorkerId && s.status == ServiceRequestStatus.postponed)
-      .toList();
+            .where(
+              (s) =>
+                  s.workerId == currentWorkerId &&
+                  s.status == ServiceRequestStatus.postponed,
+            )
+            .toList();
 
   // ✅ Return Transaction objects (not Maps)
   List<Transaction> get transactions {
@@ -277,20 +452,30 @@ class AppStateProvider with ChangeNotifier {
 
   List<ServiceRequest> get adminRequestedServices {
     return _serviceRequests
-        .where((s) => s.status == ServiceRequestStatus.pending || s.status == ServiceRequestStatus.assigned)
+        .where(
+          (s) =>
+              s.status == ServiceRequestStatus.pending ||
+              s.status == ServiceRequestStatus.assigned,
+        )
         .toList();
   }
 
   List<ServiceRequest> get adminAssignedServices {
-    return _serviceRequests.where((s) => s.status == ServiceRequestStatus.assigned).toList();
+    return _serviceRequests
+        .where((s) => s.status == ServiceRequestStatus.assigned)
+        .toList();
   }
 
   List<ServiceRequest> get adminInProgressServices {
-    return _serviceRequests.where((s) => s.status == ServiceRequestStatus.inProgress).toList();
+    return _serviceRequests
+        .where((s) => s.status == ServiceRequestStatus.inProgress)
+        .toList();
   }
 
   List<ServiceRequest> get adminPostponedServices {
-    return _serviceRequests.where((s) => s.status == ServiceRequestStatus.postponed).toList();
+    return _serviceRequests
+        .where((s) => s.status == ServiceRequestStatus.postponed)
+        .toList();
   }
 
   List<ServiceRequest> get adminAllActiveServices {
@@ -346,24 +531,28 @@ class AppStateProvider with ChangeNotifier {
 
     for (var service in _serviceRequests) {
       if (service.customerId == customerId) {
-        services.add(CustomerService(
-          id: service.id,
-          service: service.serviceName,
-          status: service.status.toString().split('.').last,
-          price: service.totalPrice,
-        ));
+        services.add(
+          CustomerService(
+            id: service.id,
+            service: service.serviceName,
+            status: service.status.toString().split('.').last,
+            price: service.totalPrice,
+          ),
+        );
       }
     }
 
     for (var worker in _workerData.values) {
       for (var service in worker.completedServices) {
         if (service.customerId == customerId) {
-          services.add(CustomerService(
-            id: service.id,
-            service: service.serviceName,
-            status: 'Completed',
-            price: service.totalPrice,
-          ));
+          services.add(
+            CustomerService(
+              id: service.id,
+              service: service.serviceName,
+              status: 'Completed',
+              price: service.totalPrice,
+            ),
+          );
         }
       }
     }
@@ -371,311 +560,183 @@ class AppStateProvider with ChangeNotifier {
     return services;
   }
 
-  void setCurrentWorker(String workerId) {
+  Future<void> setCurrentWorker(String workerId) async {
     currentWorkerId = workerId;
 
-    final workers = _workerAuthService.getAllWorkers();
-    final workerData = workers.firstWhere(
-          (w) => w.id == workerId,
-      orElse: () => WorkerData(
-        id: workerId,
-        name: 'Worker',
-        nameArabic: '',
-        phone: '',
-        email: '',
-        nationalId: '',
-        stcPayId: '',
-        address: '',
-        addressArabic: '',
-        status: 'Active',
-        joinedDate: DateTime.now(),
-        creditBalance: 100.0,
-        completedServices: 0,
-      ),
-    );
+    final workerData = _workerAuthService.getWorkerById(workerId);
+
+    if (workerData == null) {
+      debugPrint('❌ Worker $workerId not found in auth service');
+      return;
+    }
 
     currentWorkerName = workerData.name;
 
-    // ✅ FIXED: Initialize worker with correct credit and proper initial transaction
-    if (!_workerData.containsKey(workerId)) {
-      // First time login: Initialize with saved credit balance
-      _workerData[workerId] = WorkerFinancialData(
-        workerId: workerId,
-        creditBalance: workerData.creditBalance,
-        walletBalance: 0.0,
-      );
+    // Fetch transactions from Firestore
+    final List<Transaction> transactions = List<Transaction>.from(
+      await _firestoreService.getTransactions(workerId),
+    );
 
-      // ✅ CRITICAL FIX: Clear default 100 SAR transaction and add correct initial transaction
-      _workerData[workerId]!.transactions.clear();
+    // Initialize or Update WorkerFinancialData
+    _workerData[workerId] = WorkerFinancialData(
+      workerId: workerId,
+      creditBalance: workerData.creditBalance,
+      walletBalance:
+          0.0, // This should probably be persisted too if we want wallet balance to persist?
+      // ACTUALLY: Wallet balance usually is calculated from transactions or persisted in WorkerData.
+      // In WorkerData model there is no walletBalance, only creditBalance.
+      // Transactions have balanceAfter.
+      // Let's assume for now we calculate it or just start fresh/from last transaction.
+      // But for creditBalance we have it in WorkerData.
+    );
+    _workerData[workerId]!.transactions.clear();
+    _workerData[workerId]!.transactions.addAll(transactions);
 
-      // Add initial credit transaction with correct amount
-      _workerData[workerId]!.transactions.add(Transaction(
-        id: 'TXN1001',
-        workerId: workerId,
-        workerName: workerData.name,
-        type: TransactionType.creditTopup,
-        amount: workerData.creditBalance,
-        balanceBefore: 0.0,
-        balanceAfter: workerData.creditBalance,
-        description: 'Initial credit top-up',
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-      ));
+    // Update wallet balance based on last transaction if available?
+    // Or just rely on what we have.
+    // If we want complete persistence, we might need walletBalance in WorkerData.
+    // For now, let's keep it as is, but populate transactions.
 
-      debugPrint('✅ Worker $workerId ($currentWorkerName) initialized with credit: SAR ${workerData.creditBalance.toStringAsFixed(2)}');
-    } else {
-      // Worker already exists: Keep existing balances
-      debugPrint('✅ Worker $workerId ($currentWorkerName) re-logged in');
-      debugPrint('   Existing Credit: SAR ${_workerData[workerId]!.creditBalance.toStringAsFixed(2)}');
-      debugPrint('   Existing Wallet: SAR ${_workerData[workerId]!.walletBalance.toStringAsFixed(2)}');
-    }
-
+    debugPrint('✅ Worker $workerId ($currentWorkerName) initialized');
     notifyListeners();
+
+    // Subscribe to transactions stream for real-time updates
+    _firestoreService.getTransactionsStream(workerId).listen((
+      List<dynamic> incoming,
+    ) {
+      final transactions = List<Transaction>.from(incoming);
+      if (_workerData.containsKey(workerId)) {
+        _workerData[workerId]!.transactions.clear();
+        _workerData[workerId]!.transactions.addAll(transactions);
+        notifyListeners();
+      }
+    });
   }
 
-  void assignServiceToWorker(String serviceId, String workerId, String workerName) {
+  Future<void> assignServiceToWorker(
+    String serviceId,
+    String workerId,
+    String workerName,
+  ) async {
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
 
     if (serviceIndex != -1) {
       final service = _serviceRequests[serviceIndex];
+      final worker = _workerAuthService.getWorkerById(workerId);
+      final workerNameArabic = worker?.nameArabic ?? '';
 
-      // ✅ Get Arabic name from worker data
-      final workers = _workerAuthService.getAllWorkers();
-      final worker = workers.firstWhere((w) => w.id == workerId, orElse: () => WorkerData(
-        id: workerId,
-        name: workerName,
-        nameArabic: AdminTranslations.getArabic(workerName),
-        phone: '',
-        email: '',
-        nationalId: '',
-        stcPayId: '',
-        address: '',
-        addressArabic: '',
-        status: 'Active',
-        joinedDate: DateTime.now(),
-        creditBalance: 100.0,
-        completedServices: 0,
-      ));
-
-      // ✅ FIXED: Preserve all fields including customer language
-      _serviceRequests[serviceIndex] = ServiceRequest(
-        id: service.id,
-        customerId: service.customerId,
-        customerName: service.customerName, // ✅ Customer کی entered language preserve
-        serviceId: service.serviceId,
-        serviceName: service.serviceName,
+      final updatedService = service.copyWith(
         workerId: workerId,
         workerName: workerName,
-        workerNameArabic: worker.nameArabic,
-        requestedDate: service.requestedDate,
-        requestedTime: service.requestedTime,
-        address: service.address, // ✅ Customer کی entered language preserve
-        customerNotes: service.customerNotes, // ✅ Customer کی entered language preserve
-        customerLanguage: service.customerLanguage, // ✅ Customer language preserve
+        workerNameArabic: workerNameArabic,
         status: ServiceRequestStatus.assigned,
-        basePrice: service.basePrice,
-        commission: service.commission,
-        vat: service.vat,
-        extraItems: service.extraItems, // ✅ Preserve extra items
-        createdAt: service.createdAt,
         updatedAt: DateTime.now(),
       );
 
-      debugPrint('✅ Service $serviceId assigned to $workerName (${worker.nameArabic})');
-      notifyListeners();
+      await _firestoreService.updateServiceRequest(updatedService);
+
+      debugPrint('✅ Service $serviceId assigned to $workerName');
+      // No need to notifyListeners() manually as stream will handle it
     }
   }
 
   // ✅ FIXED: Add validation that service belongs to current worker
-  void acceptService(String serviceId) {
+  Future<void> acceptService(String serviceId) async {
     if (currentWorkerId == null) return;
 
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
-    if (serviceIndex == -1) {
-      debugPrint('❌ Service $serviceId not found');
-      return;
-    }
+    if (serviceIndex == -1) return;
 
     final service = _serviceRequests[serviceIndex];
 
-    // ✅ Validate service belongs to current worker
-    if (service.workerId != currentWorkerId) {
-      debugPrint('❌ Service $serviceId does not belong to worker $currentWorkerId');
-      return;
-    }
+    if (service.workerId != currentWorkerId) return;
+    if (service.status != ServiceRequestStatus.assigned) return;
 
-    // ✅ Validate service status is assigned
-    if (service.status != ServiceRequestStatus.assigned) {
-      debugPrint('❌ Service $serviceId is not in assigned status');
-      return;
-    }
-
-    _serviceRequests[serviceIndex] = ServiceRequest(
-      id: service.id,
-      customerId: service.customerId,
-      customerName: service.customerName, // ✅ Customer کی entered language preserve
-      serviceId: service.serviceId,
-      serviceName: service.serviceName,
-      workerId: service.workerId,
-      workerName: service.workerName,
-      workerNameArabic: service.workerNameArabic,
-      requestedDate: service.requestedDate,
-      requestedTime: service.requestedTime,
-      address: service.address, // ✅ Customer کی entered language preserve
-      customerNotes: service.customerNotes, // ✅ Customer کی entered language preserve
-      customerLanguage: service.customerLanguage, // ✅ Customer language preserve
+    final updatedService = service.copyWith(
       status: ServiceRequestStatus.inProgress,
-      basePrice: service.basePrice,
-      commission: service.commission,
-      vat: service.vat,
-      extraItems: service.extraItems,
-      postponeReason: null,
-      createdAt: service.createdAt,
+      postponeReason:
+          null, // Ensure to clear if it was there (though this is not resume)
       updatedAt: DateTime.now(),
     );
 
-    _currentWorkerData.calculatePendingAmount(activeServices);
+    await _firestoreService.updateServiceRequest(updatedService);
+
     debugPrint('✅ Service $serviceId accepted');
-    notifyListeners();
   }
 
-  void resumeService(String serviceId) {
+  Future<void> resumeService(String serviceId) async {
     if (currentWorkerId == null) return;
 
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
-    if (serviceIndex == -1) {
-      debugPrint('❌ Service $serviceId not found');
-      return;
-    }
+    if (serviceIndex == -1) return;
 
     final service = _serviceRequests[serviceIndex];
 
-    // ✅ Validate service is postponed
-    if (service.status != ServiceRequestStatus.postponed) {
-      debugPrint('❌ Service $serviceId is not in postponed status (current: ${service.status})');
-      return;
-    }
+    if (service.status != ServiceRequestStatus.postponed) return;
+    if (service.workerId != currentWorkerId) return;
 
-    // ✅ Validate service belongs to current worker
-    if (service.workerId != currentWorkerId) {
-      debugPrint('❌ Service $serviceId does not belong to worker $currentWorkerId');
-      return;
-    }
-
-    // ✅ Check if worker has enough credit
     final requiredCredit = service.totalDeduction;
     if (_currentWorkerData.creditBalance < requiredCredit) {
-      debugPrint('❌ Insufficient credit to resume service. Required: $requiredCredit, Available: ${_currentWorkerData.creditBalance}');
+      debugPrint('❌ Insufficient credit to resume service.');
       return;
     }
 
-    // ✅ Resume service - move to inProgress
-    _serviceRequests[serviceIndex] = ServiceRequest(
-      id: service.id,
-      customerId: service.customerId,
-      customerName: service.customerName,
-      serviceId: service.serviceId,
-      serviceName: service.serviceName,
-      workerId: service.workerId,
-      workerName: service.workerName,
-      workerNameArabic: service.workerNameArabic,
-      requestedDate: service.requestedDate,
-      requestedTime: service.requestedTime,
-      address: service.address,
-      customerNotes: service.customerNotes,
-      customerLanguage: service.customerLanguage,
+    final updatedService = service.copyWith(
       status: ServiceRequestStatus.inProgress,
-      basePrice: service.basePrice,
-      commission: service.commission,
-      vat: service.vat,
-      extraItems: service.extraItems,
-      postponeReason: null, // Clear postpone reason
-      createdAt: service.createdAt,
+      postponeReason: null,
       updatedAt: DateTime.now(),
     );
 
-    _currentWorkerData.calculatePendingAmount(activeServices);
-    debugPrint('✅ Service $serviceId resumed and moved to in-progress');
-    notifyListeners();
+    await _firestoreService.updateServiceRequest(updatedService);
+
+    debugPrint('✅ Service $serviceId resumed');
   }
 
   // ✅ FIXED: Add validation for postponeAvailableService
   // ✅ FIXED: Add validation for postponeAvailableService
-  void postponeAvailableService(String serviceId, [String? reason]) {
+  Future<void> postponeAvailableService(
+    String serviceId, [
+    String? reason,
+  ]) async {
     if (currentWorkerId == null) return;
 
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
     if (serviceIndex != -1) {
       final service = _serviceRequests[serviceIndex];
 
-      _serviceRequests[serviceIndex] = ServiceRequest(
-        id: service.id,
-        customerId: service.customerId,
-        customerName: service.customerName,
-        serviceId: service.serviceId,
-        serviceName: service.serviceName,
-        workerId: service.workerId,
-        workerName: service.workerName,
-        workerNameArabic: service.workerNameArabic, // ✅ ADDED
-        requestedDate: service.requestedDate,
-        requestedTime: service.requestedTime,
-        address: service.address,
-        customerNotes: service.customerNotes,
-        customerLanguage: service.customerLanguage, // ✅ ADDED
+      final updatedService = service.copyWith(
         status: ServiceRequestStatus.postponed,
-        basePrice: service.basePrice,
-        commission: service.commission,
-        vat: service.vat,
-        extraItems: service.extraItems,
         postponeReason: reason ?? 'Worker postponed before accepting',
-        createdAt: service.createdAt,
         updatedAt: DateTime.now(),
       );
 
+      await _firestoreService.updateServiceRequest(updatedService);
       debugPrint('✅ Service $serviceId postponed before acceptance');
-      notifyListeners();
     }
   }
 
-
-  void postponeService(String serviceId, [String? reason]) {
+  Future<void> postponeService(String serviceId, [String? reason]) async {
     if (currentWorkerId == null) return;
 
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
     if (serviceIndex != -1) {
       final service = _serviceRequests[serviceIndex];
 
-      _serviceRequests[serviceIndex] = ServiceRequest(
-        id: service.id,
-        customerId: service.customerId,
-        customerName: service.customerName,
-        serviceId: service.serviceId,
-        serviceName: service.serviceName,
-        workerId: service.workerId,
-        workerName: service.workerName,
-        workerNameArabic: service.workerNameArabic, // ✅ ADDED
-        requestedDate: service.requestedDate,
-        requestedTime: service.requestedTime,
-        address: service.address,
-        customerNotes: service.customerNotes,
-        customerLanguage: service.customerLanguage, // ✅ ADDED
+      final updatedService = service.copyWith(
         status: ServiceRequestStatus.postponed,
-        basePrice: service.basePrice,
-        commission: service.commission,
-        vat: service.vat,
-        extraItems: service.extraItems,
         postponeReason: reason ?? 'Worker postponed the service',
-        createdAt: service.createdAt,
         updatedAt: DateTime.now(),
       );
 
-      _currentWorkerData.calculatePendingAmount(activeServices);
+      await _firestoreService.updateServiceRequest(updatedService);
       debugPrint('✅ Service $serviceId postponed');
-      notifyListeners();
     }
   }
 
-
-  Future<void> completeService(String serviceId, {String paymentMethod = 'Cash'}) async {
+  Future<void> completeService(
+    String serviceId, {
+    String paymentMethod = 'Cash',
+  }) async {
     if (currentWorkerId == null) return;
 
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
@@ -688,7 +749,9 @@ class AppStateProvider with ChangeNotifier {
 
     // ✅ Validate service belongs to current worker
     if (service.workerId != currentWorkerId) {
-      debugPrint('❌ Service $serviceId does not belong to worker $currentWorkerId');
+      debugPrint(
+        '❌ Service $serviceId does not belong to worker $currentWorkerId',
+      );
       return;
     }
 
@@ -698,103 +761,87 @@ class AppStateProvider with ChangeNotifier {
     if (_currentWorkerData.creditBalance < requiredCredit) {
       debugPrint('❌ Cannot complete service: Insufficient credit');
       debugPrint('   Required: SAR ${requiredCredit.toStringAsFixed(2)}');
-      debugPrint('   Available: SAR ${_currentWorkerData.creditBalance.toStringAsFixed(2)}');
+      debugPrint(
+        '   Available: SAR ${_currentWorkerData.creditBalance.toStringAsFixed(2)}',
+      );
       throw Exception('Insufficient credit balance');
     }
 
     final totalPrice = service.totalPrice;
 
-    // ✅ Update wallet balance ONLY for ONLINE payments
-    if (paymentMethod != 'Cash') {
-      _currentWorkerData.walletBalance += totalPrice;
-      debugPrint('💰 Worker wallet updated: +SAR ${totalPrice.toStringAsFixed(2)} (ONLINE payment)');
-    } else {
-      debugPrint('💵 CASH payment: Worker wallet NOT updated (already received cash)');
-    }
+    // Update local state temporarily/optimistically if needed, but here we just prepare data for Firestore
 
-    _currentWorkerData.creditBalance -= requiredCredit;
-
-    // ✅ Use the payment method from parameter
     final paymentMethodEnum = paymentMethod == 'Cash'
         ? PaymentMethod.cash
         : PaymentMethod.online;
 
-    // ✅ Create completed service with all original fields preserved
-    final completedService = ServiceRequest(
-      id: service.id,
-      customerId: service.customerId,
-      customerName: service.customerName,
-      serviceId: service.serviceId,
-      serviceName: service.serviceName,
-      workerId: service.workerId,
-      workerName: service.workerName,
-      workerNameArabic: service.workerNameArabic,
-      requestedDate: service.requestedDate,
-      requestedTime: service.requestedTime,
-      address: service.address,
-      customerNotes: service.customerNotes,
-      customerLanguage: service.customerLanguage,
+    final completedService = service.copyWith(
       status: ServiceRequestStatus.completed,
-      basePrice: service.basePrice,
-      commission: service.commission,
-      vat: service.vat,
-      extraItems: service.extraItems,
       completedDate: DateTime.now(),
       paymentMethod: paymentMethodEnum,
-      createdAt: service.createdAt,
       updatedAt: DateTime.now(),
     );
 
-    _currentWorkerData.completedServices.insert(0, completedService);
-    _serviceRequests.removeAt(serviceIndex);
+    // Create Transactions
+    final transactionEarn = Transaction(
+      id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+      workerId: currentWorkerId!,
+      workerName: currentWorkerName!,
+      type: TransactionType.walletEarning,
+      amount: paymentMethod != 'Cash' ? totalPrice : 0,
+      balanceBefore: _currentWorkerData.walletBalance, // Approximate
+      balanceAfter:
+          _currentWorkerData.walletBalance +
+          (paymentMethod != 'Cash' ? totalPrice : 0),
+      serviceRequestId: service.id,
+      description:
+          '${service.serviceName} - ${service.customerName} (${paymentMethod.toUpperCase()})',
+      createdAt: DateTime.now(),
+    );
 
-    // ✅ Add wallet earning transaction ONLY for ONLINE payments
-    if (paymentMethod != 'Cash') {
-      _currentWorkerData.transactions.insert(0, Transaction(
-        id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-        workerId: currentWorkerId!,
-        workerName: currentWorkerName!,
-        type: TransactionType.walletEarning,
-        amount: totalPrice,
-        balanceBefore: _currentWorkerData.walletBalance - totalPrice,
-        balanceAfter: _currentWorkerData.walletBalance,
-        serviceRequestId: service.id,
-        description: '${service.serviceName} - ${service.customerName} (ONLINE)',
-        createdAt: DateTime.now(),
-      ));
-    } else {
-      _currentWorkerData.transactions.insert(0, Transaction(
-        id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-        workerId: currentWorkerId!,
-        workerName: currentWorkerName!,
-        type: TransactionType.walletEarning,
-        amount: 0,
-        balanceBefore: _currentWorkerData.walletBalance,
-        balanceAfter: _currentWorkerData.walletBalance,
-        serviceRequestId: service.id,
-        description: '${service.serviceName} - ${service.customerName} (CASH - Received directly)',
-        createdAt: DateTime.now(),
-      ));
-    }
-
-    // ✅ Credit deduction for BOTH payment methods
-    _currentWorkerData.transactions.insert(0, Transaction(
+    final transactionDeduct = Transaction(
       id: 'TXN${DateTime.now().millisecondsSinceEpoch + 1}',
       workerId: currentWorkerId!,
       workerName: currentWorkerName!,
       type: TransactionType.creditDeduction,
       amount: -requiredCredit,
-      balanceBefore: _currentWorkerData.creditBalance + requiredCredit,
-      balanceAfter: _currentWorkerData.creditBalance,
+      balanceBefore: _currentWorkerData.creditBalance,
+      balanceAfter: _currentWorkerData.creditBalance - requiredCredit,
       serviceRequestId: service.id,
       description: 'Commission & VAT deducted',
-      createdAt: DateTime.now(),
-    ));
+      createdAt: DateTime.now().add(const Duration(milliseconds: 100)),
+    );
 
-    _currentWorkerData.lastWalletCreditDate = DateTime.now();
+    // Batch update via helper methods or individually
+    // Important: Update Credit in Firestore
 
-    // ✅ FIXED: processCompletedService will handle invoice creation
-    // No need to create invoice here - it's handled in financial_service
+    final newCredit = _currentWorkerData.creditBalance - requiredCredit;
+
+    try {
+      // 1. Update Service
+      await _firestoreService.updateServiceRequest(completedService);
+
+      // 2. Add Transactions
+      await _firestoreService.addTransaction(transactionEarn);
+      await _firestoreService.addTransaction(transactionDeduct);
+
+      // 3. Update Worker Credit
+      await _firestoreService.updateWorkerCredit(currentWorkerId!, newCredit);
+
+      // Update local state for immediate feedback
+      _currentWorkerData.creditBalance = newCredit;
+      if (paymentMethod != 'Cash') {
+        _currentWorkerData.walletBalance += totalPrice;
+      }
+      _currentWorkerData.completedServices.insert(0, completedService);
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('❌ Error completing service: $e');
+      throw e;
+    }
+
+    // Process Invoice
     await _financialService.processCompletedService(
       serviceId: service.id,
       serviceName: service.serviceName,
@@ -813,7 +860,9 @@ class AppStateProvider with ChangeNotifier {
     // await _invoiceService.saveInvoice(invoice);
 
     _currentWorkerData.calculatePendingAmount(activeServices);
-    debugPrint('✅ Service $serviceId completed with payment method: $paymentMethod');
+    debugPrint(
+      '✅ Service $serviceId completed with payment method: $paymentMethod',
+    );
     notifyListeners();
   }
   // ✅ FIXED: Add validation for postponeService
@@ -831,26 +880,30 @@ class AppStateProvider with ChangeNotifier {
 
       // ✅ Get Arabic name from worker data
       final workers = _workerAuthService.getAllWorkers();
-      final worker = workers.firstWhere((w) => w.id == newWorkerId, orElse: () => WorkerData(
-        id: newWorkerId,
-        name: newWorkerName,
-        nameArabic: AdminTranslations.getArabic(newWorkerName),
-        phone: '',
-        email: '',
-        nationalId: '',
-        stcPayId: '',
-        address: '',
-        addressArabic: '',
-        status: 'Active',
-        joinedDate: DateTime.now(),
-        creditBalance: 100.0,
-        completedServices: 0,
-      ));
+      final worker = workers.firstWhere(
+        (w) => w.id == newWorkerId,
+        orElse: () => WorkerData(
+          id: newWorkerId,
+          name: newWorkerName,
+          nameArabic: AdminTranslations.getArabic(newWorkerName),
+          phone: '',
+          email: '',
+          nationalId: '',
+          stcPayId: '',
+          address: '',
+          addressArabic: '',
+          status: 'Active',
+          joinedDate: DateTime.now(),
+          creditBalance: 100.0,
+          completedServices: 0,
+        ),
+      );
 
       _serviceRequests[serviceIndex] = ServiceRequest(
         id: service.id,
         customerId: service.customerId,
-        customerName: service.customerName, // ✅ Customer کی entered language preserve
+        customerName:
+            service.customerName, // ✅ Customer کی entered language preserve
         serviceId: service.serviceId,
         serviceName: service.serviceName,
         workerId: newWorkerId,
@@ -859,8 +912,10 @@ class AppStateProvider with ChangeNotifier {
         requestedDate: newScheduledDate,
         requestedTime: service.requestedTime,
         address: service.address, // ✅ Customer کی entered language preserve
-        customerNotes: service.customerNotes, // ✅ Customer کی entered language preserve
-        customerLanguage: service.customerLanguage, // ✅ Customer language preserve
+        customerNotes:
+            service.customerNotes, // ✅ Customer کی entered language preserve
+        customerLanguage:
+            service.customerLanguage, // ✅ Customer language preserve
         status: ServiceRequestStatus.assigned,
         basePrice: service.basePrice,
         commission: service.commission,
@@ -870,7 +925,9 @@ class AppStateProvider with ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
-      debugPrint('✅ Service $serviceId rescheduled to $newWorkerName (${worker.nameArabic})');
+      debugPrint(
+        '✅ Service $serviceId rescheduled to $newWorkerName (${worker.nameArabic})',
+      );
       notifyListeners();
     }
   }
@@ -886,7 +943,9 @@ class AppStateProvider with ChangeNotifier {
       return _serviceRequests.firstWhere((s) => s.id == serviceId);
     } catch (e) {
       try {
-        return _currentWorkerData.completedServices.firstWhere((s) => s.id == serviceId);
+        return _currentWorkerData.completedServices.firstWhere(
+          (s) => s.id == serviceId,
+        );
       } catch (e) {
         return null;
       }
@@ -911,7 +970,8 @@ class AppStateProvider with ChangeNotifier {
       _serviceRequests[serviceIndex] = ServiceRequest(
         id: service.id,
         customerId: service.customerId,
-        customerName: service.customerName, // ✅ Customer کی entered language preserve
+        customerName:
+            service.customerName, // ✅ Customer کی entered language preserve
         serviceId: service.serviceId,
         serviceName: service.serviceName,
         workerId: service.workerId,
@@ -920,8 +980,10 @@ class AppStateProvider with ChangeNotifier {
         requestedDate: service.requestedDate,
         requestedTime: service.requestedTime,
         address: service.address, // ✅ Customer کی entered language preserve
-        customerNotes: service.customerNotes, // ✅ Customer کی entered language preserve
-        customerLanguage: service.customerLanguage, // ✅ Customer language preserve
+        customerNotes:
+            service.customerNotes, // ✅ Customer کی entered language preserve
+        customerLanguage:
+            service.customerLanguage, // ✅ Customer language preserve
         status: service.status,
         basePrice: service.basePrice,
         commission: service.commission,
@@ -944,17 +1006,20 @@ class AppStateProvider with ChangeNotifier {
     final balanceBefore = _currentWorkerData.creditBalance;
     _currentWorkerData.creditBalance += amount;
 
-    _currentWorkerData.transactions.insert(0, Transaction(
-      id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-      workerId: currentWorkerId!,
-      workerName: currentWorkerName!,
-      type: TransactionType.creditTopup,
-      amount: amount,
-      balanceBefore: balanceBefore,
-      balanceAfter: _currentWorkerData.creditBalance,
-      description: 'Credit top-up via $method',
-      createdAt: DateTime.now(),
-    ));
+    _currentWorkerData.transactions.insert(
+      0,
+      Transaction(
+        id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+        workerId: currentWorkerId!,
+        workerName: currentWorkerName!,
+        type: TransactionType.creditTopup,
+        amount: amount,
+        balanceBefore: balanceBefore,
+        balanceAfter: _currentWorkerData.creditBalance,
+        description: 'Credit top-up via $method',
+        createdAt: DateTime.now(),
+      ),
+    );
     notifyListeners();
   }
 
@@ -968,17 +1033,20 @@ class AppStateProvider with ChangeNotifier {
       _currentWorkerData.walletBalance -= amount;
       _currentWorkerData.creditBalance += amount;
 
-      _currentWorkerData.transactions.insert(0, Transaction(
-        id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-        workerId: currentWorkerId!,
-        workerName: currentWorkerName!,
-        type: TransactionType.creditTopup,
-        amount: amount,
-        balanceBefore: creditBefore,
-        balanceAfter: _currentWorkerData.creditBalance,
-        description: 'Transferred from Wallet to Credit',
-        createdAt: DateTime.now(),
-      ));
+      _currentWorkerData.transactions.insert(
+        0,
+        Transaction(
+          id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          workerId: currentWorkerId!,
+          workerName: currentWorkerName!,
+          type: TransactionType.creditTopup,
+          amount: amount,
+          balanceBefore: creditBefore,
+          balanceAfter: _currentWorkerData.creditBalance,
+          description: 'Transferred from Wallet to Credit',
+          createdAt: DateTime.now(),
+        ),
+      );
       notifyListeners();
     }
   }
@@ -989,18 +1057,21 @@ class AppStateProvider with ChangeNotifier {
     final balanceBefore = _currentWorkerData.creditBalance;
     _currentWorkerData.creditBalance += amount;
 
-    _currentWorkerData.transactions.insert(0, Transaction(
-      id: 'STC${DateTime.now().millisecondsSinceEpoch}',
-      workerId: currentWorkerId!,
-      workerName: currentWorkerName!,
-      type: TransactionType.creditTopup,
-      amount: amount,
-      balanceBefore: balanceBefore,
-      balanceAfter: _currentWorkerData.creditBalance,
-      reference: 'STC${DateTime.now().millisecondsSinceEpoch}',
-      description: 'Credit top-up via STC Pay',
-      createdAt: DateTime.now(),
-    ));
+    _currentWorkerData.transactions.insert(
+      0,
+      Transaction(
+        id: 'STC${DateTime.now().millisecondsSinceEpoch}',
+        workerId: currentWorkerId!,
+        workerName: currentWorkerName!,
+        type: TransactionType.creditTopup,
+        amount: amount,
+        balanceBefore: balanceBefore,
+        balanceAfter: _currentWorkerData.creditBalance,
+        reference: 'STC${DateTime.now().millisecondsSinceEpoch}',
+        description: 'Credit top-up via STC Pay',
+        createdAt: DateTime.now(),
+      ),
+    );
     notifyListeners();
   }
 
@@ -1020,10 +1091,14 @@ class AppStateProvider with ChangeNotifier {
 
       // If this is the currently logged-in worker, notify UI to update
       if (workerId == currentWorkerId) {
-        debugPrint('✅ Synced credit for current worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}');
+        debugPrint(
+          '✅ Synced credit for current worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}',
+        );
         notifyListeners();
       } else {
-        debugPrint('✅ Synced credit for worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}');
+        debugPrint(
+          '✅ Synced credit for worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}',
+        );
       }
     } else {
       // Worker not yet initialized in AppState, create entry
@@ -1032,12 +1107,18 @@ class AppStateProvider with ChangeNotifier {
         creditBalance: newCreditBalance,
         walletBalance: 0.0,
       );
-      debugPrint('✅ Initialized and synced credit for worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}');
+      debugPrint(
+        '✅ Initialized and synced credit for worker $workerId: SAR ${newCreditBalance.toStringAsFixed(2)}',
+      );
     }
   }
 
   // ✅ NEW: Add credit with transaction record (for admin actions)
-  void addCreditWithTransaction(String workerId, double amount, String description) {
+  void addCreditWithTransaction(
+    String workerId,
+    double amount,
+    String description,
+  ) {
     if (!_workerData.containsKey(workerId)) {
       debugPrint('❌ Worker $workerId not found in AppStateProvider');
       return;
@@ -1050,21 +1131,28 @@ class AppStateProvider with ChangeNotifier {
     final balanceBefore = balanceAfter - amount;
 
     // ✅ Only add transaction record - DON'T modify credit balance!
-    workerData.transactions.insert(0, Transaction(
-      id: 'ADM${DateTime.now().millisecondsSinceEpoch}',
-      workerId: workerId,
-      workerName: _getWorkerName(workerId) ?? 'Worker',
-      type: TransactionType.creditTopup,
-      amount: amount,
-      balanceBefore: balanceBefore,
-      balanceAfter: balanceAfter,
-      description: description,
-      reference: 'ADMIN_ADDED',
-      createdAt: DateTime.now(),
-    ));
+    workerData.transactions.insert(
+      0,
+      Transaction(
+        id: 'ADM${DateTime.now().millisecondsSinceEpoch}',
+        workerId: workerId,
+        workerName: _getWorkerName(workerId) ?? 'Worker',
+        type: TransactionType.creditTopup,
+        amount: amount,
+        balanceBefore: balanceBefore,
+        balanceAfter: balanceAfter,
+        description: description,
+        reference: 'ADMIN_ADDED',
+        createdAt: DateTime.now(),
+      ),
+    );
 
-    debugPrint('✅ Transaction added for worker $workerId: +SAR ${amount.toStringAsFixed(2)}');
-    debugPrint('   Balance: ${balanceBefore.toStringAsFixed(2)} → ${balanceAfter.toStringAsFixed(2)}');
+    debugPrint(
+      '✅ Transaction added for worker $workerId: +SAR ${amount.toStringAsFixed(2)}',
+    );
+    debugPrint(
+      '   Balance: ${balanceBefore.toStringAsFixed(2)} → ${balanceAfter.toStringAsFixed(2)}',
+    );
 
     // Notify if this is the current worker
     if (workerId == currentWorkerId) {
@@ -1072,7 +1160,7 @@ class AppStateProvider with ChangeNotifier {
     }
   }
 
-// Helper method to get worker name
+  // Helper method to get worker name
   String? _getWorkerName(String workerId) {
     final worker = WorkerAuthService().getWorkerById(workerId);
     return worker?.name;
@@ -1139,7 +1227,9 @@ class WorkerFinancialData {
       totalEarnings += service.totalPrice;
     }
 
-    averagePerService = totalServicesCompleted > 0 ? totalEarnings / totalServicesCompleted : 0.0;
+    averagePerService = totalServicesCompleted > 0
+        ? totalEarnings / totalServicesCompleted
+        : 0.0;
   }
 
   void calculatePendingAmount(List<ServiceRequest> activeServices) {

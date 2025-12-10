@@ -66,4 +66,52 @@ class ServiceInvoice {
       status: "Paid",
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'invoiceNumber': invoiceNumber,
+      'serviceRequestId': serviceRequestId,
+      'serviceId': serviceId,
+      'serviceName': serviceName,
+      'customerId': customerId,
+      'customerName': customerName,
+      'customerAddress': customerAddress,
+      'workerId': workerId,
+      'workerName': workerName,
+      'basePrice': basePrice,
+      'extraCharges': extraCharges,
+      'extraItems': extraItems.map((e) => e.toJson()).toList(),
+      'totalAmount': totalAmount,
+      'vat': vat,
+      'commission': commission,
+      'completionDate': completionDate.toIso8601String(),
+      'paymentMethod': paymentMethod,
+      'status': status,
+    };
+  }
+
+  factory ServiceInvoice.fromMap(Map<String, dynamic> map) {
+    return ServiceInvoice(
+      invoiceNumber: map['invoiceNumber'] ?? '',
+      serviceRequestId: map['serviceRequestId'] ?? '',
+      serviceId: map['serviceId'] ?? '',
+      serviceName: map['serviceName'] ?? '',
+      customerId: map['customerId'] ?? '',
+      customerName: map['customerName'] ?? '',
+      customerAddress: map['customerAddress'] ?? '',
+      workerId: map['workerId'],
+      workerName: map['workerName'] ?? '',
+      basePrice: (map['basePrice'] ?? 0.0).toDouble(),
+      extraCharges: (map['extraCharges'] ?? 0.0).toDouble(),
+      extraItems: List<ExtraItem>.from(
+        (map['extraItems'] as List? ?? []).map((x) => ExtraItem.fromJson(x)),
+      ),
+      totalAmount: (map['totalAmount'] ?? 0.0).toDouble(),
+      vat: (map['vat'] ?? 0.0).toDouble(),
+      commission: (map['commission'] ?? 0.0).toDouble(),
+      completionDate: DateTime.parse(map['completionDate']),
+      paymentMethod: map['paymentMethod'] ?? '',
+      status: map['status'] ?? '',
+    );
+  }
 }
