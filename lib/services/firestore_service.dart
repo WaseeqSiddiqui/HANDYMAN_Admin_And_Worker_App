@@ -13,7 +13,7 @@ import '../models/service_invoice_model.dart';
 import '../models/service_model.dart' hide ServiceCategory;
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
 
   // Collection References
   CollectionReference get _workersCollection =>
@@ -40,13 +40,21 @@ class FirestoreService {
       _firestore.collection('services_offered');
 
   // Singleton pattern
-  static final FirestoreService _instance = FirestoreService._internal();
+  static FirestoreService _instance = FirestoreService._internal();
 
   factory FirestoreService() {
     return _instance;
   }
 
-  FirestoreService._internal();
+  FirestoreService._internal() : _firestore = FirebaseFirestore.instance;
+
+  @visibleForTesting
+  FirestoreService.withFirestore(this._firestore);
+
+  @visibleForTesting
+  static void setInstance(FirestoreService instance) {
+    _instance = instance;
+  }
 
   // ---------------------------------------------------------------------------
   // WORKERS
@@ -102,6 +110,21 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error updating worker credit: $e');
+      throw e;
+    }
+  }
+
+  Future<void> incrementWorkerCompletedServices(String workerId) async {
+    try {
+      debugPrint('🔄 Incrementing completed services for worker: $workerId');
+      await _workersCollection.doc(workerId).update({
+        'completedServices': FieldValue.increment(1),
+      });
+      debugPrint(
+        '✅ Successfully incremented completed services for worker: $workerId',
+      );
+    } catch (e) {
+      debugPrint('❌ Error incrementing worker completed services: $e');
       throw e;
     }
   }
@@ -307,6 +330,24 @@ class FirestoreService {
       await _categoriesCollection.doc(category.id).set(category.toMap());
     } catch (e) {
       debugPrint('Error adding service category: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateServiceCategory(ServiceCategory category) async {
+    try {
+      await _categoriesCollection.doc(category.id).update(category.toMap());
+    } catch (e) {
+      debugPrint('Error updating service category: $e');
+      throw e;
+    }
+  }
+
+  Future<void> deleteServiceCategory(String categoryId) async {
+    try {
+      await _categoriesCollection.doc(categoryId).delete();
+    } catch (e) {
+      debugPrint('Error deleting service category: $e');
       throw e;
     }
   }

@@ -777,15 +777,19 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (selectedCategoryId != null &&
                     nameController.text.isNotEmpty &&
                     nameArabicController.text.isNotEmpty) {
-                  if (_serviceManager.addSubcategoryToCategory(
-                    selectedCategoryId!,
-                    nameController.text,
-                    nameArabicController.text,
-                  )) {
+                  final success = await _serviceManager
+                      .addSubcategoryToCategory(
+                        selectedCategoryId!,
+                        nameController.text,
+                        nameArabicController.text,
+                      );
+
+                  if (success) {
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -1090,7 +1094,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (nameController.text.isNotEmpty &&
                   nameArabicController.text.isNotEmpty) {
                 final updatedCategory = category.copyWith(
@@ -1098,10 +1102,13 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   nameArabic: nameArabicController.text,
                 );
 
-                if (_serviceManager.updateCategory(
+                final success = await _serviceManager.updateCategory(
                   category.id,
                   updatedCategory,
-                )) {
+                );
+
+                if (success) {
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -1170,15 +1177,18 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (nameController.text.isNotEmpty &&
                   nameArabicController.text.isNotEmpty) {
-                if (_serviceManager.updateSubcategory(
+                final success = await _serviceManager.updateSubcategory(
                   category.id,
                   index,
                   nameController.text,
                   nameArabicController.text,
-                )) {
+                );
+
+                if (success) {
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -1343,8 +1353,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (_serviceManager.deleteCategory(category.id)) {
+            onPressed: () async {
+              final success = await _serviceManager.deleteCategory(category.id);
+              if (success) {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1353,6 +1365,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   ),
                 );
               } else {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1393,8 +1406,13 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (_serviceManager.deleteSubcategory(category.id, index)) {
+            onPressed: () async {
+              final success = await _serviceManager.deleteSubcategory(
+                category.id,
+                index,
+              );
+              if (success) {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1403,6 +1421,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   ),
                 );
               } else {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

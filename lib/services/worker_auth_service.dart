@@ -5,10 +5,15 @@ import '../models/worker_data_model.dart';
 import 'firestore_service.dart';
 
 class WorkerAuthService {
-  static final WorkerAuthService _instance = WorkerAuthService._internal();
+  static WorkerAuthService _instance = WorkerAuthService._internal();
   factory WorkerAuthService() => _instance;
 
-  final FirestoreService _firestoreService = FirestoreService();
+  @visibleForTesting
+  static void reset() {
+    _instance = WorkerAuthService._internal();
+  }
+
+  FirestoreService get _firestoreService => FirestoreService();
   StreamSubscription<List<WorkerData>>? _workersSubscription;
 
   WorkerAuthService._internal() {
@@ -21,20 +26,26 @@ class WorkerAuthService {
   bool _isInitialized = false;
 
   void _initializeListeners() {
-    _workersSubscription =
-        _firestoreService.getWorkersStream().listen((workers) {
-      _registeredWorkers.clear();
-      for (var worker in workers) {
-        final normalized = _normalizePhoneNumber(worker.phone);
-        _registeredWorkers[normalized] = worker;
-      }
-      _isInitialized = true;
-      _notifyListeners();
-      debugPrint(
-          '🔄 WorkerAuthService: Synced ${workers.length} workers from Firestore');
-    }, onError: (e) {
-      debugPrint('❌ Error syncing workers: $e');
-    });
+    _workersSubscription = _firestoreService.getWorkersStream().listen(
+      (workers) {
+        _registeredWorkers.clear();
+        for (var worker in workers) {
+          final normalized = _normalizePhoneNumber(worker.phone);
+          _registeredWorkers[normalized] = worker;
+          debugPrint(
+            '👤 Worker ${worker.id} (${worker.name}): completedServices = ${worker.completedServices}',
+          );
+        }
+        _isInitialized = true;
+        _notifyListeners();
+        debugPrint(
+          '🔄 WorkerAuthService: Synced ${workers.length} workers from Firestore',
+        );
+      },
+      onError: (e) {
+        debugPrint('❌ Error syncing workers: $e');
+      },
+    );
   }
 
   void addListener(VoidCallback listener) => _listeners.add(listener);

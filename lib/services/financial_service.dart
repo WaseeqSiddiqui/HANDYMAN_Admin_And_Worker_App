@@ -12,17 +12,25 @@ import '/models/withdrawl_requests_model.dart';
 import '/models/transaction_model.dart';
 import '/providers/app_state_provider.dart';
 import '/services/firestore_service.dart';
+import '/services/invoice_service.dart';
+import '/models/service_invoice_model.dart';
 
 /// ✅ Financial Service - Centralized service completion handler
 /// Admin wallet receives full payment and tracks all deductions
 class FinancialService {
-  static final FinancialService _instance = FinancialService._internal();
+  static FinancialService _instance = FinancialService._internal();
   factory FinancialService() => _instance;
+
+  @visibleForTesting
+  static void reset() {
+    _instance = FinancialService._internal();
+  }
+
   FinancialService._internal() {
     _initializeListeners();
   }
 
-  final _firestoreService = FirestoreService();
+  FirestoreService get _firestoreService => FirestoreService();
 
   void _initializeListeners() {
     // Admin Wallet Stream
@@ -111,8 +119,9 @@ class FinancialService {
       for (var s in completed) {
         // Map ServiceRequest to FinancialTransaction if possible for reports
         final total = s.totalPrice;
-        final commission = s.commission;
-        final vat = s.vat;
+        final commission =
+            s.totalCommission; // ✅ FIXED: Use calculated amount, not rate
+        final vat = s.totalVAT; // ✅ FIXED: Use calculated amount, not rate
         final workerEarnings = total - commission - vat;
 
         _completedServices.add(
@@ -229,6 +238,47 @@ class FinancialService {
       // Update VAT records
       await _updateVATRecords(transaction);
 
+      // ✅ FIXED: Generate and Save Invoice
+      try {
+        final invoice = ServiceInvoice(
+          invoiceNumber: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+          serviceRequestId: serviceId,
+          serviceId: serviceId,
+          serviceName: serviceName,
+          customerId:
+              'N/A', // Customer ID not passed, maybe use customer name or update signature
+          customerName: customerName,
+          customerAddress: 'N/A', // Address not passed in method signature
+          workerName: workerName,
+          basePrice: basePrice,
+          extraCharges: extraCharges,
+          extraItems:
+              [], // Extra items details not passed in method signature, might need to fetch or pass them
+          totalAmount:
+              total, // Total amount (including VAT/Commission? No, Invoice total is usually what customer pays)
+          // Wait, totalAmount in FinancialTransaction IS what customer pays.
+          // In ServiceInvoice, totalAmount is usually Subtotal + VAT.
+          // Here 'total' = base + extras.
+          // Is VAT allowed on top?
+          // FinancialService implementation says: "Commission and VAT are INCLUDED in total, not added".
+          // So Invoice Total = total.
+          vat: vat,
+          commission: commission,
+          completionDate: completionDate,
+          paymentMethod: paymentMethod,
+          status: 'Paid',
+        );
+
+        // We need InvoiceService instance.
+        // Since we cannot easily inject it here without changing constructor steps,
+        // and it is a singleton, we can use the factory.
+        await InvoiceService().saveInvoice(invoice);
+        debugPrint('✅ Invoice generated: ${invoice.invoiceNumber}');
+      } catch (e) {
+        debugPrint('❌ Error generating invoice: $e');
+        // Don't fail the whole transaction if invoice fails, but log it.
+      }
+
       // Notify all listeners
       _notifyListeners();
 
@@ -305,30 +355,9 @@ class FinancialService {
       );
     }
 
-    // Track commission and VAT (for both payment methods)
-    final commissionTxn = WalletTransaction(
-      id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 1}',
-      type: 'credit',
-      amount: transaction.commission,
-      description: 'Commission earned (20%) - ${transaction.serviceName}',
-      serviceId: transaction.serviceId,
-      date: transaction.completionDate,
-      balanceAfter: _currentBalance,
-    );
-
-    await _firestoreService.addAdminWalletTransaction(commissionTxn);
-
-    final vatTxn = WalletTransaction(
-      id: 'WLT_${DateTime.now().millisecondsSinceEpoch + 2}',
-      type: 'credit',
-      amount: transaction.vat,
-      description: 'VAT collected (15%) - ${transaction.serviceName}',
-      serviceId: transaction.serviceId,
-      date: transaction.completionDate,
-      balanceAfter: _currentBalance,
-    );
-
-    await _firestoreService.addAdminWalletTransaction(vatTxn);
+    // ✅ REMOVED: These were creating duplicate wallet entries and inflating balance
+    // Commission and VAT are already tracked in their own collections
+    // The wallet should only show actual money received, not breakdowns
 
     debugPrint(
       '✅ Admin Wallet Balance: SAR ${_currentBalance.toStringAsFixed(2)}',

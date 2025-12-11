@@ -7,11 +7,16 @@ import 'firestore_service.dart';
 
 /// ✅ Service Management Service - Using Firestore
 class ServiceManagementService {
-  static final ServiceManagementService _instance =
+  static ServiceManagementService _instance =
       ServiceManagementService._internal();
   factory ServiceManagementService() => _instance;
 
-  final FirestoreService _firestoreService = FirestoreService();
+  @visibleForTesting
+  static void reset() {
+    _instance = ServiceManagementService._internal();
+  }
+
+  FirestoreService get _firestoreService => FirestoreService();
 
   ServiceManagementService._internal() {
     _init();
@@ -22,11 +27,20 @@ class ServiceManagementService {
   List<Service> _services = [];
 
   void _init() {
+    debugPrint('ServiceManagementService _init called');
     // Listen to Categories
-    _firestoreService.getServiceCategoriesStream().listen((categories) {
-      _categories = categories;
-      _notifyListeners();
-    });
+    _firestoreService.getServiceCategoriesStream().listen(
+      (categories) {
+        debugPrint(
+          'ServiceManagementService received ${categories.length} categories',
+        );
+        _categories = categories;
+        _notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('ServiceManagementService error: $e');
+      },
+    );
 
     // Listen to Offered Services
     _firestoreService.getOfferedServicesStream().listen((services) {
@@ -181,37 +195,91 @@ class ServiceManagementService {
   // ============= UNSUPPORTED / TODO OPS =============
   // These were local-only.
 
-  bool updateCategory(String id, ServiceCategory updatedCategory) {
-    // TODO: Implement in FirestoreService
-    return false;
+  // ============= HELPERS FOR OPTIMISTIC UPDATES OR ERROR HANDLING =============
+  // Note: Since we listen to the stream, we don't strictly *need* to update local state manually
+  // if the stream updates fast enough. However, the UI expects a boolean return synchronously
+  // (or awaited Future<bool>) to know if the operation *started* successfully.
+  // We will return true if the Firestore call completes without error.
+
+  Future<bool> updateCategory(
+    String id,
+    ServiceCategory updatedCategory,
+  ) async {
+    try {
+      await _firestoreService.updateServiceCategory(updatedCategory);
+      return true;
+    } catch (e) {
+      debugPrint('Error updating category: $e');
+      return false;
+    }
   }
 
-  bool deleteCategory(String id) {
-    // TODO: Implement in FirestoreService
-    return false;
+  Future<bool> deleteCategory(String id) async {
+    // Check if any service uses this category
+    if (_services.any((s) => s.categoryId == id)) {
+      debugPrint('Cannot delete category: used by active services');
+      return false;
+    }
+
+    try {
+      await _firestoreService.deleteServiceCategory(id);
+      return true;
+    } catch (e) {
+      debugPrint('Error deleting category: $e');
+      return false;
+    }
   }
 
-  bool addSubcategoryToCategory(
+  Future<bool> addSubcategoryToCategory(
     String categoryId,
     String subcategory,
     String subcategoryArabic,
-  ) {
-    // TODO: Implement in FirestoreService
-    return false;
+  ) async {
+    final category = getCategoryById(categoryId);
+    if (category == null) return false;
+
+    final updatedCategory = category.addSubcategory(
+      subcategory,
+      subcategoryArabic,
+    );
+    return await updateCategory(categoryId, updatedCategory);
   }
 
-  bool updateSubcategory(
+  Future<bool> updateSubcategory(
     String categoryId,
     int index,
     String subcategory,
     String subcategoryArabic,
-  ) {
-    // TODO: Implement in FirestoreService
-    return false;
+  ) async {
+    final category = getCategoryById(categoryId);
+    if (category == null) return false;
+
+    final updatedCategory = category.updateSubcategory(
+      index,
+      subcategory,
+      subcategoryArabic,
+    );
+    return await updateCategory(categoryId, updatedCategory);
   }
 
-  bool deleteSubcategory(String categoryId, int index) {
-    // TODO: Implement in FirestoreService
-    return false;
+  Future<bool> deleteSubcategory(String categoryId, int index) async {
+    final category = getCategoryById(categoryId);
+    if (category == null) return false;
+
+    // Check if any service uses this subcategory
+    // Note: This check relies on the subcategory name.
+    // Ideally we should use IDs for subcategories, but the current model uses names/indices.
+    // We'll proceed with checking the name.
+    if (index >= 0 && index < category.subcategories.length) {
+      final subName = category.subcategories[index];
+      if (_services.any(
+        (s) => s.categoryId == categoryId && s.subcategory == subName,
+      )) {
+        return false;
+      }
+    }
+
+    final updatedCategory = category.removeSubcategory(index);
+    return await updateCategory(categoryId, updatedCategory);
   }
 }

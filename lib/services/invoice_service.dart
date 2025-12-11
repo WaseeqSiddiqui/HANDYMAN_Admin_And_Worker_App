@@ -7,18 +7,25 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:flutter/foundation.dart';
 import '/models/service_invoice_model.dart';
 import '/models/service_request_model.dart';
 import 'firestore_service.dart';
 
 class InvoiceService {
-  static final InvoiceService _instance = InvoiceService._internal();
+  static InvoiceService _instance = InvoiceService._internal();
   factory InvoiceService() => _instance;
+
+  @visibleForTesting
+  static void reset() {
+    _instance = InvoiceService._internal();
+  }
+
   InvoiceService._internal() {
     _init();
   }
 
-  final FirestoreService _firestoreService = FirestoreService();
+  FirestoreService get _firestoreService => FirestoreService();
   List<ServiceInvoice> _invoices = [];
 
   void _init() {

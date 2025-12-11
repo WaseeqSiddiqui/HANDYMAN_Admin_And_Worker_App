@@ -431,8 +431,16 @@ class AppStateProvider with ChangeNotifier {
             )
             .toList();
 
-  List<ServiceRequest> get completedServices =>
-      currentWorkerId == null ? [] : _currentWorkerData.completedServices;
+  // ✅ FIXED: Derive from _serviceRequests to always reflect Firestore state
+  List<ServiceRequest> get completedServices => currentWorkerId == null
+      ? []
+      : _serviceRequests
+            .where(
+              (s) =>
+                  s.workerId == currentWorkerId &&
+                  s.status == ServiceRequestStatus.completed,
+            )
+            .toList();
 
   List<ServiceRequest> get postponedServices => currentWorkerId == null
       ? []
@@ -482,8 +490,11 @@ class AppStateProvider with ChangeNotifier {
     return _serviceRequests;
   }
 
+  // ✅ FIXED: Admin should see ALL completed services from Firestore
   List<ServiceRequest> get adminCompletedServices {
-    return _currentWorkerData.completedServices;
+    return _serviceRequests
+        .where((s) => s.status == ServiceRequestStatus.completed)
+        .toList();
   }
 
   // ✅ UPDATED CUSTOMER MANAGEMENT - Single language customer details
@@ -819,45 +830,77 @@ class AppStateProvider with ChangeNotifier {
 
     try {
       // 1. Update Service
-      await _firestoreService.updateServiceRequest(completedService);
+      try {
+        await _firestoreService.updateServiceRequest(completedService);
+        debugPrint('✅ Service status updated to completed');
+      } catch (e) {
+        debugPrint('❌ Error updating service status: $e');
+        throw e; // This is critical, must succeed
+      }
 
       // 2. Add Transactions
-      await _firestoreService.addTransaction(transactionEarn);
-      await _firestoreService.addTransaction(transactionDeduct);
+      try {
+        await _firestoreService.addTransaction(transactionEarn);
+        await _firestoreService.addTransaction(transactionDeduct);
+        debugPrint('✅ Worker transactions added');
+      } catch (e) {
+        debugPrint('❌ Error adding transactions: $e');
+        // Don't throw - continue with other updates
+      }
 
       // 3. Update Worker Credit
-      await _firestoreService.updateWorkerCredit(currentWorkerId!, newCredit);
+      try {
+        await _firestoreService.updateWorkerCredit(currentWorkerId!, newCredit);
+        debugPrint('✅ Worker credit updated');
+      } catch (e) {
+        debugPrint('❌ Error updating worker credit: $e');
+        // Don't throw - continue with other updates
+      }
+
+      // 3.5. ✅ CRITICAL: Increment worker's completed services count
+      try {
+        await _firestoreService.incrementWorkerCompletedServices(
+          currentWorkerId!,
+        );
+        debugPrint('✅ Worker completed services count incremented');
+      } catch (e) {
+        debugPrint('❌ Error incrementing completed services: $e');
+        // Don't throw - continue with other updates
+      }
+
+      // 4. ✅ CRITICAL: Process Financial Records (Commission, VAT, Admin Wallet, Invoice)
+      // This MUST be inside try block to ensure it runs
+      try {
+        await _financialService.processCompletedService(
+          serviceId: service.id,
+          serviceName: service.serviceName,
+          workerName: service.workerName ?? 'Worker',
+          workerId: currentWorkerId!,
+          customerName: service.customerName,
+          basePrice: service.basePrice,
+          extraCharges: service.totalExtraPrice,
+          completionDate: DateTime.now(),
+          paymentMethod: paymentMethod,
+        );
+        debugPrint('✅ Financial records created successfully');
+      } catch (e) {
+        debugPrint('❌ Error creating financial records: $e');
+        // Don't throw - allow service completion to succeed even if financial records fail
+      }
 
       // Update local state for immediate feedback
       _currentWorkerData.creditBalance = newCredit;
       if (paymentMethod != 'Cash') {
         _currentWorkerData.walletBalance += totalPrice;
       }
-      _currentWorkerData.completedServices.insert(0, completedService);
+      // ✅ REMOVED: No longer needed since completedServices derives from _serviceRequests
+      // _currentWorkerData.completedServices.insert(0, completedService);
 
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error completing service: $e');
       throw e;
     }
-
-    // Process Invoice
-    await _financialService.processCompletedService(
-      serviceId: service.id,
-      serviceName: service.serviceName,
-      workerName: service.workerName ?? 'Worker',
-      workerId: currentWorkerId!,
-      customerName: service.customerName,
-      basePrice: service.basePrice,
-      extraCharges: service.totalExtraPrice,
-      completionDate: DateTime.now(),
-      paymentMethod: paymentMethod,
-    );
-
-    // ❌ REMOVED: Duplicate invoice creation
-    // The invoice is already created inside processCompletedService()
-    // final invoice = ServiceInvoice.fromServiceRequest(completedService);
-    // await _invoiceService.saveInvoice(invoice);
 
     _currentWorkerData.calculatePendingAmount(activeServices);
     debugPrint(

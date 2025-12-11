@@ -2,6 +2,7 @@ import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/services/financial_service.dart';
+import '/services/auth_persistence_service.dart';
 import '/providers/app_state_provider.dart';
 import '/models/financial_transaction_model.dart';
 import '/utils/admin_translations.dart';
@@ -24,10 +25,7 @@ import '/admin/notifications_screen.dart';
 class AdminDashboard extends StatefulWidget {
   final String phoneNumber;
 
-  const AdminDashboard({
-    super.key,
-    required this.phoneNumber,
-  });
+  const AdminDashboard({super.key, required this.phoneNumber});
 
   @override
   State<AdminDashboard> createState() => AdminDashboardState();
@@ -78,8 +76,14 @@ class AdminDashboardState extends State<AdminDashboard> {
         title: BilingualText(
           english: AdminTranslations.split(AdminTranslations.adminDashboard)[0],
           arabic: AdminTranslations.split(AdminTranslations.adminDashboard)[1],
-          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          englishStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: const Color(0xFF3B82F6), // Electric Blue as primary
         foregroundColor: Colors.white,
@@ -91,7 +95,9 @@ class AdminDashboardState extends State<AdminDashboard> {
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
                 ),
               ),
               Positioned(
@@ -105,7 +111,11 @@ class AdminDashboardState extends State<AdminDashboard> {
                   ),
                   child: const Text(
                     '5',
-                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -129,13 +139,16 @@ class AdminDashboardState extends State<AdminDashboard> {
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFinancialOverview(currentBalance, totalRevenue, totalCommission, totalVAT),
+                    _buildFinancialOverview(
+                      currentBalance,
+                      totalRevenue,
+                      totalCommission,
+                      totalVAT,
+                    ),
                     const SizedBox(height: 20),
                     _buildQuickStats(activeServices, completedServices),
                     const SizedBox(height: 20),
@@ -162,7 +175,10 @@ class AdminDashboardState extends State<AdminDashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF1DE9B6)], // Electric Blue to Accent Teal
+                colors: [
+                  Color(0xFF3B82F6),
+                  Color(0xFF1DE9B6),
+                ], // Electric Blue to Accent Teal
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -178,12 +194,20 @@ class AdminDashboardState extends State<AdminDashboard> {
                     const CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.admin_panel_settings, size: 32, color: Color(0xFF3B82F6)), // Electric Blue
+                      child: Icon(
+                        Icons.admin_panel_settings,
+                        size: 32,
+                        color: Color(0xFF3B82F6),
+                      ), // Electric Blue
                     ),
                     const SizedBox(height: 12),
                     BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.adminPanel)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.adminPanel)[1],
+                      english: AdminTranslations.split(
+                        AdminTranslations.adminPanel,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.adminPanel,
+                      )[1],
                       englishStyle: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -215,61 +239,167 @@ class AdminDashboardState extends State<AdminDashboard> {
               padding: EdgeInsets.zero,
               children: [
                 _buildDrawerSection(AdminTranslations.financial, [
-                  _buildDrawerItem(Icons.account_balance_wallet, AdminTranslations.wallet, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen()));
-                  }),
-                  _buildDrawerItem(Icons.money, AdminTranslations.commission, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen()));
-                  }),
-                  _buildDrawerItem(Icons.receipt_long, AdminTranslations.vat, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen()));
-                  }),
-                  _buildDrawerItem(Icons.analytics, AdminTranslations.reports, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen()));
-                  }),
+                  _buildDrawerItem(
+                    Icons.account_balance_wallet,
+                    AdminTranslations.wallet,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdminWalletScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.money,
+                    AdminTranslations.commission,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const CommissionManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.receipt_long,
+                    AdminTranslations.vat,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const VATManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.analytics,
+                    AdminTranslations.reports,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FinancialReportsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ]),
                 const Divider(height: 1),
                 _buildDrawerSection(AdminTranslations.operations, [
-                  _buildDrawerItem(Icons.assignment, AdminTranslations.serviceRequests, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen()));
-                  }),
-                  _buildDrawerItem(Icons.account_balance, AdminTranslations.withdrawals, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => const WithdrawalRequestsScreen()));
-                  }),
-                  _buildDrawerItem(Icons.build, AdminTranslations.serviceManagement, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen()));
-                  }),
+                  _buildDrawerItem(
+                    Icons.assignment,
+                    AdminTranslations.serviceRequests,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ServiceRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.account_balance,
+                    AdminTranslations.withdrawals,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const WithdrawalRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.build,
+                    AdminTranslations.serviceManagement,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ServiceManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _buildDrawerItem(Icons.people, AdminTranslations.workers, () {
                     Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const WorkerManagementScreen(),
+                      ),
+                    );
                   }),
-                  _buildDrawerItem(Icons.person, AdminTranslations.customers, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerManagementScreen()));
-                  }),
-                  _buildDrawerItem(Icons.receipt, AdminTranslations.invoices, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const InvoiceManagementScreen()));
-                  }),
+                  _buildDrawerItem(
+                    Icons.person,
+                    AdminTranslations.customers,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const CustomerManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.receipt,
+                    AdminTranslations.invoices,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const InvoiceManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ]),
                 const Divider(height: 1),
                 _buildDrawerSection(AdminTranslations.support, [
-                  _buildDrawerItem(Icons.rate_review, AdminTranslations.reviews, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ReviewsScreen()));
-                  }),
-                  _buildDrawerItem(Icons.notifications, AdminTranslations.notifications, () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
-                  }),
+                  _buildDrawerItem(
+                    Icons.rate_review,
+                    AdminTranslations.reviews,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReviewsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.notifications,
+                    AdminTranslations.notifications,
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ]),
               ],
             ),
@@ -295,10 +425,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                   ),
                   Text(
                     AdminTranslations.split(AdminTranslations.logout)[1],
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.red,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.red),
                   ),
                 ],
               ),
@@ -339,11 +466,19 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String bilingualTitle, VoidCallback onTap) {
+  Widget _buildDrawerItem(
+    IconData icon,
+    String bilingualTitle,
+    VoidCallback onTap,
+  ) {
     final titleParts = AdminTranslations.split(bilingualTitle);
 
     return ListTile(
-      leading: Icon(icon, size: 22, color: const Color(0xFF3B82F6)), // Electric Blue
+      leading: Icon(
+        icon,
+        size: 22,
+        color: const Color(0xFF3B82F6),
+      ), // Electric Blue
       title: BilingualText(
         english: titleParts[0],
         arabic: titleParts[1],
@@ -377,9 +512,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              AdminTranslations.split(AdminTranslations.logoutConfirm)[0],
-            ),
+            Text(AdminTranslations.split(AdminTranslations.logoutConfirm)[0]),
             const SizedBox(height: 4),
             Text(
               AdminTranslations.split(AdminTranslations.logoutConfirm)[1],
@@ -390,14 +523,22 @@ class AdminDashboardState extends State<AdminDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              // Clear login state
+              await AuthPersistenceService().clearLogin();
+
+              if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
-                    (route) => false,
+                MaterialPageRoute(
+                  builder: (context) => const RoleSelectionScreen(),
+                ),
+                (route) => false,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -408,19 +549,29 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildFinancialOverview(double currentBalance, double totalRevenue, double totalCommission, double totalVAT) {
+  Widget _buildFinancialOverview(
+    double currentBalance,
+    double totalRevenue,
+    double totalCommission,
+    double totalVAT,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF1DE9B6)], // Electric Blue to Accent Teal
+          colors: [
+            Color(0xFF3B82F6),
+            Color(0xFF1DE9B6),
+          ], // Electric Blue to Accent Teal
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.3), // Electric Blue shadow
+            color: const Color(
+              0xFF3B82F6,
+            ).withOpacity(0.3), // Electric Blue shadow
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -431,11 +582,19 @@ class AdminDashboardState extends State<AdminDashboard> {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+              const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.white,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               BilingualText(
-                english: AdminTranslations.split(AdminTranslations.financialOverview)[0],
-                arabic: AdminTranslations.split(AdminTranslations.financialOverview)[1],
+                english: AdminTranslations.split(
+                  AdminTranslations.financialOverview,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.financialOverview,
+                )[1],
                 englishStyle: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -456,10 +615,7 @@ class AdminDashboardState extends State<AdminDashboard> {
               children: [
                 const Text(
                   'Current Balance | الرصيد الحالي',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -475,10 +631,7 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
           const SizedBox(height: 20),
-          Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
+          Container(height: 1, color: Colors.white.withOpacity(0.2)),
           const SizedBox(height: 16),
           // Total Revenue
           _buildFinancialMetric(
@@ -517,8 +670,13 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildFinancialMetric(String bilingualLabel, String value, IconData icon, Color iconColor,
-      {bool isCompact = false}) {
+  Widget _buildFinancialMetric(
+    String bilingualLabel,
+    String value,
+    IconData icon,
+    Color iconColor, {
+    bool isCompact = false,
+  }) {
     final labelParts = AdminTranslations.split(bilingualLabel);
 
     return Container(
@@ -598,7 +756,12 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildStatCard(String bilingualLabel, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String bilingualLabel,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final labelParts = AdminTranslations.split(bilingualLabel);
 
     return Container(
@@ -628,10 +791,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           BilingualText(
@@ -660,8 +820,14 @@ class AdminDashboardState extends State<AdminDashboard> {
         BilingualText(
           english: AdminTranslations.split(AdminTranslations.quickAccess)[0],
           arabic: AdminTranslations.split(AdminTranslations.quickAccess)[1],
-          englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          arabicStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          englishStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -676,43 +842,78 @@ class AdminDashboardState extends State<AdminDashboard> {
               AdminTranslations.wallet,
               Icons.account_balance_wallet,
               Color(0xFF3B82F6), // Electric Blue
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminWalletScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminWalletScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.commission,
               Icons.money,
               Color(0xFF14B8A6), // Accent Teal
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CommissionManagementScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CommissionManagementScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.vat,
               Icons.receipt_long,
               Color(0xFF7C3AED), // Deep Purple (secondary)
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VATManagementScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const VATManagementScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.reports,
               Icons.analytics,
               Colors.green,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FinancialReportsScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FinancialReportsScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.services,
               Icons.assignment,
               Colors.orange,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceRequestsScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceRequestsScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.workers,
               Icons.people,
               Colors.teal,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WorkerManagementScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WorkerManagementScreen(),
+                ),
+              ),
             ),
             _buildQuickAccessCard(
               AdminTranslations.serviceMgmt,
               Icons.build,
               Color(0xFF3B82F6), // Electric Blue
-                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ServiceManagementScreen())),
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceManagementScreen(),
+                ),
+              ),
             ),
           ],
         ),
@@ -720,7 +921,12 @@ class AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildQuickAccessCard(String bilingualLabel, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickAccessCard(
+    String bilingualLabel,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final labelParts = AdminTranslations.split(bilingualLabel);
 
     return InkWell(
@@ -762,7 +968,10 @@ class AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildRecentActivity() {
-    final recentServices = _financialService.getCompletedServices().take(5).toList();
+    final recentServices = _financialService
+        .getCompletedServices()
+        .take(5)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -771,15 +980,27 @@ class AdminDashboardState extends State<AdminDashboard> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.recentServices)[0],
-              arabic: AdminTranslations.split(AdminTranslations.recentServices)[1],
-              englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              arabicStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.recentServices,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.recentServices,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              arabicStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FinancialReportsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const FinancialReportsScreen(),
+                ),
               ),
               child: BilingualText(
                 english: AdminTranslations.split(AdminTranslations.viewAll)[0],
@@ -804,8 +1025,12 @@ class AdminDashboardState extends State<AdminDashboard> {
                   Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
                   const SizedBox(height: 12),
                   BilingualText(
-                    english: AdminTranslations.split(AdminTranslations.noRecentServices)[0],
-                    arabic: AdminTranslations.split(AdminTranslations.noRecentServices)[1],
+                    english: AdminTranslations.split(
+                      AdminTranslations.noRecentServices,
+                    )[0],
+                    arabic: AdminTranslations.split(
+                      AdminTranslations.noRecentServices,
+                    )[1],
                     englishStyle: TextStyle(color: Colors.grey[600]),
                     arabicStyle: TextStyle(color: Colors.grey[600]),
                   ),
@@ -814,7 +1039,9 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           )
         else
-          ...recentServices.map((service) => _buildServiceCard(service)).toList(),
+          ...recentServices
+              .map((service) => _buildServiceCard(service))
+              .toList(),
       ],
     );
   }
@@ -842,7 +1069,11 @@ class AdminDashboardState extends State<AdminDashboard> {
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
+            child: const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -859,10 +1090,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                 const SizedBox(height: 4),
                 Text(
                   '${service.workerName} • ${service.customerName}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -880,10 +1108,7 @@ class AdminDashboardState extends State<AdminDashboard> {
               ),
               Text(
                 '${service.completionDate.day}/${service.completionDate.month}/${service.completionDate.year}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
             ],
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'providers/app_state_provider.dart';
-import 'screens/auth/role_selection.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +28,6 @@ class AdminWorkerApp extends StatelessWidget {
         // No localizationsDelegates
         // No supportedLocales
         // No locale settings
-
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF3B82F6),
@@ -46,7 +45,7 @@ class AdminWorkerApp extends StatelessWidget {
           scaffoldBackgroundColor: const Color(0xFF0F172A),
         ),
         themeMode: ThemeMode.system,
-        home: const RoleSelectionScreen(),
+        home: const SplashScreen(), // ✅ Changed to SplashScreen
       ),
     );
   }
