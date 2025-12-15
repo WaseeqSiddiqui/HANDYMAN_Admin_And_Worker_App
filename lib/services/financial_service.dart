@@ -269,11 +269,21 @@ class FinancialService {
           status: 'Paid',
         );
 
-        // We need InvoiceService instance.
-        // Since we cannot easily inject it here without changing constructor steps,
-        // and it is a singleton, we can use the factory.
-        await InvoiceService().saveInvoice(invoice);
-        debugPrint('✅ Invoice generated: ${invoice.invoiceNumber}');
+        // Check if invoice already exists to prevent duplicates
+        final existingInvoice = InvoiceService().getInvoiceByServiceId(
+          serviceId,
+        );
+        if (existingInvoice != null) {
+          debugPrint(
+            '⚠️ Invoice already exists for service $serviceId: ${existingInvoice.invoiceNumber}',
+          );
+        } else {
+          // We need InvoiceService instance.
+          // Since we cannot easily inject it here without changing constructor steps,
+          // and it is a singleton, we can use the factory.
+          await InvoiceService().saveInvoice(invoice);
+          debugPrint('✅ Invoice generated: ${invoice.invoiceNumber}');
+        }
       } catch (e) {
         debugPrint('❌ Error generating invoice: $e');
         // Don't fail the whole transaction if invoice fails, but log it.

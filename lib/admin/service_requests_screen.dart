@@ -14,7 +14,8 @@ class ServiceRequestsScreen extends StatefulWidget {
   const ServiceRequestsScreen({super.key});
 
   @override
-  State<ServiceRequestsScreen> createState() => _AdminServiceRequestsScreenState();
+  State<ServiceRequestsScreen> createState() =>
+      _AdminServiceRequestsScreenState();
 }
 
 class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
@@ -51,10 +52,20 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
           backgroundColor: Colors.white, // White background
           appBar: AppBar(
             title: BilingualText(
-              english: AdminTranslations.split(AdminTranslations.serviceRequests)[0],
-              arabic: AdminTranslations.split(AdminTranslations.serviceRequests)[1],
-              englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              english: AdminTranslations.split(
+                AdminTranslations.serviceRequests,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.serviceRequests,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              arabicStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             backgroundColor: const Color(0xFF3B82F6),
             foregroundColor: Colors.white,
@@ -70,8 +81,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       BilingualText(
-                        english: AdminTranslations.split(AdminTranslations.requested)[0],
-                        arabic: AdminTranslations.split(AdminTranslations.requested)[1],
+                        english: AdminTranslations.split(
+                          AdminTranslations.requested,
+                        )[0],
+                        arabic: AdminTranslations.split(
+                          AdminTranslations.requested,
+                        )[1],
                         englishStyle: const TextStyle(fontSize: 12),
                         arabicStyle: const TextStyle(fontSize: 10),
                       ),
@@ -85,8 +100,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       BilingualText(
-                        english: AdminTranslations.split(AdminTranslations.inProgress)[0],
-                        arabic: AdminTranslations.split(AdminTranslations.inProgress)[1],
+                        english: AdminTranslations.split(
+                          AdminTranslations.inProgress,
+                        )[0],
+                        arabic: AdminTranslations.split(
+                          AdminTranslations.inProgress,
+                        )[1],
                         englishStyle: const TextStyle(fontSize: 12),
                         arabicStyle: const TextStyle(fontSize: 10),
                       ),
@@ -100,8 +119,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       BilingualText(
-                        english: AdminTranslations.split(AdminTranslations.postponed)[0],
-                        arabic: AdminTranslations.split(AdminTranslations.postponed)[1],
+                        english: AdminTranslations.split(
+                          AdminTranslations.postponed,
+                        )[0],
+                        arabic: AdminTranslations.split(
+                          AdminTranslations.postponed,
+                        )[1],
                         englishStyle: const TextStyle(fontSize: 12),
                         arabicStyle: const TextStyle(fontSize: 10),
                       ),
@@ -115,8 +138,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       BilingualText(
-                        english: AdminTranslations.split(AdminTranslations.completed)[0],
-                        arabic: AdminTranslations.split(AdminTranslations.completed)[1],
+                        english: AdminTranslations.split(
+                          AdminTranslations.completed,
+                        )[0],
+                        arabic: AdminTranslations.split(
+                          AdminTranslations.completed,
+                        )[1],
                         englishStyle: const TextStyle(fontSize: 12),
                         arabicStyle: const TextStyle(fontSize: 10),
                       ),
@@ -154,7 +181,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       ),
       child: Text(
         '$count',
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -163,7 +194,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   Widget _buildRequestedServicesTab(List<ServiceRequest> services) {
     if (services.isEmpty) {
       return _buildEmptyState(
-          AdminTranslations.noRequestedServices, Icons.assignment_outlined);
+        AdminTranslations.noRequestedServices,
+        Icons.assignment_outlined,
+      );
     }
 
     return RefreshIndicator(
@@ -202,9 +235,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 _buildIdBadge(service.id, Colors.blue),
                 // Language badge - Bilingual
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: isArabicCustomer ? Colors.blue.withOpacity(0.2) : Colors.purple.withOpacity(0.2),
+                    color: isArabicCustomer
+                        ? Colors.blue.withOpacity(0.2)
+                        : Colors.purple.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -222,50 +260,65 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             // Service name - Bilingual with white text
-            BilingualText(
-              english: AdminTranslations.getEnglish(service.serviceName),
-              arabic: AdminTranslations.getArabic(service.serviceName),
-              englishStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              arabicStyle: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+            Builder(
+              builder: (context) {
+                final englishName = AdminTranslations.getEnglish(
+                  service.serviceName,
+                );
+                final arabicName = AdminTranslations.getArabic(
+                  service.serviceName,
+                );
+                final isIdentical = englishName == arabicName;
+
+                return BilingualText(
+                  english: englishName,
+                  arabic: isIdentical ? '' : arabicName,
+                  englishStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  arabicStyle: isIdentical
+                      ? const TextStyle(fontSize: 0) // Hide if identical
+                      : const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                );
+              },
             ),
 
             const SizedBox(height: 12),
 
             // Customer name - in original entered language with white text
             _buildInfoRow(
-                Icons.person,
-                service.customerName,
-                isArabic: isArabicCustomer
+              Icons.person,
+              service.customerName,
+              isArabic: isArabicCustomer,
             ),
 
             // Address - in original entered language with white text
             _buildInfoRow(
-                Icons.location_on,
-                service.address,
-                isArabic: isArabicCustomer
+              Icons.location_on,
+              service.address,
+              isArabic: isArabicCustomer,
             ),
 
             // Date time - Bilingual format with white text
             _buildInfoRow(
-                Icons.calendar_today,
-                _formatDateTime(service.requestedDate),
-                isArabic: false
+              Icons.calendar_today,
+              _formatDateTime(service.requestedDate),
+              isArabic: false,
             ),
 
             // Customer notes - in original entered language (if available) with white text
-            if (service.customerNotes != null && service.customerNotes!.isNotEmpty)
+            if (service.customerNotes != null &&
+                service.customerNotes!.isNotEmpty)
               _buildInfoRow(
-                  Icons.note,
-                  service.customerNotes!,
-                  isArabic: isArabicCustomer
+                Icons.note,
+                service.customerNotes!,
+                isArabic: isArabicCustomer,
               ),
 
             const SizedBox(height: 16),
@@ -285,7 +338,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.engineering, size: 16, color: Colors.green[300]),
+                        Icon(
+                          Icons.engineering,
+                          size: 16,
+                          color: Colors.green[300],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Assigned To • مُعين إلى',
@@ -306,7 +363,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         color: Colors.white,
                       ),
                     ),
-                    if (service.workerNameArabic != null && service.workerNameArabic!.isNotEmpty)
+                    if (service.workerNameArabic != null &&
+                        service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
                         style: const TextStyle(
@@ -333,8 +391,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 children: [
                   Flexible(
                     child: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.amount)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.amount)[1],
+                      english: AdminTranslations.split(
+                        AdminTranslations.amount,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.amount,
+                      )[1],
                       englishStyle: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -367,17 +429,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _viewServiceDetails(service),
-                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.detailsBtn)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.detailsBtn)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -392,11 +468,19 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ),
                     label: BilingualText(
                       english: isAssigned
-                          ? AdminTranslations.split(AdminTranslations.assignedBtn)[0]
-                          : AdminTranslations.split(AdminTranslations.assignBtn)[0],
+                          ? AdminTranslations.split(
+                              AdminTranslations.assignedBtn,
+                            )[0]
+                          : AdminTranslations.split(
+                              AdminTranslations.assignBtn,
+                            )[0],
                       arabic: isAssigned
-                          ? AdminTranslations.split(AdminTranslations.assignedBtn)[1]
-                          : AdminTranslations.split(AdminTranslations.assignBtn)[1],
+                          ? AdminTranslations.split(
+                              AdminTranslations.assignedBtn,
+                            )[1]
+                          : AdminTranslations.split(
+                              AdminTranslations.assignBtn,
+                            )[1],
                       englishStyle: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -404,10 +488,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isAssigned ? Colors.grey[600] : const Color(0xFF3B82F6),
+                      backgroundColor: isAssigned
+                          ? Colors.grey[600]
+                          : const Color(0xFF3B82F6),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -423,7 +511,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   Widget _buildInProgressServicesTab(List<ServiceRequest> services) {
     if (services.isEmpty) {
       return _buildEmptyState(
-          AdminTranslations.noInProgressServices, Icons.pending_actions);
+        AdminTranslations.noInProgressServices,
+        Icons.pending_actions,
+      );
     }
 
     return RefreshIndicator(
@@ -481,7 +571,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.engineering, size: 16, color: Colors.amber[300]),
+                        Icon(
+                          Icons.engineering,
+                          size: 16,
+                          color: Colors.amber[300],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Assigned To • مُعين إلى',
@@ -502,7 +596,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         color: Colors.white,
                       ),
                     ),
-                    if (service.workerNameArabic != null && service.workerNameArabic!.isNotEmpty)
+                    if (service.workerNameArabic != null &&
+                        service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
                         style: const TextStyle(
@@ -517,26 +612,48 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
             const SizedBox(height: 12),
 
-            BilingualText(
-              english: AdminTranslations.split(service.serviceName)[0],
-              arabic: AdminTranslations.split(service.serviceName)[1],
-              englishStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              arabicStyle: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+            Builder(
+              builder: (context) {
+                final englishName = AdminTranslations.split(
+                  service.serviceName,
+                )[0];
+                final arabicName = AdminTranslations.split(
+                  service.serviceName,
+                )[1];
+                final isIdentical = englishName == arabicName;
+
+                return BilingualText(
+                  english: englishName,
+                  arabic: isIdentical ? '' : arabicName,
+                  englishStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  arabicStyle: isIdentical
+                      ? const TextStyle(fontSize: 0)
+                      : const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                );
+              },
             ),
 
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
-            _buildInfoRow(Icons.location_on, service.address, isArabic: service.customerPrefersArabic),
-            _buildInfoRow(Icons.calendar_today, _formatDateTime(service.requestedDate), isArabic: false),
+            _buildInfoRow(
+              Icons.location_on,
+              service.address,
+              isArabic: service.customerPrefersArabic,
+            ),
+            _buildInfoRow(
+              Icons.calendar_today,
+              _formatDateTime(service.requestedDate),
+              isArabic: false,
+            ),
 
             const SizedBox(height: 16),
 
@@ -571,14 +688,21 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                                 Expanded(
                                   child: Text(
                                     '• ${item.name}',
-                                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white70,
+                                    ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Text(
                                   'SAR ${item.price.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -607,12 +731,19 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                  const Icon(
+                    Icons.info_outline,
+                    color: Colors.orange,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${AdminTranslations.split(AdminTranslations.workerNeedsCredit)[0]} ${service.totalDeduction.toStringAsFixed(2)} ${AdminTranslations.split(AdminTranslations.creditToComplete)[0]}',
-                      style: const TextStyle(fontSize: 12, color: Colors.orange),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange,
+                      ),
                     ),
                   ),
                 ],
@@ -626,17 +757,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _viewServiceDetails(service),
-                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.viewDetailsBtn)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.viewDetailsBtn)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.viewDetailsBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.viewDetailsBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -652,7 +797,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   Widget _buildPostponedServicesTab(List<ServiceRequest> services) {
     if (services.isEmpty) {
       return _buildEmptyState(
-          AdminTranslations.noPostponedServices, Icons.event_busy);
+        AdminTranslations.noPostponedServices,
+        Icons.event_busy,
+      );
     }
 
     return RefreshIndicator(
@@ -686,9 +833,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               children: [
                 _buildIdBadge(service.id, Colors.orange),
                 _buildStatusBadge(
-                    AdminTranslations.postponedStatus,
-                    Colors.orange,
-                    Icons.event_busy
+                  AdminTranslations.postponedStatus,
+                  Colors.orange,
+                  Icons.event_busy,
                 ),
               ],
             ),
@@ -710,7 +857,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.engineering, size: 16, color: Colors.orange[300]),
+                        Icon(
+                          Icons.engineering,
+                          size: 16,
+                          color: Colors.orange[300],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Assigned To • مُعين إلى',
@@ -731,7 +882,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         color: Colors.white,
                       ),
                     ),
-                    if (service.workerNameArabic != null && service.workerNameArabic!.isNotEmpty)
+                    if (service.workerNameArabic != null &&
+                        service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
                         style: const TextStyle(
@@ -764,12 +916,16 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
-            _buildInfoRow(Icons.location_on, service.address, isArabic: service.customerPrefersArabic),
+            _buildInfoRow(
+              Icons.location_on,
+              service.address,
+              isArabic: service.customerPrefersArabic,
+            ),
             if (service.postponeReason != null)
               _buildInfoRow(
-                  Icons.info_outline,
-                  '${AdminTranslations.split(AdminTranslations.reasonLabel)[0]} ${service.postponeReason}',
-                  isArabic: false
+                Icons.info_outline,
+                '${AdminTranslations.split(AdminTranslations.reasonLabel)[0]} ${service.postponeReason}',
+                isArabic: false,
               ),
 
             const SizedBox(height: 16),
@@ -779,17 +935,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _viewServiceDetails(service),
-                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.detailsBtn)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.detailsBtn)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -797,17 +967,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _rescheduleService(service),
-                    icon: const Icon(Icons.calendar_today, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.reschedule)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.reschedule)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.reschedule,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.reschedule,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -823,7 +1007,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   Widget _buildCompletedServicesTab(List<ServiceRequest> services) {
     if (services.isEmpty) {
       return _buildEmptyState(
-          AdminTranslations.noCompletedServices, Icons.check_circle_outline);
+        AdminTranslations.noCompletedServices,
+        Icons.check_circle_outline,
+      );
     }
 
     return RefreshIndicator(
@@ -857,9 +1043,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               children: [
                 _buildIdBadge(service.id, Colors.green),
                 _buildStatusBadge(
-                    AdminTranslations.completedStatus,
-                    Colors.green,
-                    Icons.check_circle
+                  AdminTranslations.completedStatus,
+                  Colors.green,
+                  Icons.check_circle,
                 ),
               ],
             ),
@@ -881,7 +1067,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.engineering, size: 16, color: Colors.green[300]),
+                        Icon(
+                          Icons.engineering,
+                          size: 16,
+                          color: Colors.green[300],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Assigned To • مُعين إلى',
@@ -902,7 +1092,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         color: Colors.white,
                       ),
                     ),
-                    if (service.workerNameArabic != null && service.workerNameArabic!.isNotEmpty)
+                    if (service.workerNameArabic != null &&
+                        service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
                         style: const TextStyle(
@@ -935,7 +1126,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
-            _buildInfoRow(Icons.engineering, service.workerName ?? AdminTranslations.split(AdminTranslations.naPlaceholder)[0], isArabic: false),
+            _buildInfoRow(
+              Icons.engineering,
+              service.workerName ??
+                  AdminTranslations.split(AdminTranslations.naPlaceholder)[0],
+              isArabic: false,
+            ),
 
             const SizedBox(height: 16),
 
@@ -949,13 +1145,13 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               child: Column(
                 children: [
                   _buildFinancialRow(
-                      '${AdminTranslations.split(AdminTranslations.basePriceLabel)[0]} • ${AdminTranslations.split(AdminTranslations.basePriceLabel)[1]}',
-                      service.basePrice
+                    '${AdminTranslations.split(AdminTranslations.basePriceLabel)[0]} • ${AdminTranslations.split(AdminTranslations.basePriceLabel)[1]}',
+                    service.basePrice,
                   ),
                   if (service.extraItems.isNotEmpty) ...[
                     _buildFinancialRow(
-                        '${AdminTranslations.split(AdminTranslations.extraItemsLabel)[0]} • ${AdminTranslations.split(AdminTranslations.extraItemsLabel)[1]}',
-                        service.totalExtraPrice
+                      '${AdminTranslations.split(AdminTranslations.extraItemsLabel)[0]} • ${AdminTranslations.split(AdminTranslations.extraItemsLabel)[1]}',
+                      service.totalExtraPrice,
                     ),
                     Padding(
                       padding: const EdgeInsets.only(left: 16, top: 8),
@@ -970,14 +1166,21 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                                 Expanded(
                                   child: Text(
                                     '• ${item.name}',
-                                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white70,
+                                    ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Text(
                                   'SAR ${item.price.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -987,18 +1190,18 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ),
                   ],
                   _buildFinancialRow(
-                      '${AdminTranslations.split(AdminTranslations.vatLabel)[0]} • ${AdminTranslations.split(AdminTranslations.vatLabel)[1]}',
-                      service.totalVAT
+                    '${AdminTranslations.split(AdminTranslations.vatLabel)[0]} • ${AdminTranslations.split(AdminTranslations.vatLabel)[1]}',
+                    service.totalVAT,
                   ),
                   _buildFinancialRow(
-                      '${AdminTranslations.split(AdminTranslations.commissionLabel)[0]} • ${AdminTranslations.split(AdminTranslations.commissionLabel)[1]}',
-                      service.totalCommission
+                    '${AdminTranslations.split(AdminTranslations.commissionLabel)[0]} • ${AdminTranslations.split(AdminTranslations.commissionLabel)[1]}',
+                    service.totalCommission,
                   ),
                   const Divider(color: Colors.white30),
                   _buildFinancialRow(
-                      '${AdminTranslations.split(AdminTranslations.totalLabel)[0]} • ${AdminTranslations.split(AdminTranslations.totalLabel)[1]}',
-                      service.totalPrice,
-                      isBold: true
+                    '${AdminTranslations.split(AdminTranslations.totalLabel)[0]} • ${AdminTranslations.split(AdminTranslations.totalLabel)[1]}',
+                    service.totalPrice,
+                    isBold: true,
                   ),
                 ],
               ),
@@ -1011,17 +1214,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _viewServiceDetails(service),
-                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.detailsBtn)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.detailsBtn)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -1029,17 +1246,31 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _downloadInvoice(service),
-                    icon: const Icon(Icons.download, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.download,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.invoiceBtn)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.invoiceBtn)[1],
-                      englishStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      english: AdminTranslations.split(
+                        AdminTranslations.invoiceBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.invoiceBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -1118,7 +1349,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     );
   }
 
-  Widget _buildFinancialRow(String label, double amount, {bool isBold = false}) {
+  Widget _buildFinancialRow(
+    String label,
+    double amount, {
+    bool isBold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1160,13 +1395,21 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             BilingualText(
               english: AdminTranslations.split(messageKey)[0],
               arabic: AdminTranslations.split(messageKey)[1],
-              englishStyle: TextStyle(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w500),
+              englishStyle: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.servicesAutoAppear)[0],
-              arabic: AdminTranslations.split(AdminTranslations.servicesAutoAppear)[1],
+              english: AdminTranslations.split(
+                AdminTranslations.servicesAutoAppear,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.servicesAutoAppear,
+              )[1],
               englishStyle: TextStyle(fontSize: 13, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
@@ -1184,7 +1427,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     if (workers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AdminTranslations.split(AdminTranslations.noActiveWorkers)[0]),
+          content: Text(
+            AdminTranslations.split(AdminTranslations.noActiveWorkers)[0],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -1202,8 +1447,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               const Icon(Icons.person_add, color: Color(0xFF005DFF)),
               const SizedBox(width: 8),
               BilingualText(
-                english: AdminTranslations.split(AdminTranslations.assignWorker)[0],
-                arabic: AdminTranslations.split(AdminTranslations.assignWorker)[1],
+                english: AdminTranslations.split(
+                  AdminTranslations.assignWorker,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.assignWorker,
+                )[1],
               ),
             ],
           ),
@@ -1211,9 +1460,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}'),
-              Text('${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}'),
-              Text('${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate)}'),
+              Text(
+                '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
+              ),
+              Text(
+                '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
+              ),
+              Text(
+                '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate)}',
+              ),
               const SizedBox(height: 16),
               Text(
                 AdminTranslations.split(AdminTranslations.selectWorker)[0],
@@ -1221,7 +1476,10 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(8),
@@ -1229,7 +1487,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<WorkerData>(
                     isExpanded: true,
-                    hint: Text(AdminTranslations.split(AdminTranslations.chooseWorker)[0]),
+                    hint: Text(
+                      AdminTranslations.split(
+                        AdminTranslations.chooseWorker,
+                      )[0],
+                    ),
                     value: selectedWorker,
                     items: workers.map((worker) {
                       return DropdownMenuItem<WorkerData>(
@@ -1241,20 +1503,24 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                             Text(
                               worker.name,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
                             Text(
                               worker.nameArabic,
                               style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey),
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                               textDirection: TextDirection.rtl,
                             ),
                           ],
                         ),
                       );
                     }).toList(),
-                    onChanged: (worker) => setState(() => selectedWorker = worker),
+                    onChanged: (worker) =>
+                        setState(() => selectedWorker = worker),
                   ),
                 ),
               ),
@@ -1263,35 +1529,48 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+              child: Text(
+                AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+              ),
             ),
             ElevatedButton(
               onPressed: selectedWorker == null
                   ? null
                   : () {
-                final appState = Provider.of<AppStateProvider>(context, listen: false);
-                appState.assignServiceToWorker(service.id, selectedWorker!.id, selectedWorker!.name);
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${AdminTranslations.split(AdminTranslations.serviceAssignedSuccess)[0]} ${selectedWorker!.name}'),
-                        Text(
-                          selectedWorker!.nameArabic,
-                          style: const TextStyle(fontSize: 12),
-                          textDirection: TextDirection.rtl,
+                      final appState = Provider.of<AppStateProvider>(
+                        context,
+                        listen: false,
+                      );
+                      appState.assignServiceToWorker(
+                        service.id,
+                        selectedWorker!.id,
+                        selectedWorker!.name,
+                      );
+                      Navigator.pop(dialogContext);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${AdminTranslations.split(AdminTranslations.serviceAssignedSuccess)[0]} ${selectedWorker!.name}',
+                              ),
+                              Text(
+                                selectedWorker!.nameArabic,
+                                style: const TextStyle(fontSize: 12),
+                                textDirection: TextDirection.rtl,
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 3),
                         ),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              },
-              child: Text(AdminTranslations.split(AdminTranslations.assignBtn)[0]),
+                      );
+                    },
+              child: Text(
+                AdminTranslations.split(AdminTranslations.assignBtn)[0],
+              ),
             ),
           ],
         ),
@@ -1319,7 +1598,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     if (availableWorkers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AdminTranslations.split(AdminTranslations.noOtherWorkers)[0]),
+          content: Text(
+            AdminTranslations.split(AdminTranslations.noOtherWorkers)[0],
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1338,8 +1619,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               const Icon(Icons.calendar_today, color: Colors.blue),
               const SizedBox(width: 8),
               BilingualText(
-                english: AdminTranslations.split(AdminTranslations.rescheduleService)[0],
-                arabic: AdminTranslations.split(AdminTranslations.rescheduleService)[1],
+                english: AdminTranslations.split(
+                  AdminTranslations.rescheduleService,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.rescheduleService,
+                )[1],
               ),
             ],
           ),
@@ -1361,20 +1646,30 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      Text('${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}'),
+                      Text(
+                        '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
+                      ),
                       if (service.workerName != null) ...[
-                        Text('${AdminTranslations.split(AdminTranslations.previousWorker)[0]}: ${service.workerName}'),
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.previousWorker)[0]}: ${service.workerName}',
+                        ),
                         if (service.workerNameArabic != null)
                           Text(
                             service.workerNameArabic!,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                             textDirection: TextDirection.rtl,
                           ),
                       ],
                       if (service.postponeReason != null)
                         Text(
                           '${AdminTranslations.split(AdminTranslations.reasonLabel)[0]} ${service.postponeReason}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                     ],
                   ),
@@ -1386,7 +1681,10 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
@@ -1394,7 +1692,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<WorkerData>(
                       isExpanded: true,
-                      hint: Text(AdminTranslations.split(AdminTranslations.chooseWorker)[0]),
+                      hint: Text(
+                        AdminTranslations.split(
+                          AdminTranslations.chooseWorker,
+                        )[0],
+                      ),
                       value: selectedWorker,
                       items: availableWorkers.map((worker) {
                         return DropdownMenuItem<WorkerData>(
@@ -1406,20 +1708,24 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                               Text(
                                 worker.name,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
                               ),
                               Text(
                                 worker.nameArabic,
                                 style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                                 textDirection: TextDirection.rtl,
                               ),
                             ],
                           ),
                         );
                       }).toList(),
-                      onChanged: (worker) => setState(() => selectedWorker = worker),
+                      onChanged: (worker) =>
+                          setState(() => selectedWorker = worker),
                     ),
                   ),
                 ),
@@ -1462,48 +1768,53 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+              child: Text(
+                AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+              ),
             ),
             ElevatedButton(
               onPressed: selectedWorker == null
                   ? null
                   : () {
-                final appState = Provider.of<AppStateProvider>(context, listen: false);
+                      final appState = Provider.of<AppStateProvider>(
+                        context,
+                        listen: false,
+                      );
 
-                appState.reschedulePostponedService(
-                  serviceId: service.id,
-                  newWorkerId: selectedWorker!.id,
-                  newWorkerName: selectedWorker!.name,
-                  newScheduledDate: selectedDate,
-                );
+                      appState.reschedulePostponedService(
+                        serviceId: service.id,
+                        newWorkerId: selectedWorker!.id,
+                        newWorkerName: selectedWorker!.name,
+                        newScheduledDate: selectedDate,
+                      );
 
-                Navigator.pop(dialogContext);
+                      Navigator.pop(dialogContext);
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate)}'
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate)}',
+                              ),
+                              Text(
+                                selectedWorker!.nameArabic,
+                                style: const TextStyle(fontSize: 12),
+                                textDirection: TextDirection.rtl,
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 4),
                         ),
-                        Text(
-                          selectedWorker!.nameArabic,
-                          style: const TextStyle(fontSize: 12),
-                          textDirection: TextDirection.rtl,
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 4),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                      );
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: Text(
+                AdminTranslations.split(AdminTranslations.reschedule)[0],
               ),
-              child: Text(AdminTranslations.split(AdminTranslations.reschedule)[0]),
             ),
           ],
         ),

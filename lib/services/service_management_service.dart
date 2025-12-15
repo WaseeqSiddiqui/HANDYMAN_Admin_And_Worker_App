@@ -1,7 +1,7 @@
 // services/service_management_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '/models/service_model.dart' hide ServiceCategory;
+import '/models/service_model.dart';
 import '/models/service_category_model.dart';
 import 'firestore_service.dart';
 

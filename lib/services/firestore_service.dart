@@ -10,7 +10,7 @@ import '../models/withdrawl_requests_model.dart';
 import '../models/service_category_model.dart';
 import '../models/customer_model.dart';
 import '../models/service_invoice_model.dart';
-import '../models/service_model.dart' hide ServiceCategory;
+import '../models/service_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -110,6 +110,17 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error updating worker credit: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateWorkerWallet(String workerId, double newBalance) async {
+    try {
+      await _workersCollection.doc(workerId).update({
+        'walletBalance': newBalance,
+      });
+    } catch (e) {
+      debugPrint('Error updating worker wallet: $e');
       throw e;
     }
   }

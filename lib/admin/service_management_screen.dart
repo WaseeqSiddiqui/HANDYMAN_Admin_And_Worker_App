@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '/utils/admin_translations.dart';
 import '/widgets/bilingual_text.dart';
 import '/services/service_management_service.dart';
-import '/models/service_model.dart' hide ServiceCategory;
+import '/models/service_model.dart';
 import '/models/service_category_model.dart';
 
 class ServiceManagementScreen extends StatefulWidget {
