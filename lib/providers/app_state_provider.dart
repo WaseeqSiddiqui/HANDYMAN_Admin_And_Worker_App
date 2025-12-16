@@ -8,8 +8,7 @@ import '/services/invoice_service.dart';
 import '/models/customer_model.dart';
 import '/models/customer_service_model.dart';
 import '../models/service_request_model.dart';
-import '../models/service_model.dart'
-    hide ServiceCategory; // ✅ Import Service model
+import '../models/service_model.dart'; // ✅ Import Service model
 import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
@@ -30,6 +29,9 @@ class AppStateProvider with ChangeNotifier {
   List<ServiceRequest> _serviceRequests = [];
   List<ServiceCategory> _serviceCategories = [];
   List<ServiceCategory> get serviceCategories => _serviceCategories;
+
+  // ✅ ADDED: Real Firestore customers list
+  List<Customer> _firestoreCustomers = [];
 
   // ✅ Getters for worker info
   String get workerId => currentWorkerId ?? 'UNKNOWN';
@@ -90,6 +92,15 @@ class AppStateProvider with ChangeNotifier {
       notifyListeners();
       debugPrint(
         '🔄 AppStateProvider: Synced ${categories.length} categories from Firestore',
+      );
+    });
+
+    // ✅ ADDED: Listen to Customers
+    _firestoreService.getCustomersStream().listen((customers) {
+      _firestoreCustomers = customers;
+      notifyListeners();
+      debugPrint(
+        '🔄 AppStateProvider: Synced ${customers.length} customers from Firestore',
       );
     });
 
@@ -337,15 +348,23 @@ class AppStateProvider with ChangeNotifier {
 
   // ✅ ADD: Get customer by ID
   Customer? getCustomerById(String customerId) {
-    return hardcodedCustomers.firstWhere(
-      (customer) => customer.id == customerId,
-      orElse: () => Customer(
-        id: 'unknown',
-        name: 'Unknown Customer',
-        phone: 'N/A',
-        registeredAt: DateTime.now(),
-        languagePreference: 'english',
-      ),
+    // 1. Try to find in Firestore data first (Real data)
+    try {
+      return _firestoreCustomers.firstWhere((c) => c.id == customerId);
+    } catch (_) {}
+
+    // 2. Fallback to hardcoded/sample data
+    try {
+      return hardcodedCustomers.firstWhere((c) => c.id == customerId);
+    } catch (_) {}
+
+    // 3. Last resort: Unknown
+    return Customer(
+      id: customerId, // Use the ID passed, so we at least know WHICH ID is missing
+      name: 'Unknown Customer',
+      phone: 'N/A',
+      registeredAt: DateTime.now(),
+      languagePreference: 'english',
     );
   }
 
@@ -501,7 +520,12 @@ class AppStateProvider with ChangeNotifier {
   List<Customer> get registeredCustomers {
     final Map<String, Customer> customersMap = {};
 
-    // Add customers from service requests
+    // 1. Add all real customers from Firestore FIRST
+    for (var customer in _firestoreCustomers) {
+      customersMap[customer.id] = customer;
+    }
+
+    // 2. Add customers from service requests (Fallback if not in customers collection yet)
     for (var service in _serviceRequests) {
       final customerId = service.customerId;
 
@@ -513,7 +537,7 @@ class AppStateProvider with ChangeNotifier {
       }
     }
 
-    // Add customers from completed services
+    // 3. Add customers from completed services
     for (var worker in _workerData.values) {
       for (var service in worker.completedServices) {
         final customerId = service.customerId;
@@ -527,7 +551,7 @@ class AppStateProvider with ChangeNotifier {
       }
     }
 
-    // Add all hardcoded customers (for testing)
+    // 4. Add all hardcoded customers (Only if map is empty - purely for testing/demo)
     if (customersMap.isEmpty) {
       for (var customer in hardcodedCustomers) {
         customersMap[customer.id] = customer;
@@ -891,7 +915,18 @@ class AppStateProvider with ChangeNotifier {
       // Update local state for immediate feedback
       _currentWorkerData.creditBalance = newCredit;
       if (paymentMethod != 'Cash') {
-        _currentWorkerData.walletBalance += totalPrice;
+        final newWalletBalance = _currentWorkerData.walletBalance + totalPrice;
+        _currentWorkerData.walletBalance = newWalletBalance;
+
+        try {
+          await _firestoreService.updateWorkerWallet(
+            currentWorkerId!,
+            newWalletBalance,
+          );
+          debugPrint('✅ Worker wallet updated');
+        } catch (e) {
+          debugPrint('❌ Error updating worker wallet: $e');
+        }
       }
       // ✅ REMOVED: No longer needed since completedServices derives from _serviceRequests
       // _currentWorkerData.completedServices.insert(0, completedService);

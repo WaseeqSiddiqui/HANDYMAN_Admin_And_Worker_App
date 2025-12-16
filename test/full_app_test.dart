@@ -17,8 +17,7 @@ import 'package:admin_x_technician_panel/providers/app_state_provider.dart';
 // Models
 import 'package:admin_x_technician_panel/models/service_category_model.dart';
 import 'package:admin_x_technician_panel/models/worker_data_model.dart';
-import 'package:admin_x_technician_panel/models/service_model.dart'
-    hide ServiceCategory;
+import 'package:admin_x_technician_panel/models/service_model.dart';
 
 // Screens
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';

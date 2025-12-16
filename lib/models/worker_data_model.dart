@@ -12,6 +12,7 @@ class WorkerData {
   final DateTime joinedDate;
   final int completedServices;
   final double creditBalance;
+  final double walletBalance; // Added walletBalance
 
   WorkerData({
     required this.id,
@@ -27,6 +28,7 @@ class WorkerData {
     required this.joinedDate,
     this.completedServices = 0,
     this.creditBalance = 100.0,
+    this.walletBalance = 0.0, // Default to 0.0
   });
 
   WorkerData copyWith({
@@ -43,6 +45,7 @@ class WorkerData {
     DateTime? joinedDate,
     int? completedServices,
     double? creditBalance,
+    double? walletBalance,
   }) {
     return WorkerData(
       id: id ?? this.id,
@@ -58,6 +61,7 @@ class WorkerData {
       joinedDate: joinedDate ?? this.joinedDate,
       completedServices: completedServices ?? this.completedServices,
       creditBalance: creditBalance ?? this.creditBalance,
+      walletBalance: walletBalance ?? this.walletBalance,
     );
   }
 
@@ -76,6 +80,7 @@ class WorkerData {
       'joinedDate': joinedDate.toIso8601String(),
       'completedServices': completedServices,
       'creditBalance': creditBalance,
+      'walletBalance': walletBalance,
     };
   }
 
@@ -93,9 +98,12 @@ class WorkerData {
       status: map['status'] ?? 'Active',
       joinedDate: map['joinedDate'] is DateTime
           ? map['joinedDate']
-          : DateTime.parse(map['joinedDate'] ?? DateTime.now().toIso8601String()),
+          : DateTime.parse(
+              map['joinedDate'] ?? DateTime.now().toIso8601String(),
+            ),
       completedServices: map['completedServices'] ?? 0,
       creditBalance: (map['creditBalance'] ?? 100.0).toDouble(),
+      walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
     );
   }
 }
