@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/service_request_model.dart';
 import '../utils/worker_translations.dart';
 
@@ -445,6 +446,9 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                     TextField(
                       controller: _priceController,
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
+                      ],
                       decoration: const InputDecoration(
                         hintText: '0.00',
                         border: InputBorder.none,

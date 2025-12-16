@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../services/financial_service.dart';
@@ -446,6 +447,10 @@ class _WalletScreenState extends State<WalletScreen> {
             controller: _withdrawalController,
             keyboardType: TextInputType.number,
             enabled: canWithdraw,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
             decoration: InputDecoration(
               hintText: canWithdraw
                   ? WorkerTranslations.getBilingual('Enter amount (min: SAR 50.00)', 'أدخل المبلغ (الحد الأدنى: 50 ريال)')
