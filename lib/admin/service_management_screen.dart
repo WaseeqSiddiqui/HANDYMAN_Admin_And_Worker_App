@@ -472,14 +472,18 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${service.category} > ${service.subcategory}',
+                            service.subcategory.isNotEmpty
+                                ? '${service.category} > ${service.subcategory}'
+                                : service.category,
                             style: TextStyle(
                               fontSize: 12,
                               color: textColor.withOpacity(0.6),
                             ),
                           ),
                           Text(
-                            '${service.categoryArabic} > ${service.subcategoryArabic}',
+                            service.subcategoryArabic.isNotEmpty
+                                ? '${service.categoryArabic} > ${service.subcategoryArabic}'
+                                : service.categoryArabic,
                             style: TextStyle(
                               fontSize: 11,
                               color: textColor.withOpacity(0.5),
@@ -904,41 +908,60 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     },
                   ),
                   const SizedBox(height: 12),
-                  if (selectedCat != null &&
-                      selectedCat.subcategories.isNotEmpty)
-                    DropdownButtonFormField<int>(
-                      value: selectedSubcategoryIndex,
-                      decoration: const InputDecoration(
-                        labelText: 'Subcategory',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: List.generate(selectedCat.subcategories.length, (
-                        index,
-                      ) {
-                        return DropdownMenuItem<int>(
-                          value: index,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(selectedCat.subcategories[index]),
-                              Text(
-                                selectedCat.subcategoriesArabic[index],
-                                style: const TextStyle(
-                                  fontSize: 11,
+                  if (selectedCat != null)
+                    selectedCat.subcategories.isNotEmpty
+                        ? DropdownButtonFormField<int>(
+                            value: selectedSubcategoryIndex,
+                            decoration: const InputDecoration(
+                              labelText: 'Subcategory',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: List.generate(
+                              selectedCat.subcategories.length,
+                              (index) {
+                                return DropdownMenuItem<int>(
+                                  value: index,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(selectedCat.subcategories[index]),
+                                      Text(
+                                        selectedCat.subcategoriesArabic[index],
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedSubcategoryIndex = value;
+                              });
+                            },
+                          )
+                        : const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
                                   color: Colors.grey,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 8),
+                                Text(
+                                  "No subcategories available",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
                           ),
-                        );
-                      }),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedSubcategoryIndex = value;
-                        });
-                      },
-                    ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: priceController,
@@ -988,10 +1011,18 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ElevatedButton(
                 onPressed: () async {
                   // Validate empty fields
+                  bool isSubcategoryValid = true;
+                  if (selectedCat != null &&
+                      selectedCat.subcategories.isNotEmpty) {
+                    if (selectedSubcategoryIndex == null) {
+                      isSubcategoryValid = false;
+                    }
+                  }
+
                   if (nameController.text.isEmpty ||
                       nameArabicController.text.isEmpty ||
                       selectedCategoryId == null ||
-                      selectedSubcategoryIndex == null ||
+                      !isSubcategoryValid ||
                       priceController.text.isEmpty ||
                       commissionController.text.isEmpty ||
                       vatController.text.isEmpty ||
@@ -1013,19 +1044,23 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   if (price == null || price <= 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content:
-                            Text('❌ Invalid Price. Must be greater than 0.'),
+                        content: Text(
+                          '❌ Invalid Price. Must be greater than 0.',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
                     return;
                   }
 
-                  if (commission == null || commission < 0 || commission > 100) {
+                  if (commission == null ||
+                      commission < 0 ||
+                      commission > 100) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                            '❌ Invalid Commission. Must be between 0 and 100.'),
+                          '❌ Invalid Commission. Must be between 0 and 100.',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -1035,8 +1070,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   if (vat == null || vat < 0 || vat > 100) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content:
-                            Text('❌ Invalid VAT. Must be between 0 and 100.'),
+                        content: Text(
+                          '❌ Invalid VAT. Must be between 0 and 100.',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -1044,6 +1080,21 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   }
 
                   // Create Service
+                  final hasSubcategories =
+                      selectedCat.subcategories.isNotEmpty &&
+                      selectedSubcategoryIndex != null;
+
+                  final subId = hasSubcategories
+                      ? '${selectedCategoryId}_$selectedSubcategoryIndex'
+                      : '';
+                  final subName = hasSubcategories
+                      ? selectedCat.subcategories[selectedSubcategoryIndex!]
+                      : '';
+                  final subNameAr = hasSubcategories
+                      ? selectedCat
+                            .subcategoriesArabic[selectedSubcategoryIndex!]
+                      : '';
+
                   final newService = Service(
                     id: _serviceManager.generateServiceId(),
                     name: nameController.text,
@@ -1051,12 +1102,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     categoryId: selectedCategoryId!,
                     category: selectedCat.nameEnglish,
                     categoryArabic: selectedCat.nameArabic,
-                    subcategoryId:
-                        '${selectedCategoryId}_$selectedSubcategoryIndex',
-                    subcategory:
-                        selectedCat.subcategories[selectedSubcategoryIndex!],
-                    subcategoryArabic: selectedCat
-                        .subcategoriesArabic[selectedSubcategoryIndex!],
+                    subcategoryId: subId,
+                    subcategory: subName,
+                    subcategoryArabic: subNameAr,
                     basePrice: price,
                     commission: commission,
                     vat: vat,
@@ -1347,80 +1395,79 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () async {
-                  if (nameController.text.isEmpty ||
-                      nameArabicController.text.isEmpty ||
-                      priceController.text.isEmpty ||
-                      commissionController.text.isEmpty ||
-                      vatController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('⚠️ Please fill all fields'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                    return;
-                  }
+              if (nameController.text.isEmpty ||
+                  nameArabicController.text.isEmpty ||
+                  priceController.text.isEmpty ||
+                  commissionController.text.isEmpty ||
+                  vatController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('⚠️ Please fill all fields'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
 
-                  // Safe Parsing & Validation
-                  final price = double.tryParse(priceController.text);
-                  final commission = double.tryParse(commissionController.text);
-                  final vat = double.tryParse(vatController.text);
+              // Safe Parsing & Validation
+              final price = double.tryParse(priceController.text);
+              final commission = double.tryParse(commissionController.text);
+              final vat = double.tryParse(vatController.text);
 
-                  if (price == null || price <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('❌ Invalid Price. Must be greater than 0.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
+              if (price == null || price <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('❌ Invalid Price. Must be greater than 0.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
 
-                  if (commission == null || commission < 0 || commission > 100) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            '❌ Invalid Commission. Must be between 0 and 100.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
+              if (commission == null || commission < 0 || commission > 100) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      '❌ Invalid Commission. Must be between 0 and 100.',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
 
-                  if (vat == null || vat < 0 || vat > 100) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('❌ Invalid VAT. Must be between 0 and 100.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
+              if (vat == null || vat < 0 || vat > 100) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('❌ Invalid VAT. Must be between 0 and 100.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
 
-                  final updatedService = service.copyWith(
-                    name: nameController.text,
-                    nameArabic: nameArabicController.text,
-                    basePrice: price,
-                    commission: commission,
-                    vat: vat,
-                  );
+              final updatedService = service.copyWith(
+                name: nameController.text,
+                nameArabic: nameArabicController.text,
+                basePrice: price,
+                commission: commission,
+                vat: vat,
+              );
 
-                  if (await _serviceManager.updateService(
-                    service.id,
-                    updatedService,
-                  )) {
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Service updated successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
+              if (await _serviceManager.updateService(
+                service.id,
+                updatedService,
+              )) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Service updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(
                 0xFF3B82F6,

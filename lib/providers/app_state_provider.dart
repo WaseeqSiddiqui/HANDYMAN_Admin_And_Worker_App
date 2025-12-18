@@ -8,7 +8,7 @@ import '/services/invoice_service.dart';
 import '/models/customer_model.dart';
 import '/models/customer_service_model.dart';
 import '../models/service_request_model.dart';
-import '../models/service_model.dart'; // ✅ Import Service model
+// import '../models/service_model.dart'; // Removed unused import
 import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
@@ -112,239 +112,12 @@ class AppStateProvider with ChangeNotifier {
   }
 
   Future<void> seedInitialData() async {
-    final hardcodedServices = [
-      // ✅ English customer service requests
-      ServiceRequest(
-        id: 'SR001',
-        customerId: 'C001', // Ali Khan - English
-        customerName: 'Ali Khan',
-        serviceId: 'SV001',
-        serviceName: AdminTranslations.getServiceName('ac_repair'),
-        requestedDate: DateTime.now().add(const Duration(days: 2)),
-        requestedTime: '10:00 AM',
-        address: 'Al Malqa, Riyadh 13521',
-        customerNotes: 'Air conditioning not cooling properly',
-        customerLanguage: 'english',
-        status: ServiceRequestStatus.pending,
-        basePrice: 250.0,
-        commission: 20.0,
-        vat: 15.0,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      ServiceRequest(
-        id: 'SR002',
-        customerId: 'C002', // Sarah Johnson - English
-        customerName: 'Sarah Johnson',
-        serviceId: 'SV002',
-        serviceName: AdminTranslations.getServiceName('plumbing'),
-        requestedDate: DateTime.now().add(const Duration(days: 1)),
-        requestedTime: '02:00 PM',
-        address: 'Al Hamra District, Jeddah 23323',
-        customerNotes: 'Kitchen sink is leaking and needs repair',
-        customerLanguage: 'english',
-        status: ServiceRequestStatus.pending,
-        basePrice: 180.0,
-        commission: 20.0,
-        vat: 15.0,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      // Arabic requests
-      ServiceRequest(
-        id: 'SR003',
-        customerId: 'C003',
-        customerName: 'فاطمة حسن',
-        serviceId: 'SV003',
-        serviceName: AdminTranslations.getServiceName('electrical'),
-        requestedDate: DateTime.now().add(const Duration(days: 3)),
-        requestedTime: '11:00 AM',
-        address: 'النخيل، الرياض 13325',
-        customerNotes: 'مشكلة في الأسلاك الكهربائية في غرفة المعيشة',
-        customerLanguage: 'arabic',
-        status: ServiceRequestStatus.assigned,
-        workerId: 'W001',
-        workerName: AdminTranslations.getWorkerName('ahmed'),
-        workerNameArabic: AdminTranslations.getArabic(
-          AdminTranslations.getWorkerName('ahmed'),
-        ),
-        basePrice: 300.0,
-        commission: 25.0,
-        vat: 18.0,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      ServiceRequest(
-        id: 'SR004',
-        customerId: 'C004',
-        customerName: 'محمد أحمد',
-        serviceId: 'SV004',
-        serviceName: AdminTranslations.getServiceName('cleaning'),
-        requestedDate: DateTime.now().add(const Duration(days: 4)),
-        requestedTime: '09:00 AM',
-        address: 'الروضة، جدة 23456',
-        customerNotes: 'تنظيف عميق للشقة بالكامل قبل مناسبة خاصة',
-        customerLanguage: 'arabic',
-        status: ServiceRequestStatus.inProgress,
-        workerId: 'W002',
-        workerName: AdminTranslations.getWorkerName('fatima'),
-        workerNameArabic: AdminTranslations.getArabic(
-          AdminTranslations.getWorkerName('fatima'),
-        ),
-        basePrice: 200.0,
-        commission: 15.0,
-        vat: 12.0,
-        extraItems: [
-          ExtraItem(
-            id: 'EXT001',
-            name: 'Window Cleaning • تنظيف النوافذ',
-            type: 'service',
-            price: 50.0,
-          ),
-          ExtraItem(
-            id: 'EXT002',
-            name: 'Carpet Cleaning • تنظيف السجاد',
-            type: 'service',
-            price: 80.0,
-          ),
-        ],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-
-    // Assuming we have workers from Auth Service, but easier to just mock one here for seeding
-    // In a real scenario, we'd fetch them or have them passed in.
-    // For now, let's just seed services.
-
-    // We also need some dummy workers if they don't exist
-    final workers = [
-      WorkerData(
-        id: 'W001',
-        name: 'Ahmed Ali',
-        nameArabic: 'أحمد علي',
-        phone: '+966500000001',
-        email: 'ahmed@example.com',
-        nationalId: '1000000001',
-        stcPayId: 'STC001',
-        address: 'Riyadh',
-        addressArabic: 'الرياض',
-        status: 'Active',
-        joinedDate: DateTime.now(),
-        creditBalance: 100.0,
-      ),
-      WorkerData(
-        id: 'W002',
-        name: 'Fatima Noor',
-        nameArabic: 'فاطمة نور',
-        phone: '+966500000002',
-        email: 'fatima@example.com',
-        nationalId: '1000000002',
-        stcPayId: 'STC002',
-        address: 'Jeddah',
-        addressArabic: 'جدة',
-        status: 'Active',
-        joinedDate: DateTime.now(),
-        creditBalance: 150.0,
-      ),
-    ];
-
-    // Seed categories
-    final categories = [
-      ServiceCategory(
-        id: 'CAT001',
-        nameEnglish: 'AC Repair',
-        nameArabic: 'تصليح مكيف',
-        descriptionEnglish: 'Air conditioning repair and maintenance',
-        descriptionArabic: 'صيانة وإصلاح المكيفات',
-        basePrice: 150.0,
-      ),
-      ServiceCategory(
-        id: 'CAT002',
-        nameEnglish: 'Plumbing',
-        nameArabic: 'سباكة',
-        descriptionEnglish: 'All plumbing services',
-        descriptionArabic: 'جميع خدمات السباكة',
-        basePrice: 100.0,
-      ),
-      ServiceCategory(
-        id: 'CAT003',
-        nameEnglish: 'Electrical',
-        nameArabic: 'كهرباء',
-        descriptionEnglish: 'Electrical wiring and repair',
-        descriptionArabic: 'التمديدات الكهربائية والإصلاح',
-        basePrice: 120.0,
-      ),
-      ServiceCategory(
-        id: 'CAT004',
-        nameEnglish: 'Cleaning',
-        nameArabic: 'تنظيف',
-        descriptionEnglish: 'Home and office cleaning',
-        descriptionArabic: 'تنظيف المنازل والمكاتب',
-        basePrice: 80.0,
-      ),
-    ];
-
-    // Access Service Management for offered services
-    // Create a temporary instance just to get the initial data if needed,
-    // or better, manually define them here to avoid circular dependency issues during init.
-    // However, ServiceManagementService is a singleton so it should be fine.
-
-    // We already have hardcodedCustomers getter below.
-
-    // For Offered Services (Catalogue):
-    // We need to define them here or get them from ServiceManagementService.
-    // Let's define the initial catalogue here for valid seeding.
-    final offeredServices = [
-      Service(
-        id: 'srv1',
-        name: 'AC Repair',
-        nameArabic: 'إصلاح التكييف',
-        categoryId: 'CAT001',
-        category: 'AC Repair',
-        categoryArabic: 'تصليح مكيف',
-        subcategoryId: 'cat1_0',
-        subcategory: 'Repair',
-        subcategoryArabic: 'إصلاح',
-        basePrice: 450.0,
-        commission: 10.0,
-        vat: 5.0,
-        isActive: true,
-      ),
-      Service(
-        id: 'srv2',
-        name: 'Washing Machine Service',
-        nameArabic: 'صيانة الغسالة',
-        categoryId: 'CAT002',
-        category:
-            'Plumbing', // Using Plumbing category for demo purposes based on ID match
-        categoryArabic: 'سباكة',
-        subcategoryId: 'cat2_0',
-        subcategory: 'Installation',
-        subcategoryArabic: 'تركيب',
-        basePrice: 300.0,
-        commission: 10.0,
-        vat: 5.0,
-        isActive: true,
-      ),
-    ];
-
-    await _firestoreService.seedInitialData(
-      workers: workers,
-      services: hardcodedServices,
-      transactions: [],
-      categories: categories,
-      customers: hardcodedCustomers,
-      offeredServices: offeredServices,
-    );
+    // Dummy data seeding removed.
   }
 
   void loadMockData() {
-    seedInitialData();
+    // Mock data removed
   }
-
-  // ✅ ADD: Hardcoded customers list
-  List<Customer> get hardcodedCustomers => Customer.sampleData();
 
   // ✅ ADD: Get customer by ID
   Customer? getCustomerById(String customerId) {
@@ -353,12 +126,7 @@ class AppStateProvider with ChangeNotifier {
       return _firestoreCustomers.firstWhere((c) => c.id == customerId);
     } catch (_) {}
 
-    // 2. Fallback to hardcoded/sample data
-    try {
-      return hardcodedCustomers.firstWhere((c) => c.id == customerId);
-    } catch (_) {}
-
-    // 3. Last resort: Unknown
+    // 2. Last resort: Unknown
     return Customer(
       id: customerId, // Use the ID passed, so we at least know WHICH ID is missing
       name: 'Unknown Customer',
@@ -551,12 +319,14 @@ class AppStateProvider with ChangeNotifier {
       }
     }
 
-    // 4. Add all hardcoded customers (Only if map is empty - purely for testing/demo)
+    // 4. Fallback removed.
+    /*
     if (customersMap.isEmpty) {
       for (var customer in hardcodedCustomers) {
         customersMap[customer.id] = customer;
       }
     }
+    */
 
     return customersMap.values.toList();
   }

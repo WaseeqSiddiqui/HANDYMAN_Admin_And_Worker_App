@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:printing/printing.dart';
 import 'package:flutter/foundation.dart';
 import '/models/service_invoice_model.dart';
 import '/models/service_request_model.dart';
@@ -43,6 +44,12 @@ class InvoiceService {
       return text.split('•')[0].trim();
     }
     return text;
+  }
+
+  // ✅ Helper to check if payment is Cash
+  bool _isCashPayment(String method) {
+    final m = method.toLowerCase();
+    return m.contains('cash') || m.contains('hand') || m.contains('cod');
   }
 
   // ✅ Helper to clean address (remove phone numbers)
@@ -83,25 +90,6 @@ class InvoiceService {
 
       // Sanitize address (remove phone number)
       final cleanAddress = _cleanAddress(invoice.customerAddress);
-
-      // Create a modified copy of the invoice for saving/PDF
-      // (We don't modify the original object if it's immutable, but here we can just pass the new address)
-      // Since ServiceInvoice is immutable (final fields), we might need to copyWith or just use the new address in PDF/Saving.
-      // But ServiceInvoice doesn't have copyWith in the file I saw, so I'll create a new instance effectively
-      // OR just use the clean address in the PDF generator and Firestore add.
-      // Wait, to save to Firestore with the clean address, I need to modify the object or map.
-      // I'll create a map for Firestore, but for PDF I need the object.
-      // Actually, let's just create a new map for Firestore and use the modified string for PDF.
-      // Better yet, let's trust the _cleanAddress usage inside the generator and the toMap.
-
-      // Actually, I can't easily modify 'invoice' since it's final.
-      // I will generate the PDF using the sanitized address logic INSIDE generateInvoicePDF.
-      // AND for Firestore, I will modify the 'addInvoice' call in FirestoreService or just modify the map before sending?
-      // InvoiceService calls _firestoreService.addInvoice(invoice).
-      // I should probably add a clean step there or just do it here.
-      // Let's rely on the PDF generation to show it clean.
-      // The user said "stored/sent to admin... remove it". So it SHOULD be removed from Firestore too.
-      // I will create a new ServiceInvoice with the cleaned address.
 
       final cleanInvoice = ServiceInvoice(
         invoiceNumber: invoice.invoiceNumber,
@@ -153,8 +141,15 @@ class InvoiceService {
     }
   }
 
-  Future<void> generateInvoicePDF(ServiceInvoice invoice) async {
+  Future<File> generateInvoicePDF(
+    ServiceInvoice invoice, {
+    String? customPath,
+  }) async {
     final pdf = pw.Document();
+
+    // Load Arabic-supporting font
+    final font = await PdfGoogleFonts.cairoRegular();
+    final fontBold = await PdfGoogleFonts.cairoBold();
 
     // Use a primary color for branding
     final primaryColor = PdfColors.blue900;
@@ -255,28 +250,30 @@ class InvoiceService {
                               ),
                               pw.SizedBox(height: 10),
                               pw.Text(
-                                _getEnglishOnly(invoice.customerName),
+                                invoice.customerName,
+                                textDirection: pw.TextDirection.rtl,
                                 style: pw.TextStyle(
                                   fontSize: 16,
                                   fontWeight: pw.FontWeight.bold,
                                   color: PdfColors.black,
+                                  font: fontBold,
                                 ),
                               ),
                               pw.SizedBox(height: 4),
                               pw.Text(
-                                // Ensure address is clean here too just in case
-                                _cleanAddress(
-                                  _getEnglishOnly(invoice.customerAddress),
-                                ),
-                                style: const pw.TextStyle(
+                                _cleanAddress(invoice.customerAddress),
+                                textDirection: pw.TextDirection.rtl,
+                                style: pw.TextStyle(
                                   fontSize: 12,
                                   color: PdfColors.grey700,
                                   lineSpacing: 1.5,
+                                  font: font,
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        pw.SizedBox(width: 40), // Spacing
                         // Invoice Details
                         pw.Expanded(
                           child: pw.Column(
@@ -354,9 +351,7 @@ class InvoiceService {
                             _getEnglishOnly(item.name),
                             item.type,
                             item.price,
-                            isOdd:
-                                (index + 2) % 2 !=
-                                0, // Used +2 because base service is row 1
+                            isOdd: (index + 2) % 2 != 0,
                           );
                         }),
                       ],
@@ -368,7 +363,7 @@ class InvoiceService {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        // Payment Info (Always Visible for reference)
+                        // Payment Info
                         pw.Expanded(
                           flex: 3,
                           child: pw.Container(
@@ -391,7 +386,9 @@ class InvoiceService {
                                 ),
                                 pw.SizedBox(height: 8),
                                 pw.Text(
-                                  'STC Pay / Bank Transfer',
+                                  _isCashPayment(invoice.paymentMethod)
+                                      ? 'Pay via STC Pay:'
+                                      : 'STC Pay / Bank Transfer',
                                   style: pw.TextStyle(
                                     fontSize: 12,
                                     fontWeight: pw.FontWeight.bold,
@@ -502,9 +499,16 @@ class InvoiceService {
       ),
     );
 
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/invoice_${invoice.invoiceNumber}.pdf');
+    late final File file;
+    if (customPath != null) {
+      file = File(customPath);
+    } else {
+      final directory = await getApplicationDocumentsDirectory();
+      file = File('${directory.path}/invoice_${invoice.invoiceNumber}.pdf');
+    }
+
     await file.writeAsBytes(await pdf.save());
+    return file;
   }
 
   Future<void> downloadInvoicePDF(ServiceInvoice invoice) async {
@@ -525,9 +529,13 @@ class InvoiceService {
       }
 
       // Always generate fresh PDF to reflect changes
-      await generateInvoicePDF(invoice);
+      await generateInvoicePDF(invoice, customPath: filePath);
 
-      await OpenFilex.open(filePath);
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type != ResultType.done) {
+        throw Exception(result.message);
+      }
     } catch (e) {
       throw Exception('Failed to download invoice: $e');
     }

@@ -1844,9 +1844,39 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     try {
       final invoiceService = InvoiceService();
       final invoice = invoiceService.getInvoiceByServiceId(service.id);
-      if (invoice != null) await invoiceService.downloadInvoicePDF(invoice);
+
+      if (invoice != null) {
+        await invoiceService.downloadInvoicePDF(invoice);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AdminTranslations.split(AdminTranslations.invoiceDownloaded)[0]}',
+              ), // Using English part or fallback
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invoice not found / فاتورة غير موجودة'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
-      setState(() => _isDownloadingInvoice = false);
+      if (mounted) {
+        setState(() => _isDownloadingInvoice = false);
+      }
     }
   }
 

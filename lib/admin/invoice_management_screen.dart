@@ -8,7 +8,8 @@ class InvoiceManagementScreen extends StatefulWidget {
   const InvoiceManagementScreen({super.key});
 
   @override
-  State<InvoiceManagementScreen> createState() => _InvoiceManagementScreenState();
+  State<InvoiceManagementScreen> createState() =>
+      _InvoiceManagementScreenState();
 }
 
 class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
@@ -20,7 +21,9 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AdminTranslations.split(AdminTranslations.invoiceManagement)[0]),
+        title: Text(
+          AdminTranslations.split(AdminTranslations.invoiceManagement)[0],
+        ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
@@ -28,7 +31,10 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -48,13 +54,13 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
       body: invoices.isEmpty
           ? _buildEmptyState()
           : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: invoices.length,
-        itemBuilder: (context, index) {
-          final invoice = invoices[index];
-          return _buildInvoiceCard(invoice);
-        },
-      ),
+              padding: const EdgeInsets.all(16),
+              itemCount: invoices.length,
+              itemBuilder: (context, index) {
+                final invoice = invoices[index];
+                return _buildInvoiceCard(invoice);
+              },
+            ),
     );
   }
 
@@ -63,14 +69,12 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           BilingualText(
-            english: AdminTranslations.split(AdminTranslations.noInvoicesYet)[0],
+            english: AdminTranslations.split(
+              AdminTranslations.noInvoicesYet,
+            )[0],
             arabic: AdminTranslations.split(AdminTranslations.noInvoicesYet)[1],
             englishStyle: TextStyle(
               fontSize: 18,
@@ -83,12 +87,13 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: BilingualText(
-              english: AdminTranslations.split(AdminTranslations.invoicesWillAppear)[0],
-              arabic: AdminTranslations.split(AdminTranslations.invoicesWillAppear)[1],
-              englishStyle: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
+              english: AdminTranslations.split(
+                AdminTranslations.invoicesWillAppear,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.invoicesWillAppear,
+              )[1],
+              englishStyle: TextStyle(fontSize: 14, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
           ),
@@ -101,9 +106,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _viewInvoiceDetails(invoice),
@@ -218,8 +221,12 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   BilingualText(
-                    english: AdminTranslations.split(AdminTranslations.totalAmount)[0],
-                    arabic: AdminTranslations.split(AdminTranslations.totalAmount)[1],
+                    english: AdminTranslations.split(
+                      AdminTranslations.totalAmount,
+                    )[0],
+                    arabic: AdminTranslations.split(
+                      AdminTranslations.totalAmount,
+                    )[1],
                     englishStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -241,7 +248,9 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => _viewInvoiceDetails(invoice),
                   icon: const Icon(Icons.visibility, size: 18),
-                  label: Text(AdminTranslations.split(AdminTranslations.viewDetails)[0]),
+                  label: Text(
+                    AdminTranslations.split(AdminTranslations.viewDetails)[0],
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6B5B9A),
                     foregroundColor: Colors.white,
@@ -267,10 +276,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               ),
               Text(
                 value,
@@ -340,8 +346,12 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 BilingualText(
-                                  english: AdminTranslations.split(AdminTranslations.invoiceDetails)[0],
-                                  arabic: AdminTranslations.split(AdminTranslations.invoiceDetails)[1],
+                                  english: AdminTranslations.split(
+                                    AdminTranslations.invoiceDetails,
+                                  )[0],
+                                  arabic: AdminTranslations.split(
+                                    AdminTranslations.invoiceDetails,
+                                  )[1],
                                   englishStyle: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -380,22 +390,38 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                       const Divider(height: 32),
 
                       _buildDetailSection(
-                        AdminTranslations.split(AdminTranslations.serviceInformation)[0],
-                        AdminTranslations.split(AdminTranslations.serviceInformation)[1],
+                        AdminTranslations.split(
+                          AdminTranslations.serviceInformation,
+                        )[0],
+                        AdminTranslations.split(
+                          AdminTranslations.serviceInformation,
+                        )[1],
                         [
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.serviceId)[0],
-                            AdminTranslations.split(AdminTranslations.serviceId)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.serviceId,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.serviceId,
+                            )[1],
                             invoice.serviceId,
                           ),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.serviceType)[0],
-                            AdminTranslations.split(AdminTranslations.serviceType)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.serviceType,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.serviceType,
+                            )[1],
                             invoice.serviceName,
                           ),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.worker)[0],
-                            AdminTranslations.split(AdminTranslations.worker)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.worker,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.worker,
+                            )[1],
                             invoice.workerName,
                           ),
                           _buildDetailRow(
@@ -407,75 +433,119 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                       ),
 
                       _buildDetailSection(
-                        AdminTranslations.split(AdminTranslations.customerInformation)[0],
-                        AdminTranslations.split(AdminTranslations.customerInformation)[1],
+                        AdminTranslations.split(
+                          AdminTranslations.customerInformation,
+                        )[0],
+                        AdminTranslations.split(
+                          AdminTranslations.customerInformation,
+                        )[1],
                         [
-                          _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.phone)[0],
-                            AdminTranslations.split(AdminTranslations.phone)[1],
-                            invoice.customerId,
-                          ),
+                          // _buildDetailRow(
+                          //   AdminTranslations.split(AdminTranslations.phone)[0],
+                          //   AdminTranslations.split(AdminTranslations.phone)[1],
+                          //   invoice.customerId,
+                          // ),
                           _buildDetailRow(
                             AdminTranslations.split(AdminTranslations.name)[0],
                             AdminTranslations.split(AdminTranslations.name)[1],
                             invoice.customerName,
                           ),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.address)[0],
-                            AdminTranslations.split(AdminTranslations.address)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.address,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.address,
+                            )[1],
                             invoice.customerAddress,
                           ),
                         ],
                       ),
 
                       _buildDetailSection(
-                        AdminTranslations.split(AdminTranslations.paymentBreakdown)[0],
-                        AdminTranslations.split(AdminTranslations.paymentBreakdown)[1],
+                        AdminTranslations.split(
+                          AdminTranslations.paymentBreakdown,
+                        )[0],
+                        AdminTranslations.split(
+                          AdminTranslations.paymentBreakdown,
+                        )[1],
                         [
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.basePrice)[0],
-                            AdminTranslations.split(AdminTranslations.basePrice)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.basePrice,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.basePrice,
+                            )[1],
                             'SAR ${invoice.basePrice.toStringAsFixed(2)}',
                           ),
                           if (invoice.extraCharges > 0)
                             _buildDetailRow(
-                              AdminTranslations.split(AdminTranslations.extraCharges)[0],
-                              AdminTranslations.split(AdminTranslations.extraCharges)[1],
+                              AdminTranslations.split(
+                                AdminTranslations.extraCharges,
+                              )[0],
+                              AdminTranslations.split(
+                                AdminTranslations.extraCharges,
+                              )[1],
                               'SAR ${invoice.extraCharges.toStringAsFixed(2)}',
                             ),
                           const Divider(),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.totalAmount)[0],
-                            AdminTranslations.split(AdminTranslations.totalAmount)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.totalAmount,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.totalAmount,
+                            )[1],
                             'SAR ${invoice.totalAmount.toStringAsFixed(2)}',
                             isBold: true,
                           ),
                           const Divider(),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.vatPercent)[0],
-                            AdminTranslations.split(AdminTranslations.vatPercent)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.vatPercent,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.vatPercent,
+                            )[1],
                             'SAR ${invoice.vat.toStringAsFixed(2)}',
                           ),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.commissionPercent)[0],
-                            AdminTranslations.split(AdminTranslations.commissionPercent)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.commissionPercent,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.commissionPercent,
+                            )[1],
                             'SAR ${invoice.commission.toStringAsFixed(2)}',
                           ),
                         ],
                       ),
 
                       _buildDetailSection(
-                        AdminTranslations.split(AdminTranslations.paymentInformation)[0],
-                        AdminTranslations.split(AdminTranslations.paymentInformation)[1],
+                        AdminTranslations.split(
+                          AdminTranslations.paymentInformation,
+                        )[0],
+                        AdminTranslations.split(
+                          AdminTranslations.paymentInformation,
+                        )[1],
                         [
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.method)[0],
-                            AdminTranslations.split(AdminTranslations.method)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.method,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.method,
+                            )[1],
                             invoice.paymentMethod,
                           ),
                           _buildDetailRow(
-                            AdminTranslations.split(AdminTranslations.status)[0],
-                            AdminTranslations.split(AdminTranslations.status)[1],
+                            AdminTranslations.split(
+                              AdminTranslations.status,
+                            )[0],
+                            AdminTranslations.split(
+                              AdminTranslations.status,
+                            )[1],
                             invoice.status,
                           ),
                         ],
@@ -489,7 +559,11 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                           _downloadInvoice(invoice);
                         },
                         icon: const Icon(Icons.download),
-                        label: Text(AdminTranslations.split(AdminTranslations.downloadPdf)[0]),
+                        label: Text(
+                          AdminTranslations.split(
+                            AdminTranslations.downloadPdf,
+                          )[0],
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
@@ -507,7 +581,11 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     );
   }
 
-  Widget _buildDetailSection(String titleEn, String titleAr, List<Widget> children) {
+  Widget _buildDetailSection(
+    String titleEn,
+    String titleAr,
+    List<Widget> children,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -527,7 +605,12 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
     );
   }
 
-  Widget _buildDetailRow(String labelEn, String labelAr, String value, {bool isBold = false}) {
+  Widget _buildDetailRow(
+    String labelEn,
+    String labelAr,
+    String value, {
+    bool isBold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -538,10 +621,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
             child: BilingualText(
               english: labelEn,
               arabic: labelAr,
-              englishStyle: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              englishStyle: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ),
           Expanded(
@@ -565,7 +645,9 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AdminTranslations.invoiceDownloaded} ${invoice.invoiceNumber}'),
+            content: Text(
+              '${AdminTranslations.invoiceDownloaded} ${invoice.invoiceNumber}',
+            ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),

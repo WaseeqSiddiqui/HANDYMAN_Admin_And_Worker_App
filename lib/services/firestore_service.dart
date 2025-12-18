@@ -539,56 +539,7 @@ class FirestoreService {
     required List<Customer> customers,
     required List<Service> offeredServices,
   }) async {
-    final batch = _firestore.batch();
-
-    // Check and seed Workers
-    final workersSnapshot = await _workersCollection.limit(1).get();
-    if (workersSnapshot.docs.isEmpty) {
-      debugPrint('Seeding Workers...');
-      for (var worker in workers) {
-        batch.set(_workersCollection.doc(worker.id), worker.toMap());
-      }
-    }
-
-    // Check and seed Service Requests
-    final servicesSnapshot = await _servicesCollection.limit(1).get();
-    if (servicesSnapshot.docs.isEmpty) {
-      debugPrint('Seeding Service Requests...');
-      for (var service in services) {
-        batch.set(_servicesCollection.doc(service.id), service.toJson());
-      }
-    }
-
-    // Check and seed Service Categories
-    final categoriesSnapshot = await _categoriesCollection.limit(1).get();
-    if (categoriesSnapshot.docs.isEmpty) {
-      debugPrint('Seeding Service Categories...');
-      for (var category in categories) {
-        batch.set(_categoriesCollection.doc(category.id), category.toMap());
-      }
-    }
-
-    // Check and seed Customers
-    final customersSnapshot = await _customersCollection.limit(1).get();
-    if (customersSnapshot.docs.isEmpty) {
-      debugPrint('Seeding Customers...');
-      for (var customer in customers) {
-        batch.set(_customersCollection.doc(customer.id), customer.toMap());
-      }
-    }
-
-    // Check and seed Offered Services (Catalogue)
-    final offeredServicesSnapshot = await _offeredServicesCollection
-        .limit(1)
-        .get();
-    if (offeredServicesSnapshot.docs.isEmpty) {
-      debugPrint('Seeding Offered Services...');
-      for (var service in offeredServices) {
-        batch.set(_offeredServicesCollection.doc(service.id), service.toMap());
-      }
-    }
-
-    await batch.commit();
-    debugPrint('Seeding complete.');
+    // Seeding disabled
+    debugPrint('Seeding disabled.');
   }
 }
