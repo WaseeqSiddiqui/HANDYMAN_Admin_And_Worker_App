@@ -1036,7 +1036,9 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   if (nameController.text.isEmpty ||
                       nameArabicController.text.isEmpty ||
                       selectedCategoryId == null ||
-                      selectedSubcategoryIndex == null ||
+                      (selectedCat != null &&
+                          selectedCat.subcategories.isNotEmpty &&
+                          selectedSubcategoryIndex == null) ||
                       priceController.text.isEmpty ||
                       commissionController.text.isEmpty ||
                       vatController.text.isEmpty ||
