@@ -40,7 +40,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     WorkerTranslations.noCompletedServices,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    style: TextStyle(color: Colors.grey.shade800, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -49,7 +49,7 @@ class CompletedServicesScreen extends StatelessWidget {
                         'Your completed services will appear here',
                         'ستظهر خدماتك المكتملة هنا'
                     ),
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -111,7 +111,7 @@ class CompletedServicesScreen extends StatelessWidget {
                         service.customerName,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: Colors.black87,
                         ),
                       ),
                     ],
@@ -142,7 +142,7 @@ class CompletedServicesScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     service.address,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 13, color: Colors.black87),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -158,7 +158,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Completed: ${_formatDate(service.completedDate!)}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 13, color: Colors.black87),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -175,7 +175,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   children: [
                     Text(
                       WorkerTranslations.totalAmount,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
                     ),
                     Text(
                       'SAR ${totalPrice.toStringAsFixed(2)}',
@@ -192,7 +192,7 @@ class CompletedServicesScreen extends StatelessWidget {
                   children: [
                     Text(
                       WorkerTranslations.yourEarnings,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
                     ),
                     Text(
                       'SAR ${earnings.toStringAsFixed(2)}',
@@ -239,7 +239,7 @@ class CompletedServicesScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade800),
         ),
         const SizedBox(height: 2),
         Text(

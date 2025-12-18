@@ -576,9 +576,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             children: [
               Text(
                 englishLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: Colors.grey,
+                  color: Colors.grey[700],
                 ),
               ),
               Text(
@@ -613,7 +613,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ),
               Text(
                 WorkerTranslations.getArabic(WorkerTranslations.quickActions),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                 ),
@@ -833,14 +833,14 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   WorkerTranslations.getEnglish(WorkerTranslations.noServices),
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[400],
+                    color: Colors.grey[600],
                   ),
                 ),
                 Text(
                   WorkerTranslations.getArabic(WorkerTranslations.noServices),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[400],
+                    color: Colors.grey[600],
                   ),
                 ),
               ],
@@ -936,11 +936,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       children: [
                         Text(
                           WorkerTranslations.getEnglish(WorkerTranslations.customer),
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                         ),
                         Text(
                           service.customerName,
-                          style: const TextStyle(fontSize: 14),
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
                         ),
                       ],
                     ),
@@ -958,11 +958,14 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       children: [
                         Text(
                           WorkerTranslations.getEnglish(WorkerTranslations.address),
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                         ),
                         Text(
                           service.address,
-                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
                         ),
                       ],
                     ),
@@ -979,11 +982,14 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     children: [
                       Text(
                         WorkerTranslations.getEnglish(WorkerTranslations.dateTime),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       Text(
                         '${_formatDate(service.requestedDate)} at ${service.requestedTime}',
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
                       ),
                     ],
                   ),
@@ -1000,11 +1006,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     children: [
                       Text(
                         WorkerTranslations.getEnglish(WorkerTranslations.totalAmount),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       Text(
                         WorkerTranslations.getArabic(WorkerTranslations.totalAmount),
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        style: TextStyle(fontSize: 10, color: Colors.grey[700]),
                       ),
                       Text(
                         '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${service.totalPrice.toStringAsFixed(2)}',

@@ -536,11 +536,11 @@ class _CreditScreenState extends State<CreditScreen> {
                     children: [
                       Text(
                         WorkerTranslations.getEnglish(WorkerTranslations.noCreditTransactions),
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
                       ),
                       Text(
                         WorkerTranslations.getArabic(WorkerTranslations.noCreditTransactions),
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 10),
                       ),
                     ],
                   ),
@@ -617,7 +617,7 @@ class _CreditScreenState extends State<CreditScreen> {
                   'Credit top-up via STC Pay • شحن رصيد عبر STC Pay',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.grey.shade500,
+                    color: Colors.grey.shade700,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -627,14 +627,14 @@ class _CreditScreenState extends State<CreditScreen> {
                     Icon(
                       Icons.access_time,
                       size: 12,
-                      color: Colors.grey.shade500,
+                      color: Colors.grey.shade700,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       _formatTransactionDate(transaction.createdAt),
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.grey.shade500,
+                        color: Colors.grey.shade700,
                       ),
                     ),
                   ],

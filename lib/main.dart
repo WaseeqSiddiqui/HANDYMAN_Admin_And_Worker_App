@@ -36,15 +36,7 @@ class AdminWorkerApp extends StatelessWidget {
           useMaterial3: true,
           scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF3B82F6),
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFF0F172A),
-        ),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         home: const SplashScreen(), // ✅ Changed to SplashScreen
       ),
     );

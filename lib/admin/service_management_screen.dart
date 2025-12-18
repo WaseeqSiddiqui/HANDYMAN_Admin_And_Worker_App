@@ -720,6 +720,21 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  itemHeight: null,
+                  selectedItemBuilder: (BuildContext context) {
+                    return categories.map<Widget>((cat) {
+                      return Text(
+                        '${cat.name} • ${cat.nameArabic}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                        ),
+                      );
+                    }).toList();
+                  },
                   value: selectedCategoryId,
                   decoration: const InputDecoration(
                     labelText: 'Select Category',
@@ -730,11 +745,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       value: cat.id,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(cat.name),
+                          Text(cat.name, overflow: TextOverflow.visible),
                           Text(
                             cat.nameArabic,
+                            overflow: TextOverflow.visible,
                             style: const TextStyle(
                               fontSize: 11,
                               color: Colors.grey,
@@ -750,6 +765,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     });
                   },
                 ),
+
                 const SizedBox(height: 16),
                 TextField(
                   controller: nameController,
@@ -876,6 +892,21 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    itemHeight: null,
+                    selectedItemBuilder: (BuildContext context) {
+                      return categories.map<Widget>((cat) {
+                        return Text(
+                          '${cat.name} • ${cat.nameArabic}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 14,
+                          ),
+                        );
+                      }).toList();
+                    },
                     value: selectedCategoryId,
                     decoration: const InputDecoration(
                       labelText: 'Category',
@@ -886,11 +917,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                         value: cat.id,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(cat.name),
+                            Text(cat.name, overflow: TextOverflow.visible),
                             Text(
                               cat.nameArabic,
+                              overflow: TextOverflow.visible,
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
@@ -911,6 +942,24 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   if (selectedCat != null)
                     selectedCat.subcategories.isNotEmpty
                         ? DropdownButtonFormField<int>(
+                            isExpanded: true,
+                            itemHeight: null,
+                            selectedItemBuilder: (BuildContext context) {
+                              return List.generate(
+                                selectedCat.subcategories.length,
+                                (index) {
+                                  return Text(
+                                    '${selectedCat.subcategories[index]} • ${selectedCat.subcategoriesArabic[index]}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                             value: selectedSubcategoryIndex,
                             decoration: const InputDecoration(
                               labelText: 'Subcategory',
