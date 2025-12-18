@@ -1250,6 +1250,26 @@ class AppStateProvider with ChangeNotifier {
     _currentWorkerData.transactions.insert(0, transaction);
     notifyListeners();
   }
+
+  Future<void> markInvoiceAsGenerated(String serviceId) async {
+    final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
+    if (serviceIndex != -1) {
+      final service = _serviceRequests[serviceIndex];
+      final updatedService = service.copyWith(
+        invoiceGenerated: true,
+        updatedAt: DateTime.now(),
+      );
+
+      // 1. Update Firestore (Sync with Customer App)
+      await _firestoreService.updateServiceRequest(updatedService);
+
+      // 2. Update Local State
+      _serviceRequests[serviceIndex] = updatedService;
+      notifyListeners();
+
+      debugPrint('✅ Invoice marked as generated for service: $serviceId');
+    }
+  }
 }
 
 class WorkerFinancialData {

@@ -8,7 +8,7 @@ enum ServiceRequestStatus {
   inProgress,
   completed,
   postponed,
-  cancelled
+  cancelled,
 }
 
 enum PaymentMethod { cash, online }
@@ -38,7 +38,6 @@ class ServiceRequest {
   final DateTime updatedAt;
   final bool invoiceGenerated;
   final String customerLanguage; // ✅ Customer کی language preference
-
 
   ServiceRequest({
     required this.id,
@@ -118,6 +117,7 @@ class ServiceRequest {
     PaymentMethod? paymentMethod,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? invoiceGenerated, // ✅ Added
   }) {
     return ServiceRequest(
       id: id ?? this.id,
@@ -141,7 +141,8 @@ class ServiceRequest {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      customerLanguage: customerLanguage ?? this.customerLanguage
+      invoiceGenerated: invoiceGenerated ?? this.invoiceGenerated, // ✅ Added
+      customerLanguage: customerLanguage ?? this.customerLanguage,
     );
   }
 
@@ -156,20 +157,22 @@ class ServiceRequest {
       workerId: json['workerId'],
       workerName: json['workerName'],
       workerNameArabic: json['workerNameArabic'],
-      requestedDate: DateTime.tryParse(json['requestedDate'] ?? '') ?? DateTime.now(),
+      requestedDate:
+          DateTime.tryParse(json['requestedDate'] ?? '') ?? DateTime.now(),
       requestedTime: json['requestedTime'] ?? '',
       address: json['address'] ?? '', // ✅ Single language
       customerNotes: json['customerNotes'],
       status: ServiceRequestStatus.values.firstWhere(
-            (e) => e.toString() == 'ServiceRequestStatus.${json['status']}',
+        (e) => e.toString() == 'ServiceRequestStatus.${json['status']}',
         orElse: () => ServiceRequestStatus.pending,
       ),
       basePrice: (json['basePrice'] ?? 0).toDouble(),
       commission: (json['commission'] ?? 20.0).toDouble(),
       vat: (json['vat'] ?? 15.0).toDouble(),
-      extraItems: (json['extraItems'] as List?)
-          ?.map((e) => ExtraItem.fromJson(e))
-          .toList() ??
+      extraItems:
+          (json['extraItems'] as List?)
+              ?.map((e) => ExtraItem.fromJson(e))
+              .toList() ??
           [],
       postponeReason: json['postponeReason'],
       completedDate: json['completedDate'] != null
@@ -177,12 +180,13 @@ class ServiceRequest {
           : null,
       paymentMethod: json['paymentMethod'] != null
           ? PaymentMethod.values.firstWhere(
-            (e) => e.toString() == 'PaymentMethod.${json['paymentMethod']}',
-        orElse: () => PaymentMethod.cash,
-      )
+              (e) => e.toString() == 'PaymentMethod.${json['paymentMethod']}',
+              orElse: () => PaymentMethod.cash,
+            )
           : null,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+      invoiceGenerated: json['invoiceGenerated'] ?? false, // ✅ Added
       customerLanguage: json['customerLanguage'] ?? 'english',
     );
   }
@@ -211,6 +215,7 @@ class ServiceRequest {
       'paymentMethod': paymentMethod?.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'invoiceGenerated': invoiceGenerated, // ✅ Added
       'customerLanguage': customerLanguage,
     };
   }

@@ -900,14 +900,22 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
             BilingualText(
               english: AdminTranslations.split(service.serviceName)[0],
-              arabic: AdminTranslations.split(service.serviceName)[1],
+              arabic:
+                  AdminTranslations.split(service.serviceName)[0] ==
+                      AdminTranslations.split(service.serviceName)[1]
+                  ? ''
+                  : AdminTranslations.split(service.serviceName)[1],
               englishStyle: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              arabicStyle: const TextStyle(
-                fontSize: 18,
+              arabicStyle: TextStyle(
+                fontSize:
+                    AdminTranslations.split(service.serviceName)[0] ==
+                        AdminTranslations.split(service.serviceName)[1]
+                    ? 0
+                    : 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -1110,14 +1118,22 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
             BilingualText(
               english: AdminTranslations.split(service.serviceName)[0],
-              arabic: AdminTranslations.split(service.serviceName)[1],
+              arabic:
+                  AdminTranslations.split(service.serviceName)[0] ==
+                      AdminTranslations.split(service.serviceName)[1]
+                  ? ''
+                  : AdminTranslations.split(service.serviceName)[1],
               englishStyle: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              arabicStyle: const TextStyle(
-                fontSize: 18,
+              arabicStyle: TextStyle(
+                fontSize:
+                    AdminTranslations.split(service.serviceName)[0] ==
+                        AdminTranslations.split(service.serviceName)[1]
+                    ? 0
+                    : 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

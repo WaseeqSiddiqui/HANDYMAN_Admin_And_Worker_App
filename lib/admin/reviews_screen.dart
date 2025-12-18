@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/firestore_service.dart';
+import '../models/review_model.dart';
 
 class ReviewsScreen extends StatefulWidget {
   const ReviewsScreen({super.key});
@@ -9,120 +11,103 @@ class ReviewsScreen extends StatefulWidget {
 
 class _ReviewsScreenState extends State<ReviewsScreen> {
   String _filterRating = 'All';
+  final FirestoreService _firestoreService = FirestoreService();
 
-  final List<Map<String, dynamic>> _reviews = [
-    {
-      'id': 'REV001',
-      'customer': 'Ahmed Ali',
-      'worker': 'Hassan Mohammed',
-      'workerId': 'W001',
-      'service': 'AC Repair',
-      'serviceId': 'SRV001',
-      'rating': 5,
-      'comment': 'Excellent service! Very professional and completed on time.',
-      'date': DateTime.now().subtract(const Duration(hours: 2)),
-      'status': 'Published',
-    },
-    {
-      'id': 'REV002',
-      'customer': 'Fatima Khan',
-      'worker': 'Abdullah Khalid',
-      'workerId': 'W002',
-      'service': 'Plumbing Service',
-      'serviceId': 'SRV002',
-      'rating': 2,
-      'comment': 'Service was not completed properly. Had to call again for fixes.',
-      'date': DateTime.now().subtract(const Duration(hours: 5)),
-      'status': 'Pending Action',
-    },
-    {
-      'id': 'REV003',
-      'customer': 'Mohammed Saleh',
-      'worker': 'Hassan Mohammed',
-      'workerId': 'W001',
-      'service': 'Electrical Work',
-      'serviceId': 'SRV003',
-      'rating': 4,
-      'comment': 'Good service overall, but took longer than expected.',
-      'date': DateTime.now().subtract(const Duration(hours: 8)),
-      'status': 'Published',
-    },
-    {
-      'id': 'REV004',
-      'customer': 'Sara Ahmed',
-      'worker': 'Abdullah Khalid',
-      'workerId': 'W002',
-      'service': 'Carpentry',
-      'serviceId': 'SRV004',
-      'rating': 1,
-      'comment': 'Poor quality work. Not satisfied at all.',
-      'date': DateTime.now().subtract(const Duration(hours: 12)),
-      'status': 'Pending Action',
-    },
-    {
-      'id': 'REV005',
-      'customer': 'Khalid Hassan',
-      'worker': 'Hassan Mohammed',
-      'workerId': 'W001',
-      'service': 'Painting Service',
-      'serviceId': 'SRV005',
-      'rating': 5,
-      'comment': 'Amazing work! Very detailed and clean finish.',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'status': 'Published',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredReviews {
-    if (_filterRating == 'All') return _reviews;
+  List<Review> _filterReviews(List<Review> reviews) {
+    if (_filterRating == 'All') return reviews;
 
     if (_filterRating == 'Poor (1-2)') {
-      return _reviews.where((r) => r['rating'] <= 2).toList();
+      return reviews.where((r) => r.rating <= 2).toList();
     } else if (_filterRating == 'Average (3)') {
-      return _reviews.where((r) => r['rating'] == 3).toList();
+      return reviews.where((r) => r.rating == 3).toList();
     } else if (_filterRating == 'Good (4-5)') {
-      return _reviews.where((r) => r['rating'] >= 4).toList();
+      return reviews.where((r) => r.rating >= 4).toList();
     }
 
-    return _reviews;
+    return reviews;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF3B82F6), // Updated to match customer app
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Customer Reviews'),
-        backgroundColor: const Color(0xFF3B82F6), // Updated to deep purple
+        backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.insights),
-            onPressed: () => _showReviewInsights(),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Insights feature coming soon with real-time specific metrics.',
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSummaryCards(),
-          _buildFilterChips(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _filteredReviews.length,
-              itemBuilder: (context, index) => _buildReviewCard(_filteredReviews[index]),
-            ),
-          ),
-        ],
+      body: StreamBuilder<List<Review>>(
+        stream: _firestoreService.getReviewsStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          final allReviews = snapshot.data ?? [];
+          debugPrint('Reviews fetched: ${allReviews.length}');
+          if (allReviews.isNotEmpty) {
+            debugPrint('First review: ${allReviews.first.toMap()}');
+          }
+          final filteredReviews = _filterReviews(allReviews);
+
+          return Column(
+            children: [
+              _buildSummaryCards(allReviews),
+              _buildFilterChips(),
+              Expanded(
+                child: filteredReviews.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No reviews found',
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredReviews.length,
+                        itemBuilder: (context, index) =>
+                            _buildReviewCard(filteredReviews[index]),
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSummaryCards() {
-    int totalReviews = _reviews.length;
-    int poorReviews = _reviews.where((r) => r['rating'] <= 2).length;
-    int goodReviews = _reviews.where((r) => r['rating'] >= 4).length;
-    double avgRating = _reviews.fold(0, (sum, r) => sum + (r['rating'] as int)) / totalReviews;
+  Widget _buildSummaryCards(List<Review> reviews) {
+    int totalReviews = reviews.length;
+    int poorReviews = reviews.where((r) => r.rating <= 2).length;
+    int goodReviews = reviews.where((r) => r.rating >= 4).length;
+    double avgRating = totalReviews > 0
+        ? reviews.fold(0.0, (sum, r) => sum + r.rating) / totalReviews
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -159,7 +144,12 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     );
   }
 
-  Widget _buildSmallStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildSmallStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -203,12 +193,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: [
-            'All',
-            'Poor (1-2)',
-            'Average (3)',
-            'Good (4-5)',
-          ].map((filter) {
+          children: ['All', 'Poor (1-2)', 'Average (3)', 'Good (4-5)'].map((
+            filter,
+          ) {
             final isSelected = _filterRating == filter;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -218,7 +205,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 onSelected: (selected) {
                   setState(() => _filterRating = filter);
                 },
-                selectedColor: const Color(0xFF005DFF), // Updated to deep purple
+                selectedColor: const Color(0xFF005DFF),
                 backgroundColor: Colors.white,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : Colors.black87,
@@ -232,10 +219,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     );
   }
 
-  Widget _buildReviewCard(Map<String, dynamic> review) {
-    final rating = review['rating'] as int;
+  Widget _buildReviewCard(Review review) {
+    final rating = review.rating.toInt();
     final isPoorRating = rating <= 2;
-    final status = review['status'] as String;
+    final status = review.status;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -244,7 +231,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isPoorRating ? Colors.red.withOpacity(0.3) : Colors.transparent,
+          color: isPoorRating
+              ? Colors.red.withOpacity(0.3)
+              : Colors.transparent,
           width: 2,
         ),
       ),
@@ -272,7 +261,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review['customer'],
+                      review.customerName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -281,11 +270,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${review['service']} • ${review['worker']}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      review.workerName.isNotEmpty &&
+                              review.workerName != 'Unknown Worker'
+                          ? '${review.serviceName} • ${review.workerName}'
+                          : review.serviceName,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -298,7 +287,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: status == 'Published'
                         ? Colors.green.withOpacity(0.1)
@@ -310,13 +302,15 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: status == 'Published' ? Colors.green : Colors.orange,
+                      color: status == 'Published'
+                          ? Colors.green
+                          : Colors.orange,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _formatDate(review['date']),
+                  _formatDate(review.createdAt),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
@@ -342,7 +336,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    review['comment'],
+                    review.comment,
                     style: const TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                   const SizedBox(height: 16),
@@ -353,8 +347,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                       const Icon(Icons.person, size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        'Worker: ${review['worker']} (${review['workerId']})',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        'Worker: ${review.workerName} (${review.workerId})',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -364,8 +361,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                       const Icon(Icons.receipt, size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        'Service ID: ${review['serviceId']}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        'Service ID: ${review.serviceId}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -402,7 +402,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -445,11 +448,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.star,
-            size: 16,
-            color: _getRatingColor(rating),
-          ),
+          Icon(Icons.star, size: 16, color: _getRatingColor(rating)),
           const SizedBox(width: 4),
           Text(
             '$rating/5',
@@ -494,13 +493,13 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     }
   }
 
-  void _markAsResolved(Map<String, dynamic> review) {
+  void _markAsResolved(Review review) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Mark as Resolved'),
         content: Text(
-          'Mark this review from ${review['customer']} as resolved?\n\nThis will publish the review without any penalty.',
+          'Mark this review from ${review.customerName} as resolved?\n\nThis will publish the review without any penalty.',
         ),
         actions: [
           TextButton(
@@ -510,12 +509,12 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                review['status'] = 'Published';
-              });
+              // TODO: Implement update status in FirestoreService
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Review marked as resolved for ${review['worker']}'),
+                  content: Text(
+                    'Review marked as resolved for ${review.workerName}',
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -531,7 +530,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     );
   }
 
-  void _showDeductionDialog(Map<String, dynamic> review) {
+  void _showDeductionDialog(Review review) {
     final TextEditingController amountController = TextEditingController();
     final TextEditingController reasonController = TextEditingController();
 
@@ -560,12 +559,12 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Worker: ${review['worker']}',
+                      'Worker: ${review.workerName}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text('Worker ID: ${review['workerId']}'),
-                    Text('Service: ${review['service']}'),
-                    Text('Rating: ${review['rating']}/5'),
+                    Text('Worker ID: ${review.workerId}'),
+                    Text('Service: ${review.serviceName}'),
+                    Text('Rating: ${review.rating}/5'),
                   ],
                 ),
               ),
@@ -649,17 +648,14 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               }
 
               Navigator.pop(context);
-              setState(() {
-                review['status'] = 'Published';
-              });
-
+              // TODO: Logic for credit deduction
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('✅ Credit deducted from ${review['worker']}'),
+                      Text('✅ Credit deducted from ${review.workerName}'),
                       Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
                       Text('Reason: $reason'),
                     ],
@@ -677,128 +673,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               foregroundColor: Colors.white,
             ),
             child: const Text('Deduct Credit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showReviewInsights() {
-    final totalReviews = _reviews.length;
-    final avgRating = _reviews.fold(0, (sum, r) => sum + (r['rating'] as int)) / totalReviews;
-    final rating5 = _reviews.where((r) => r['rating'] == 5).length;
-    final rating4 = _reviews.where((r) => r['rating'] == 4).length;
-    final rating3 = _reviews.where((r) => r['rating'] == 3).length;
-    final rating2 = _reviews.where((r) => r['rating'] == 2).length;
-    final rating1 = _reviews.where((r) => r['rating'] == 1).length;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Review Insights'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF005DFF)], // Updated to deep purple gradient
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Average Rating',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          avgRating.toStringAsFixed(1),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.star, color: Colors.amber, size: 32),
-                      ],
-                    ),
-                    Text(
-                      'Based on $totalReviews reviews',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildRatingBar('5 Stars', rating5, totalReviews, Colors.green),
-              _buildRatingBar('4 Stars', rating4, totalReviews, Colors.lightGreen),
-              _buildRatingBar('3 Stars', rating3, totalReviews, Colors.orange),
-              _buildRatingBar('2 Stars', rating2, totalReviews, Colors.deepOrange),
-              _buildRatingBar('1 Star', rating1, totalReviews, Colors.red),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingBar(String label, int count, int total, Color color) {
-    final percentage = total > 0 ? (count / total * 100) : 0;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 60,
-            child: Text(label, style: const TextStyle(fontSize: 12)),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: percentage / 100,
-                  child: Container(
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 50,
-            child: Text(
-              '$count (${percentage.toStringAsFixed(0)}%)',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.right,
-            ),
           ),
         ],
       ),

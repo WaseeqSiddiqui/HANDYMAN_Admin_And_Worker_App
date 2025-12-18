@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '/models/service_request_model.dart';
+import '../models/service_request_model.dart';
+import '../models/chat_message_model.dart';
+import '../services/firestore_service.dart';
 import '/utils/worker_translations.dart';
 
 class ChatScreen extends StatefulWidget {
-  final ServiceRequest serviceRequest; // âœ… FIXED: Named parameter matches dashboard call
+  final ServiceRequest serviceRequest;
   final String workerName;
 
   const ChatScreen({
@@ -19,24 +21,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'sender': 'customer',
-      'message': 'Hello, when will you arrive?',
-      'time': DateTime.now().subtract(const Duration(minutes: 10)),
-    },
-    {
-      'sender': 'worker',
-      'message': 'I will be there in 15 minutes',
-      'time': DateTime.now().subtract(const Duration(minutes: 8)),
-    },
-    {
-      'sender': 'customer',
-      'message': 'Okay, thank you!',
-      'time': DateTime.now().subtract(const Duration(minutes: 5)),
-    },
-  ];
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
@@ -57,25 +42,61 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.phone),
-            onPressed: () => _makePhoneCall(),
-          ),
-        ],
       ),
       body: Column(
         children: [
           _buildServiceInfoBanner(),
           Expanded(
             child: Container(
-              color: const Color(0xFF005DFF),
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  return _buildMessageBubble(_messages[index]);
+              color: Colors.white,
+              child: StreamBuilder<List<ChatMessage>>(
+                stream: _firestoreService.getChatMessagesStream(
+                  widget.serviceRequest.id,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  final messages = snapshot.data ?? [];
+
+                  if (messages.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No messages yet',
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                      ),
+                    );
+                  }
+
+                  // Auto-scroll to bottom on new message
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_scrollController.hasClients) {
+                      _scrollController.jumpTo(
+                        _scrollController.position.maxScrollExtent,
+                      );
+                    }
+                  });
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      return _buildMessageBubble(messages[index]);
+                    },
+                  );
                 },
               ),
             ),
@@ -96,7 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '${WorkerTranslations.getEnglish(WorkerTranslations.service)} ${widget.serviceRequest.serviceName} â€¢ ${widget.serviceRequest.address}',
+              '${WorkerTranslations.getEnglish(WorkerTranslations.service)} ${widget.serviceRequest.serviceName} • ${widget.serviceRequest.address}',
               style: const TextStyle(fontSize: 12, color: Colors.black87),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -107,13 +128,15 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> message) {
-    final isWorker = message['sender'] == 'worker';
+  Widget _buildMessageBubble(ChatMessage message) {
+    final isWorker = message.role == 'worker'; // worker is 'me' in this screen
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isWorker ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isWorker
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isWorker) ...[
             CircleAvatar(
@@ -127,7 +150,9 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isWorker ? const Color(0xFF005DFF) : Colors.grey.shade200,
+                color: isWorker
+                    ? const Color(0xFF005DFF)
+                    : Colors.grey.shade200,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -139,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message['message'],
+                    message.message,
                     style: TextStyle(
                       color: isWorker ? Colors.white : Colors.black87,
                       fontSize: 15,
@@ -147,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatTime(message['time']),
+                    _formatTime(message.timestamp),
                     style: TextStyle(
                       color: isWorker ? Colors.white70 : Colors.grey.shade600,
                       fontSize: 11,
@@ -172,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -183,49 +208,57 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 15,
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                style: const TextStyle(color: Colors.black87, fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: WorkerTranslations.getEnglish(
+                    WorkerTranslations.typeMessage,
+                  ),
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF005DFF),
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                maxLines: null,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (value) => _sendMessage(),
               ),
-              decoration: InputDecoration(
-                hintText: WorkerTranslations.getEnglish(WorkerTranslations.typeMessage),
-                hintStyle: TextStyle(color: Colors.grey.shade500),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Color(0xFF005DFF), width: 2),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: const Color(0xFF005DFF),
+              child: IconButton(
+                icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                onPressed: _sendMessage,
               ),
-              maxLines: null,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (value) => _sendMessage(),
             ),
-          ),
-          const SizedBox(width: 8),
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFF005DFF),
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white, size: 20),
-              onPressed: _sendMessage,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -245,36 +278,43 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
+  void _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        'sender': 'worker',
-        'message': _messageController.text.trim(),
-        'time': DateTime.now(),
-      });
-      _messageController.clear();
-    });
+    _messageController.clear();
 
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
-  }
-
-  void _makePhoneCall() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${WorkerTranslations.getEnglish(WorkerTranslations.calling)} ${widget.serviceRequest.customerName}...'),
-        backgroundColor: const Color(0xFF005DFF),
-        duration: const Duration(seconds: 2),
-      ),
+    final message = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch
+          .toString(), // Temporary ID, better use AutoID from firestore but this works for set
+      senderId: widget.serviceRequest.workerId ?? '',
+      senderName: widget.workerName,
+      role: 'worker',
+      message: text,
+      timestamp: DateTime.now(),
     );
+
+    try {
+      // Since we are setting ID manually in model, we can rely on it,
+      // OR better: let Firestore generate ID.
+      // The service method usage: `_servicesCollection.doc(..).collection('messages').doc(message.id).set(...)`
+      // So we need a unique ID.
+      // A better way is to use empty doc() to generate ID in service, but our service expects a full object.
+      // Let's stick to timestamp-based or uuid for now to keep it simple without adding uuid package if not present.
+      // `DateTime.now().millisecondsSinceEpoch.toString()` is risky for collision in high concurrecny but fine for chat.
+
+      // Wait, FirestoreService.sendMessage does .doc(message.id).set().
+      // I should use `_firestore.collection(...).doc().id` to generate an ID if I had access to firestore instance here.
+      // Since I don't, I will use a simple unique string.
+
+      await _firestoreService.sendMessage(widget.serviceRequest.id, message);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+      }
+    }
   }
 
   @override

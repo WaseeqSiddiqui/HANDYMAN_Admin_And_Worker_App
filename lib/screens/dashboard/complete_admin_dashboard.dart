@@ -968,10 +968,17 @@ class AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildRecentActivity() {
-    final recentServices = _financialService
-        .getCompletedServices()
-        .take(5)
-        .toList();
+    final allServices = _financialService.getCompletedServices();
+    final uniqueServices = <String, FinancialTransaction>{};
+    for (var service in allServices) {
+      // Use serviceId as key to prevent duplicates
+      // If list is ordered descending (newest first), this keeps the newest
+      if (!uniqueServices.containsKey(service.serviceId)) {
+        uniqueServices[service.serviceId] = service;
+      }
+    }
+
+    final recentServices = uniqueServices.values.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

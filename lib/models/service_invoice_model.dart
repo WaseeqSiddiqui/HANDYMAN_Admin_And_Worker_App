@@ -45,12 +45,16 @@ class ServiceInvoice {
     final totalExtra = req.extraItems.fold(0.0, (sum, e) => sum + e.price);
     final subtotal = req.basePrice + totalExtra;
 
+    final validCustomerId = (req.customerId.isNotEmpty)
+        ? req.customerId
+        : 'UNKNOWN_CUSTOMER';
+
     return ServiceInvoice(
       invoiceNumber: "INV-${DateTime.now().millisecondsSinceEpoch}",
       serviceRequestId: req.id,
       serviceId: req.serviceId,
       serviceName: req.serviceName,
-      customerId: req.customerId,
+      customerId: validCustomerId,
       customerName: req.customerName,
       customerAddress: req.address,
       workerId: req.workerId,

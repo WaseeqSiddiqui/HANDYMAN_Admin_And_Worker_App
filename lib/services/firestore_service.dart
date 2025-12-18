@@ -11,6 +11,8 @@ import '../models/service_category_model.dart';
 import '../models/customer_model.dart';
 import '../models/service_invoice_model.dart';
 import '../models/service_model.dart';
+import '../models/review_model.dart';
+import '../models/chat_message_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -38,6 +40,8 @@ class FirestoreService {
       _firestore.collection('invoices');
   CollectionReference get _offeredServicesCollection =>
       _firestore.collection('services_offered');
+  CollectionReference get _reviewsCollection =>
+      _firestore.collection('reviews');
 
   // Singleton pattern
   static FirestoreService _instance = FirestoreService._internal();
@@ -443,6 +447,82 @@ class FirestoreService {
       await _offeredServicesCollection.doc(serviceId).delete();
     } catch (e) {
       debugPrint('Error deleting offered service: $e');
+      throw e;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // REVIEWS
+  // ---------------------------------------------------------------------------
+
+  Stream<List<Review>> getReviewsStream() {
+    return _reviewsCollection
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            // Ensure ID is set
+            if (data['id'] == null || data['id'].isEmpty) {
+              data['id'] = doc.id;
+            }
+            return Review.fromMap(data);
+          }).toList();
+        });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CHAT
+  // ---------------------------------------------------------------------------
+
+  CollectionReference get _chatsCollection => _firestore.collection('chats');
+
+  // ---------------------------------------------------------------------------
+  // CHAT
+  // ---------------------------------------------------------------------------
+
+  Stream<List<ChatMessage>> getChatMessagesStream(String serviceRequestId) {
+    debugPrint(
+      'Fetching messages for service: $serviceRequestId from chats collection',
+    );
+    return _chatsCollection
+        .doc(serviceRequestId)
+        .collection('messages')
+        // Removed server-side orderBy to avoid index issues and field name mismatches
+        .snapshots()
+        .map((snapshot) {
+          debugPrint('Transactions found: ${snapshot.docs.length}');
+          final messages = snapshot.docs.map((doc) {
+            final data = doc.data();
+            debugPrint('Message data: $data');
+            if (data['id'] == null || data['id'].isEmpty) {
+              data['id'] = doc.id;
+            }
+            return ChatMessage.fromMap(data);
+          }).toList();
+
+          // Sort client-side
+          messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          return messages;
+        });
+  }
+
+  Future<void> sendMessage(String serviceRequestId, ChatMessage message) async {
+    try {
+      debugPrint(
+        'Attempting to send message to chats/$serviceRequestId/messages/${message.id}',
+      );
+      debugPrint('Message content: ${message.toMap()}');
+
+      await _chatsCollection
+          .doc(serviceRequestId)
+          .collection('messages')
+          .doc(message.id)
+          .set(message.toMap());
+
+      debugPrint('Message sent successfully!');
+    } catch (e) {
+      debugPrint('Error sending message: $e');
       throw e;
     }
   }

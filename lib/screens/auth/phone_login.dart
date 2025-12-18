@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
@@ -14,6 +16,10 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
+  // SHA256 Hash of +966535616095
+  static const String _ADMIN_PHONE_HASH =
+      '35a09c312fabbb5fd09e6dc4fc98a44a5ba8381375ac228bd1d75faa0aeb7401';
+
   final TextEditingController _phoneController = TextEditingController();
   final FirebaseAuthService _authService = FirebaseAuthService();
   bool _isLoading = false;
@@ -69,6 +75,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       return;
     }
 
+    // SECURITY CHECK: If role is Admin, verify phone number hash
+    if (widget.role == 'Admin') {
+      final bytes = utf8.encode(formattedPhone);
+      final digest = sha256.convert(bytes);
+      if (digest.toString() != _ADMIN_PHONE_HASH) {
+        _showError('Unauthorized Access', 'دخول غير مصرح به');
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -84,8 +100,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
-                  Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
+                  Text(
+                    AuthTranslations.getEnglish(
+                      AuthTranslations.otpSentSuccess,
+                    ),
+                  ),
+                  Text(
+                    AuthTranslations.getArabic(AuthTranslations.otpSentSuccess),
+                  ),
                 ],
               ),
               backgroundColor: const Color(0xFF3B82F6),
@@ -106,10 +128,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         },
         onError: (error) {
           setState(() => _isLoading = false);
-          _showError(
-            'Error: $error',
-            'خطأ: $error',
-          );
+          _showError('Error: $error', 'خطأ: $error');
         },
         onAutoVerify: (credential) async {
           // Auto verification happened (Android only)
@@ -152,10 +171,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(englishMessage),
-            Text(arabicMessage),
-          ],
+          children: [Text(englishMessage), Text(arabicMessage)],
         ),
         backgroundColor: Colors.red,
       ),
@@ -165,7 +181,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
+    final backgroundColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF8F9FA);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -208,7 +226,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+                        color: isDark
+                            ? Colors.black.withOpacity(0.3)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         // REMOVED: BoxShadow to eliminate blue cloud effect
                       ),
@@ -217,7 +237,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         child: Image.asset(
                           'assets/images/logoFinal.png',
                           fit: BoxFit.contain,
-                          color: isDark ? const Color(0xFF3B82F6) : null, // Blue color on dark mode
+                          color: isDark
+                              ? const Color(0xFF3B82F6)
+                              : null, // Blue color on dark mode
                           colorBlendMode: isDark ? BlendMode.srcIn : null,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
@@ -231,7 +253,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF3B82F6),
+                                    color: isDark
+                                        ? const Color(0xFF3B82F6)
+                                        : const Color(0xFF3B82F6),
                                   ),
                                 ),
                               ),
@@ -248,14 +272,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF3B82F6),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF3B82F6),
                           ),
                         ),
                         Text(
                           'عامل الماهر',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                            color: isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
                           ),
                         ),
                       ],
@@ -279,10 +307,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   Text(
                     '${AuthTranslations.getArabic(AuthTranslations.loginAs)} ${AuthTranslations.getArabic(widget.role == 'Admin' ? AuthTranslations.admin : AuthTranslations.worker)}',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 20, color: subtitleColor),
                   ),
                 ],
               ),
@@ -293,17 +318,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 children: [
                   Text(
                     AuthTranslations.getEnglish(AuthTranslations.enterPhone),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 16, color: subtitleColor),
                   ),
                   Text(
                     AuthTranslations.getArabic(AuthTranslations.enterPhone),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 14, color: subtitleColor),
                   ),
                 ],
               ),
@@ -323,10 +342,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   Text(
                     AuthTranslations.getArabic(AuthTranslations.phoneNumber),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 12, color: subtitleColor),
                   ),
                 ],
               ),
@@ -368,10 +384,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            '🇸🇦',
-                            style: const TextStyle(fontSize: 24),
-                          ),
+                          Text('🇸🇦', style: const TextStyle(fontSize: 24)),
                           const SizedBox(width: 8),
                           Text(
                             '+966',
@@ -414,33 +427,39 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
                       : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        AuthTranslations.getEnglish(AuthTranslations.sendOtp),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              AuthTranslations.getEnglish(
+                                AuthTranslations.sendOtp,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              AuthTranslations.getArabic(
+                                AuthTranslations.sendOtp,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        AuthTranslations.getArabic(AuthTranslations.sendOtp),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ],
