@@ -576,9 +576,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             children: [
               Text(
                 englishLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: Colors.grey,
+                  color: Colors.grey[700],
                 ),
               ),
               Text(
@@ -613,7 +613,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ),
               Text(
                 WorkerTranslations.getArabic(WorkerTranslations.quickActions),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                 ),
@@ -833,14 +833,14 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   WorkerTranslations.getEnglish(WorkerTranslations.noServices),
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[400],
+                    color: Colors.grey[600],
                   ),
                 ),
                 Text(
                   WorkerTranslations.getArabic(WorkerTranslations.noServices),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[400],
+                    color: Colors.grey[600],
                   ),
                 ),
               ],

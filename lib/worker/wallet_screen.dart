@@ -670,7 +670,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
                 Text(
                   _getArabicTranslationForLabel(label), // Fixed Arabic translation
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
                 ),
               ],
             ),
@@ -753,11 +753,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       children: [
                         Text(
                           WorkerTranslations.getEnglish(WorkerTranslations.noWithdrawalsYet),
-                          style: TextStyle(color: Colors.grey.shade600),
+                          style: TextStyle(color: Colors.grey.shade800),
                         ),
                         Text(
                           'لا توجد عمليات سحب حتى الآن', // Fixed Arabic translation
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                          style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
                         ),
                       ],
                     ),
@@ -766,11 +766,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       children: [
                         Text(
                           WorkerTranslations.getEnglish(WorkerTranslations.firstWithdrawalAppear),
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
                         ),
                         Text(
                           'سيظهر أول سحب لك هنا', // Fixed Arabic translation
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 10),
                         ),
                       ],
                     ),

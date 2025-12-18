@@ -47,7 +47,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     WorkerTranslations.noTransactions,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    style: TextStyle(color: Colors.grey.shade800, fontSize: 16),
                   ),
                 ],
               ),
@@ -148,7 +148,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: Colors.grey.shade800,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -158,7 +158,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
                     _formatDate(transaction.createdAt),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: Colors.grey.shade700,
                     ),
                   ),
                 ],
