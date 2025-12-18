@@ -987,51 +987,99 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ),
               ElevatedButton(
                 onPressed: () async {
-                  if (nameController.text.isNotEmpty &&
-                      nameArabicController.text.isNotEmpty &&
-                      selectedCategoryId != null &&
-                      selectedSubcategoryIndex != null &&
-                      priceController.text.isNotEmpty &&
-                      commissionController.text.isNotEmpty &&
-                      vatController.text.isNotEmpty &&
-                      selectedCat != null) {
-                    final newService = Service(
-                      id: _serviceManager.generateServiceId(),
-                      name: nameController.text,
-                      nameArabic: nameArabicController.text,
-                      categoryId: selectedCategoryId!,
-                      category: selectedCat.nameEnglish, // Use English name
-                      categoryArabic: selectedCat.nameArabic,
-                      subcategoryId:
-                          '${selectedCategoryId}_$selectedSubcategoryIndex',
-                      subcategory:
-                          selectedCat.subcategories[selectedSubcategoryIndex!],
-                      subcategoryArabic: selectedCat
-                          .subcategoriesArabic[selectedSubcategoryIndex!],
-                      basePrice: double.parse(priceController.text),
-                      commission: double.parse(commissionController.text),
-                      vat: double.parse(vatController.text),
-                      isActive: true,
+                  // Validate empty fields
+                  if (nameController.text.isEmpty ||
+                      nameArabicController.text.isEmpty ||
+                      selectedCategoryId == null ||
+                      selectedSubcategoryIndex == null ||
+                      priceController.text.isEmpty ||
+                      commissionController.text.isEmpty ||
+                      vatController.text.isEmpty ||
+                      selectedCat == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('⚠️ Please fill all fields'),
+                        backgroundColor: Colors.orange,
+                      ),
                     );
+                    return;
+                  }
 
-                    if (await _serviceManager.addService(newService)) {
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✅ Service added successfully'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('❌ Failed to add service'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
+                  // Safe Parsing & Validation
+                  final price = double.tryParse(priceController.text);
+                  final commission = double.tryParse(commissionController.text);
+                  final vat = double.tryParse(vatController.text);
+
+                  if (price == null || price <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('❌ Invalid Price. Must be greater than 0.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (commission == null || commission < 0 || commission > 100) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            '❌ Invalid Commission. Must be between 0 and 100.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (vat == null || vat < 0 || vat > 100) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('❌ Invalid VAT. Must be between 0 and 100.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Create Service
+                  final newService = Service(
+                    id: _serviceManager.generateServiceId(),
+                    name: nameController.text,
+                    nameArabic: nameArabicController.text,
+                    categoryId: selectedCategoryId!,
+                    category: selectedCat.nameEnglish,
+                    categoryArabic: selectedCat.nameArabic,
+                    subcategoryId:
+                        '${selectedCategoryId}_$selectedSubcategoryIndex',
+                    subcategory:
+                        selectedCat.subcategories[selectedSubcategoryIndex!],
+                    subcategoryArabic: selectedCat
+                        .subcategoriesArabic[selectedSubcategoryIndex!],
+                    basePrice: price,
+                    commission: commission,
+                    vat: vat,
+                    isActive: true,
+                  );
+
+                  if (await _serviceManager.addService(newService)) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Service added successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('❌ Failed to add service'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -1299,31 +1347,80 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
           ),
           ElevatedButton(
             onPressed: () async {
-              if (nameController.text.isNotEmpty &&
-                  nameArabicController.text.isNotEmpty) {
-                final updatedService = service.copyWith(
-                  name: nameController.text,
-                  nameArabic: nameArabicController.text,
-                  basePrice: double.parse(priceController.text),
-                  commission: double.parse(commissionController.text),
-                  vat: double.parse(vatController.text),
-                );
+                  if (nameController.text.isEmpty ||
+                      nameArabicController.text.isEmpty ||
+                      priceController.text.isEmpty ||
+                      commissionController.text.isEmpty ||
+                      vatController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('⚠️ Please fill all fields'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
 
-                if (await _serviceManager.updateService(
-                  service.id,
-                  updatedService,
-                )) {
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ Service updated successfully'),
-                      backgroundColor: Colors.green,
-                    ),
+                  // Safe Parsing & Validation
+                  final price = double.tryParse(priceController.text);
+                  final commission = double.tryParse(commissionController.text);
+                  final vat = double.tryParse(vatController.text);
+
+                  if (price == null || price <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('❌ Invalid Price. Must be greater than 0.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (commission == null || commission < 0 || commission > 100) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            '❌ Invalid Commission. Must be between 0 and 100.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (vat == null || vat < 0 || vat > 100) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('❌ Invalid VAT. Must be between 0 and 100.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final updatedService = service.copyWith(
+                    name: nameController.text,
+                    nameArabic: nameArabicController.text,
+                    basePrice: price,
+                    commission: commission,
+                    vat: vat,
                   );
-                }
-              }
-            },
+
+                  if (await _serviceManager.updateService(
+                    service.id,
+                    updatedService,
+                  )) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Service updated successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(
                 0xFF3B82F6,

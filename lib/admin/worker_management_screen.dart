@@ -123,6 +123,15 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     return digits.length == 9 && digits.startsWith('5');
   }
 
+  // ✅ VALIDATION HELPERS
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool _isValidNationalId(String id) {
+    return RegExp(r'^\d{10}$').hasMatch(id);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -690,6 +699,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: initialCreditController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 decoration: InputDecoration(
                   labelText: AdminTranslations.split(AdminTranslations.initialCredit)[0],
                   labelStyle: const TextStyle(fontSize: 14),
@@ -731,49 +743,65 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   addressController.text.isEmpty ||
                   addressArabicController.text.isEmpty) {
 
-                // Close dialog first, then show snackbar in main context
-                Navigator.of(dialogContext).pop();
+                // Show snackbar without closing dialog
+                _showCustomSnackBar(
+                  AdminTranslations.split(AdminTranslations.fillAllFields)[0],
+                  AdminTranslations.split(AdminTranslations.fillAllFields)[1],
+                  Colors.red,
+                );
+                return;
+              }
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showCustomSnackBar(
-                    AdminTranslations.split(AdminTranslations.fillAllFields)[0],
-                    AdminTranslations.split(AdminTranslations.fillAllFields)[1],
-                    Colors.red,
-                  );
-                });
+              // ✅ NEW VALIDATIONS
+              if (!_isValidNationalId(nationalIdController.text.trim())) {
+                _showCustomSnackBar(
+                  'Invalid National ID. Must be 10 digits.',
+                  'رقم الهوية غير صالح. يجب أن يتكون من 10 أرقام.',
+                  Colors.red,
+                );
+                return;
+              }
+
+              if (!_isValidEmail(emailController.text.trim())) {
+                _showCustomSnackBar(
+                  'Invalid Email Address.',
+                  'البريد الإلكتروني غير صالح.',
+                  Colors.red,
+                );
                 return;
               }
 
               final initialCredit = double.tryParse(initialCreditController.text.trim());
               if (initialCredit == null || initialCredit < 0) {
-
-                // Close dialog first, then show snackbar in main context
-                Navigator.of(dialogContext).pop();
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showCustomSnackBar(
-                    AdminTranslations.split(AdminTranslations.validCreditAmount)[0],
-                    AdminTranslations.split(AdminTranslations.validCreditAmount)[1],
-                    Colors.red,
-                  );
-                });
+                _showCustomSnackBar(
+                  AdminTranslations.split(AdminTranslations.validCreditAmount)[0],
+                  AdminTranslations.split(AdminTranslations.validCreditAmount)[1],
+                  Colors.red,
+                );
                 return;
               }
 
               String formattedPhone = _formatPhoneNumber(phoneController.text.trim());
-
               if (!_isValidSaudiPhone(formattedPhone)) {
-                Navigator.of(dialogContext).pop();
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showCustomSnackBar(
-                    'Invalid Saudi phone number. Use format: 5XXXXXXXX',
-                    'رقم هاتف سعودي غير صالح. استخدم التنسيق: 5XXXXXXXX',
-                    Colors.red,
-                  );
-                });
+                _showCustomSnackBar(
+                  'Invalid Saudi phone number. Use format: 5XXXXXXXX',
+                  'رقم هاتف سعودي غير صالح. استخدم التنسيق: 5XXXXXXXX',
+                  Colors.red,
+                );
                 return;
               }
+
+              // STC Pay Validation (same as phone for now, or just check if it's a valid phone)
+              String formattedStcPay = _formatPhoneNumber(stcPayController.text.trim());
+              if (!_isValidSaudiPhone(formattedStcPay)) {
+                 _showCustomSnackBar(
+                   'Invalid STC Pay number. Use format: 5XXXXXXXX',
+                   'رقم STC Pay غير صالح. استخدم التنسيق: 5XXXXXXXX',
+                   Colors.red,
+                 );
+                 return;
+              }
+
 
               // Create worker data
               final newWorkerId = 'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
@@ -784,7 +812,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 nationalId: nationalIdController.text.trim(),
                 email: emailController.text.trim(),
                 phone: formattedPhone,  // 🔥 USE FORMATTED PHONE
-                stcPayId: stcPayController.text.trim(),
+                stcPayId: formattedStcPay, // 🔥 USE FORMATTED STC PAY
                 address: addressController.text.trim(),
                 addressArabic: addressArabicController.text.trim(),
                 status: 'Pending',  // 🔥 SET AS PENDING (not Active!)
@@ -797,19 +825,25 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
               // ✅ CRITICAL: Initialize credit in AppStateProvider for new worker
               if (success) {
-                Provider.of<AppStateProvider>(context, listen: false)
-                    .syncWorkerCredit(newWorkerId, initialCredit);
+                if (context.mounted) {
+                  Provider.of<AppStateProvider>(context, listen: false)
+                      .syncWorkerCredit(newWorkerId, initialCredit);
+                }
               }
 
-              Navigator.of(dialogContext).pop();
-
               if (success) {
+                // ✅ Close dialog ONLY IF SUCCESSFUL
+                if (context.mounted) {
+                   Navigator.of(dialogContext).pop();
+                }
+
                 _showCustomSnackBar(
                   '${AdminTranslations.split(AdminTranslations.workerAdded)[0]} - ${nameController.text.trim()}',
                   '${AdminTranslations.split(AdminTranslations.workerAdded)[1]} - ${nameArabicController.text.trim()}',
                   Colors.green,
                 );
               } else {
+                // DON'T CLOSE DIALOG if worker exists
                 _showCustomSnackBar(
                   AdminTranslations.split(AdminTranslations.workerExists)[0],
                   AdminTranslations.split(AdminTranslations.workerExists)[1],
@@ -1192,6 +1226,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 decoration: const InputDecoration(
                   hintText: '0.00',
                   prefixIcon: Icon(Icons.attach_money),
@@ -1485,6 +1522,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: creditController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 decoration: InputDecoration(
                   labelText: AdminTranslations.split(AdminTranslations.creditBalance)[0],
                   labelStyle: const TextStyle(fontSize: 14),
