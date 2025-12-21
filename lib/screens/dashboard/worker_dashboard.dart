@@ -621,32 +621,35 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionButton(
-                  WorkerTranslations.topupCredit,
-                  Icons.add_circle_outline,
-                  const Color(0xFF3B82F6),
-                      () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CreditScreen()),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    WorkerTranslations.topupCredit,
+                    Icons.add_circle_outline,
+                    const Color(0xFF3B82F6),
+                        () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CreditScreen()),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildActionButton(
-                  WorkerTranslations.wallet,
-                  Icons.account_balance_wallet_outlined,
-                  Colors.green,
-                      () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const WalletScreen()),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildActionButton(
+                    WorkerTranslations.wallet,
+                    Icons.account_balance_wallet_outlined,
+                    Colors.green,
+                        () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const WalletScreen()),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1108,7 +1111,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
+                foregroundColor: Colors.black, // ✅ Fixed: Changed from white to black for visibility
                 side: const BorderSide(color: Color(0xFF3B82F6)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1374,7 +1377,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4ADE80)),
             child: Text(WorkerTranslations.getEnglish(WorkerTranslations.accept)),
           ),
         ],

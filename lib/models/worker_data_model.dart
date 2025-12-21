@@ -13,6 +13,7 @@ class WorkerData {
   final int completedServices;
   final double creditBalance;
   final double walletBalance; // Added walletBalance
+  final String? profilePhotoUrl;
 
   WorkerData({
     required this.id,
@@ -29,6 +30,7 @@ class WorkerData {
     this.completedServices = 0,
     this.creditBalance = 100.0,
     this.walletBalance = 0.0, // Default to 0.0
+    this.profilePhotoUrl,
   });
 
   WorkerData copyWith({
@@ -46,6 +48,7 @@ class WorkerData {
     int? completedServices,
     double? creditBalance,
     double? walletBalance,
+    String? profilePhotoUrl,
   }) {
     return WorkerData(
       id: id ?? this.id,
@@ -62,6 +65,7 @@ class WorkerData {
       completedServices: completedServices ?? this.completedServices,
       creditBalance: creditBalance ?? this.creditBalance,
       walletBalance: walletBalance ?? this.walletBalance,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
     );
   }
 
@@ -81,6 +85,7 @@ class WorkerData {
       'completedServices': completedServices,
       'creditBalance': creditBalance,
       'walletBalance': walletBalance,
+      'profilePhotoUrl': profilePhotoUrl,
     };
   }
 
@@ -104,6 +109,7 @@ class WorkerData {
       completedServices: map['completedServices'] ?? 0,
       creditBalance: (map['creditBalance'] ?? 100.0).toDouble(),
       walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
+      profilePhotoUrl: map['profilePhotoUrl'],
     );
   }
 }

@@ -4,6 +4,8 @@ import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
 import '/models/worker_data_model.dart';
 import '/utils/worker_translations.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class WorkerProfileScreen extends StatefulWidget {
   const WorkerProfileScreen({super.key});
@@ -46,6 +48,78 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       );
       setState(() {});
     }
+      setState(() {});
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source, maxWidth: 800, maxHeight: 800);
+
+    if (pickedFile != null && _workerData != null) {
+      final file = File(pickedFile.path);
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final downloadUrl = await _authService.uploadProfilePhoto(file, _workerData!.id);
+      
+      // Hide loading indicator
+      Navigator.pop(context);
+
+      if (downloadUrl != null) {
+        final updatedWorker = _workerData!.copyWith(profilePhotoUrl: downloadUrl);
+        _authService.updateWorker(_workerData!.phone, updatedWorker);
+        setState(() {
+          _workerData = updatedWorker;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(WorkerTranslations.getBilingual('Profile photo updated', 'تم تحديث الصورة الشخصية')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(WorkerTranslations.getBilingual('Failed to upload photo', 'فشل تحميل الصورة')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(WorkerTranslations.getBilingual('Gallery', 'معرض الصور')),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(WorkerTranslations.getBilingual('Camera', 'كاميرا')),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -102,19 +176,47 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.white,
-            child: Text(
-              _workerData!.name.isNotEmpty
-                  ? _workerData!.name[0].toUpperCase()
-                  : 'W',
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF005DFF),
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.white,
+                backgroundImage: _workerData?.profilePhotoUrl != null
+                    ? NetworkImage(_workerData!.profilePhotoUrl!)
+                    : null,
+                child: _workerData?.profilePhotoUrl == null
+                    ? Text(
+                        _workerData!.name.isNotEmpty
+                            ? _workerData!.name[0].toUpperCase()
+                            : 'W',
+                        style: const TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF005DFF),
+                        ),
+                      )
+                    : null,
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _showImageSourceDialog,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Color(0xFF005DFF),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Text(
