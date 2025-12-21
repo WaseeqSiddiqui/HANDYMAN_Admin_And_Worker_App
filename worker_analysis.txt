@@ -1,0 +1,30 @@
+Analyzing worker_management_screen.dart...                      
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:274:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:277:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:420:36 - deprecated_member_use
+warning - The declaration '_buildFilterChip' isn't referenced - lib\admin\worker_management_screen.dart:432:10 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:517:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:570:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:573:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:574:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:1066:64 - deprecated_member_use
+  error - Expected an identifier - lib\admin\worker_management_screen.dart:1067:1 - missing_identifier
+  error - Too many positional arguments: 0 expected, but 2 found - lib\admin\worker_management_screen.dart:1067:1 - extra_positional_arguments_could_be_named
+  error - Expected an identifier - lib\admin\worker_management_screen.dart:1067:3 - missing_identifier
+  error - Expected an identifier - lib\admin\worker_management_screen.dart:1067:5 - missing_identifier
+  error - Expected to find '>' - lib\admin\worker_management_screen.dart:1067:9 - expected_token
+  error - The name 'HEAD' isn't a type, so it can't be used as a type argument - lib\admin\worker_management_screen.dart:1067:9 - non_type_as_type_argument
+  error - Expected to find ',' - lib\admin\worker_management_screen.dart:1068:23 - expected_token
+  error - Expected to find '[' - lib\admin\worker_management_screen.dart:1068:23 - expected_token
+  error - Expected an identifier - lib\admin\worker_management_screen.dart:1077:1 - missing_identifier
+  error - The '===' operator is not supported - lib\admin\worker_management_screen.dart:1077:1 - unsupported_operator
+  error - Missing selector such as '.identifier' or '[0]' - lib\admin\worker_management_screen.dart:1077:4 - missing_assignable_selector
+  error - The '===' operator is not supported - lib\admin\worker_management_screen.dart:1077:4 - unsupported_operator
+  error - Expected an identifier - lib\admin\worker_management_screen.dart:1077:7 - missing_identifier
+  error - Undefined name 'backgroundImage' - lib\admin\worker_management_screen.dart:1078:23 - undefined_identifier
+  error - Expected to find ')' - lib\admin\worker_management_screen.dart:1078:38 - expected_token
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:1331:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:1417:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\admin\worker_management_screen.dart:2035:39 - deprecated_member_use
+

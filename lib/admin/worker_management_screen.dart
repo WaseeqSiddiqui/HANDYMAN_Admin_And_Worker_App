@@ -50,24 +50,26 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     try {
       setState(() {
         _workers.clear();
-        _workers.addAll(_authService.getAllWorkers().map((worker) {
-          return {
-            'id': worker.id,
-            'name': worker.name,
-            'nameArabic': worker.nameArabic,
-            'nationalId': worker.nationalId,
-            'email': worker.email,
-            'phone': worker.phone,
-            'stcPayId': worker.stcPayId,
-            'address': worker.address,
-            'addressArabic': worker.addressArabic,
-            'status': worker.status,
-            'joinDate': worker.joinedDate,
-            'totalServices': worker.completedServices,
-            'creditBalance': worker.creditBalance,
-            'profilePhotoUrl': worker.profilePhotoUrl,
-          };
-        }).toList());
+        _workers.addAll(
+          _authService.getAllWorkers().map((worker) {
+            return {
+              'id': worker.id,
+              'name': worker.name,
+              'nameArabic': worker.nameArabic,
+              'nationalId': worker.nationalId,
+              'email': worker.email,
+              'phone': worker.phone,
+              'stcPayId': worker.stcPayId,
+              'address': worker.address,
+              'addressArabic': worker.addressArabic,
+              'status': worker.status,
+              'joinDate': worker.joinedDate,
+              'totalServices': worker.completedServices,
+              'creditBalance': worker.creditBalance,
+              'profilePhotoUrl': worker.profilePhotoUrl,
+            };
+          }).toList(),
+        );
       });
     } catch (e) {
       debugPrint('Error loading workers: $e');
@@ -515,14 +517,23 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
-                    backgroundImage: worker['profilePhotoUrl'] != null && worker['profilePhotoUrl'].toString().isNotEmpty
+                    backgroundImage:
+                        worker['profilePhotoUrl'] != null &&
+                            worker['profilePhotoUrl'].toString().isNotEmpty
                         ? NetworkImage(worker['profilePhotoUrl'])
                         : null,
-                    child: worker['profilePhotoUrl'] == null || worker['profilePhotoUrl'].toString().isEmpty
+                    child:
+                        worker['profilePhotoUrl'] == null ||
+                            worker['profilePhotoUrl'].toString().isEmpty
                         ? Text(
-                      (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
-                    )
+                            (worker['name']?.toString().substring(0, 1) ?? 'W')
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          )
                         : null,
                   ),
                   const SizedBox(width: 16),
@@ -1064,27 +1075,25 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: const Color(0xFF005DFF).withOpacity(0.1),
-<<<<<<< HEAD
-                      child: Text(
-                        (worker['name']?.toString().substring(0, 1) ?? 'W')
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF005DFF),
-                        ),
-                      ),
-=======
-                      backgroundImage: worker['profilePhotoUrl'] != null && worker['profilePhotoUrl'].toString().isNotEmpty
+                      backgroundImage:
+                          worker['profilePhotoUrl'] != null &&
+                              worker['profilePhotoUrl'].toString().isNotEmpty
                           ? NetworkImage(worker['profilePhotoUrl'])
                           : null,
-                      child: worker['profilePhotoUrl'] == null || worker['profilePhotoUrl'].toString().isEmpty
+                      child:
+                          worker['profilePhotoUrl'] == null ||
+                              worker['profilePhotoUrl'].toString().isEmpty
                           ? Text(
-                        (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF005DFF)),
-                      )
+                              (worker['name']?.toString().substring(0, 1) ??
+                                      'W')
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF005DFF),
+                              ),
+                            )
                           : null,
->>>>>>> 595b17d2c258772c454ff289feef9a4a0644541f
                     ),
                     const SizedBox(width: 16),
                     Expanded(
