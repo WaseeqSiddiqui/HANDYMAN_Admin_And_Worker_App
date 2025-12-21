@@ -60,6 +60,22 @@ class FirestoreService {
     _instance = instance;
   }
 
+  // ✅ Save FCM Token
+  Future<void> saveFcmToken(String userId, String token, String role) async {
+    try {
+      if (role == 'worker') {
+        await _workersCollection.doc(userId).update({'fcmToken': token});
+      } else if (role == 'admin') {
+        // Assuming 'admins' collection or similar. If not, maybe just log.
+        // await _adminsCollection.doc(userId).update({'fcmToken': token});
+      } else if (role == 'customer') {
+        await _customersCollection.doc(userId).update({'fcmToken': token});
+      }
+    } catch (e) {
+      debugPrint("Error saving FCM token: $e");
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // WORKERS
   // ---------------------------------------------------------------------------
@@ -144,6 +160,24 @@ class FirestoreService {
     }
   }
 
+  Future<WorkerData?> getWorkerById(String workerId) async {
+    try {
+      final doc = await _workersCollection.doc(workerId).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        // Ensure ID is set
+        if (data['id'] == null || data['id'].isEmpty) {
+          data['id'] = doc.id;
+        }
+        return WorkerData.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching worker by ID: $e');
+      return null;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // SERVICE REQUESTS
   // ---------------------------------------------------------------------------
@@ -182,6 +216,58 @@ class FirestoreService {
       await _servicesCollection.doc(service.id).update(service.toJson());
     } catch (e) {
       debugPrint('Error updating service request: $e');
+      throw e;
+    }
+  }
+
+  // ✅ New Method for Customer App usage (or Admin cancellation)
+  Future<void> cancelServiceRequest(
+    String serviceId,
+    String reason,
+    String cancelledBy,
+  ) async {
+    try {
+      // 1. Update Service Status
+      await _servicesCollection.doc(serviceId).update({
+        'status': 'cancelled',
+        'postponeReason': reason, // Reusing reason field/adding cancel reason
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Fetch service to get names for notification
+      // (Optimized: In a real app, pass names to this method to save a read)
+      final doc = await _servicesCollection.doc(serviceId).get();
+      final data = doc.data() as Map<String, dynamic>;
+      final serviceName = data['serviceName'] ?? 'Service';
+      final workerId = data['workerId'];
+
+      // 2. Create Notification
+      // Notify Admin
+      await _notificationsCollection.add({
+        'title': 'Service Cancelled',
+        'message':
+            'Service $serviceName was cancelled by $cancelledBy. Reason: $reason',
+        'type': 'warning',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': ['admin'],
+        'relatedId': serviceId,
+      });
+
+      // Notify Worker (if assigned)
+      if (workerId != null) {
+        await _notificationsCollection.add({
+          'title': 'Service Cancelled',
+          'message': 'Service $serviceName has been cancelled by customer.',
+          'type': 'warning',
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+          'targetUserIds': [workerId],
+          'relatedId': serviceId,
+        });
+      }
+    } catch (e) {
+      debugPrint('Error cancelling service: $e');
       throw e;
     }
   }
@@ -470,6 +556,53 @@ class FirestoreService {
           }).toList();
         });
   }
+
+  Future<void> addReview(Review review) async {
+    try {
+      await _reviewsCollection.doc(review.id).set(review.toMap());
+
+      // ✅ NOTIFICATION: Notify Admin and Worker
+      // This technically belongs in a service layer, but for simplicity we add it here
+      // or rely on a Cloud Function. Since we are doing "In-App", we call NotificationService.
+      // However, FirestoreService shouldn't depend on NotificationService to avoid circular deps if possible.
+      // But typically NotificationService depends on FirestoreService.
+      // CHECK DEPENDENCY: NotificationService imports FirestoreService.
+      // FirestoreService importing NotificationService -> Circular.
+
+      // SOLUTION: We should NOT add the notification trigger HERE if it causes circular dependency.
+      // We should add it in the Service/Provider that CALLS addReview.
+      // But we don't have the caller (Customer App).
+
+      // ALTERNATIVE: Use a callback or simply rely on the user adding this code to Customer App.
+      // Or, since Dart allows circular imports sometimes if carefully managed? No, bad practice.
+
+      // Let's check imports. NotificationService uses FirestoreService.
+      // So FirestoreService CANNOT import NotificationService.
+
+      // I will ADD the method, but I cannot add the NotificationService call here directly without refactoring.
+      // Actually, I can use a mixin or just duplicate the "add notification" firestore write here?
+      // "In-App" notification is just writing to 'notifications' collection.
+      // FirestoreService HAS access to firestore.
+
+      await _notificationsCollection.add({
+        'title': 'New Review Received',
+        'message':
+            'New review for ${review.serviceName}: ${review.rating} stars',
+        'type': 'review',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': ['admin', review.workerId], // Notify Admin and Worker
+        'relatedId': review.id,
+      });
+    } catch (e) {
+      debugPrint('Error adding review: $e');
+      throw e;
+    }
+  }
+
+  // Need to expose notifications collection getter if not exists
+  CollectionReference get _notificationsCollection =>
+      _firestore.collection('notifications');
 
   // ---------------------------------------------------------------------------
   // CHAT

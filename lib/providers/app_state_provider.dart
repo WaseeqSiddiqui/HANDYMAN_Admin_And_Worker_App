@@ -13,6 +13,7 @@ import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
 import '/utils/admin_translations.dart';
+import '/services/notification_service.dart';
 
 class AppStateProvider with ChangeNotifier {
   final _firestoreService = FirestoreService();
@@ -368,10 +369,18 @@ class AppStateProvider with ChangeNotifier {
   Future<void> setCurrentWorker(String workerId) async {
     currentWorkerId = workerId;
 
-    final workerData = _workerAuthService.getWorkerById(workerId);
+    WorkerData? workerData = _workerAuthService.getWorkerById(workerId);
+
+    // ✅ FIXED: Fallback to direct Firestore fetch if service not ready
+    if (workerData == null) {
+      debugPrint(
+        '⚠️ Worker $workerId not found in auth service cache, fetching from Firestore...',
+      );
+      workerData = await _firestoreService.getWorkerById(workerId);
+    }
 
     if (workerData == null) {
-      debugPrint('❌ Worker $workerId not found in auth service');
+      debugPrint('❌ Worker $workerId not found in Firestore either');
       return;
     }
 
@@ -386,8 +395,8 @@ class AppStateProvider with ChangeNotifier {
     _workerData[workerId] = WorkerFinancialData(
       workerId: workerId,
       creditBalance: workerData.creditBalance,
-      walletBalance:
-          0.0, // This should probably be persisted too if we want wallet balance to persist?
+      walletBalance: workerData
+          .walletBalance, // ✅ FIXED: Use persistent value from Firestore
       // ACTUALLY: Wallet balance usually is calculated from transactions or persisted in WorkerData.
       // In WorkerData model there is no walletBalance, only creditBalance.
       // Transactions have balanceAfter.
@@ -441,6 +450,16 @@ class AppStateProvider with ChangeNotifier {
       await _firestoreService.updateServiceRequest(updatedService);
 
       debugPrint('✅ Service $serviceId assigned to $workerName');
+
+      // ✅ NOTIFICATION: Notify Worker of Assignment
+      await NotificationService().sendNotification(
+        title: 'New Service Assigned',
+        body: 'You have been assigned to service: ${service.serviceName}',
+        type: 'service',
+        targetUserIds: [workerId],
+        relatedId: serviceId,
+      );
+
       // No need to notifyListeners() manually as stream will handle it
     }
   }
@@ -467,6 +486,18 @@ class AppStateProvider with ChangeNotifier {
     await _firestoreService.updateServiceRequest(updatedService);
 
     debugPrint('✅ Service $serviceId accepted');
+
+    // ✅ NOTIFICATION: Notify Customer
+    // Since we don't have direct customer push token logic yet,
+    // we assume the customer app listens to their user ID notifications or topics.
+    await NotificationService().sendNotification(
+      title: 'Service Accepted',
+      body:
+          '$currentWorkerName has accepted your request for ${service.serviceName}',
+      type: 'service',
+      targetUserIds: [service.customerId],
+      relatedId: serviceId,
+    );
   }
 
   Future<void> resumeService(String serviceId) async {
@@ -535,6 +566,15 @@ class AppStateProvider with ChangeNotifier {
 
       await _firestoreService.updateServiceRequest(updatedService);
       debugPrint('✅ Service $serviceId postponed');
+
+      // ✅ NOTIFICATION: Notify Admin/Customer of Postponement
+      await NotificationService().sendNotification(
+        title: 'Service Postponed',
+        body: '$currentWorkerName postponed ${service.serviceName}: $reason',
+        type: 'warning',
+        targetUserIds: [service.customerId, 'admin'], // Notify both
+        relatedId: serviceId,
+      );
     }
   }
 
@@ -783,6 +823,18 @@ class AppStateProvider with ChangeNotifier {
   void addServiceRequest(ServiceRequest serviceData) {
     _serviceRequests.insert(0, serviceData);
     debugPrint('✅ New service request added');
+
+    // ✅ NOTIFICATION: Notify All Workers (Broadcast) or specific if assigned logic existed here
+    // For now, Notify Admin
+    NotificationService().sendNotification(
+      title: 'New Service Request',
+      body:
+          'New request for ${serviceData.serviceName} from ${serviceData.customerName}',
+      type: 'service',
+      targetUserIds: ['admin'], // Admin should see this
+      relatedId: serviceData.id,
+    );
+
     notifyListeners();
   }
 
@@ -1000,6 +1052,16 @@ class AppStateProvider with ChangeNotifier {
     );
     debugPrint(
       '   Balance: ${balanceBefore.toStringAsFixed(2)} → ${balanceAfter.toStringAsFixed(2)}',
+    );
+
+    // ✅ NOTIFICATION: Notify Worker of Credit Addition
+    NotificationService().sendNotification(
+      title: 'Credit Added',
+      body:
+          'Admin added SAR ${amount.toStringAsFixed(2)} to your credit balance.',
+      type: 'payment',
+      targetUserIds: [workerId],
+      relatedId: 'ADM${DateTime.now().millisecondsSinceEpoch}',
     );
 
     // Notify if this is the current worker

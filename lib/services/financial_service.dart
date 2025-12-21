@@ -14,6 +14,7 @@ import '/providers/app_state_provider.dart';
 import '/services/firestore_service.dart';
 import '/services/invoice_service.dart';
 import '/models/service_invoice_model.dart';
+import '/services/notification_service.dart';
 
 /// ✅ Financial Service - Centralized service completion handler
 /// Admin wallet receives full payment and tracks all deductions
@@ -145,6 +146,11 @@ class FinancialService {
           ),
         );
       }
+
+      // ✅ FIXED: Sort by completion date (Newest First)
+      _completedServices.sort(
+        (a, b) => b.completionDate.compareTo(a.completionDate),
+      );
 
       // _allTransactions is basically the same
       _allTransactions.clear();
@@ -300,6 +306,26 @@ class FinancialService {
         '   Worker Earnings: SAR ${workerEarnings.toStringAsFixed(2)}',
       );
       debugPrint('   Admin Wallet: SAR ${_currentBalance.toStringAsFixed(2)}');
+
+      // ✅ NOTIFICATION: Notify Worker of Earnings and Deductions
+      await NotificationService().sendNotification(
+        title: 'Payment Received',
+        body:
+            'You earned SAR ${workerEarnings.toStringAsFixed(2)} for ${serviceName}. (Comm/VAT: ${workerDeduction.toStringAsFixed(2)})',
+        type: 'payment',
+        targetUserIds: [workerId],
+        relatedId: transaction.id,
+      );
+
+      // ✅ NOTIFICATION: Notify Admin
+      await NotificationService().sendNotification(
+        title: 'Service Completed',
+        body:
+            'Service $serviceName completed by $workerName. Total: ${total.toStringAsFixed(2)}',
+        type: 'system',
+        targetUserIds: ['admin'],
+        relatedId: transaction.id,
+      );
 
       return ServiceCompletionResult(
         success: true,
@@ -649,6 +675,16 @@ class FinancialService {
           '✅ Withdrawal approved: ${request.id} - SAR ${request.amount.toStringAsFixed(2)}',
         );
 
+        // ✅ NOTIFICATION: Notify Worker of Withdrawal Approval
+        await NotificationService().sendNotification(
+          title: 'Withdrawal Approved',
+          body:
+              'Your withdrawal of SAR ${request.amount.toStringAsFixed(2)} has been approved and processed.',
+          type: 'payment',
+          targetUserIds: [request.workerId],
+          relatedId: request.id,
+        );
+
         return WithdrawalResult(
           success: true,
           message: 'Withdrawal approved successfully',
@@ -664,6 +700,15 @@ class FinancialService {
 
         debugPrint(
           '⚠️ Withdrawal rejected: ${request.id} - Reason: $adminNotes',
+        );
+
+        // ✅ NOTIFICATION: Notify Worker of Withdrawal Rejection
+        await NotificationService().sendNotification(
+          title: 'Withdrawal Rejected',
+          body: 'Your withdrawal request was rejected. Reason: $adminNotes',
+          type: 'warning',
+          targetUserIds: [request.workerId],
+          relatedId: request.id,
         );
 
         return WithdrawalResult(success: true, message: 'Withdrawal rejected');

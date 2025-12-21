@@ -385,32 +385,48 @@ class InvoiceService {
                                   ),
                                 ),
                                 pw.SizedBox(height: 8),
-                                pw.Text(
-                                  _isCashPayment(invoice.paymentMethod)
-                                      ? 'Pay via STC Pay:'
-                                      : 'STC Pay / Bank Transfer',
-                                  style: pw.TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: pw.FontWeight.bold,
+                                if (_isCashPayment(invoice.paymentMethod)) ...[
+                                  pw.Text(
+                                    'Paid via Cash',
+                                    style: pw.TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                pw.SizedBox(height: 4),
-                                pw.Text(
-                                  '$ADMIN_STC_ACCOUNT',
-                                  style: pw.TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: pw.FontWeight.bold,
-                                    color: accentColor,
+                                  pw.SizedBox(height: 4),
+                                  pw.Text(
+                                    'Amount Collected by Worker',
+                                    style: const pw.TextStyle(
+                                      fontSize: 10,
+                                      color: PdfColors.grey700,
+                                    ),
                                   ),
-                                ),
-                                pw.SizedBox(height: 4),
-                                pw.Text(
-                                  'Account Name: Admin',
-                                  style: const pw.TextStyle(
-                                    fontSize: 10,
-                                    color: PdfColors.grey700,
+                                ] else ...[
+                                  pw.Text(
+                                    'STC Pay / Bank Transfer',
+                                    style: pw.TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
                                   ),
-                                ),
+                                  pw.SizedBox(height: 4),
+                                  pw.Text(
+                                    '$ADMIN_STC_ACCOUNT',
+                                    style: pw.TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: pw.FontWeight.bold,
+                                      color: accentColor,
+                                    ),
+                                  ),
+                                  pw.SizedBox(height: 4),
+                                  pw.Text(
+                                    'Account Name: Admin',
+                                    style: const pw.TextStyle(
+                                      fontSize: 10,
+                                      color: PdfColors.grey700,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

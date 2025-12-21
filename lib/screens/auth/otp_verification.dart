@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../dashboard/complete_admin_dashboard.dart';
 import '../dashboard/worker_dashboard.dart';
+import '/services/auth_persistence_service.dart';
+import '/services/notification_service.dart';
 import '/services/worker_auth_service.dart';
 import '/services/firebase_auth_service.dart';
 import '/utils/auth_translations.dart';
@@ -25,7 +27,7 @@ class OTPVerificationScreen extends StatefulWidget {
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final List<TextEditingController> _otpControllers = List.generate(
     6,
-        (index) => TextEditingController(),
+    (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
   final FirebaseAuthService _authService = FirebaseAuthService();
@@ -82,7 +84,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         final updatedWorker = worker.copyWith(status: 'Active');
 
         // Update worker in service
-        final success = _workerAuthService.updateWorker(phoneNumber, updatedWorker);
+        final success = _workerAuthService.updateWorker(
+          phoneNumber,
+          updatedWorker,
+        );
 
         if (success) {
           debugPrint('✅ Worker activated successfully');
@@ -110,8 +115,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AuthTranslations.getEnglish(AuthTranslations.completeOtpError)),
-              Text(AuthTranslations.getArabic(AuthTranslations.completeOtpError)),
+              Text(
+                AuthTranslations.getEnglish(AuthTranslations.completeOtpError),
+              ),
+              Text(
+                AuthTranslations.getArabic(AuthTranslations.completeOtpError),
+              ),
             ],
           ),
           backgroundColor: Colors.red,
@@ -166,7 +175,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             }
 
             // Get updated worker data
-            final worker = _workerAuthService.getWorkerByPhone(widget.phoneNumber);
+            final worker = _workerAuthService.getWorkerByPhone(
+              widget.phoneNumber,
+            );
 
             if (worker == null) {
               _showError(
@@ -192,6 +203,16 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
             );
 
+            // ✅ Save Persistent Login for Worker
+            await AuthPersistenceService().saveWorkerLogin(
+              workerId: worker.id,
+              phone: widget.phoneNumber,
+              name: worker.name,
+            );
+
+            // ✅ UPDATED: Save FCM Token for Notifications
+            await NotificationService().updateUserToken(worker.id, 'worker');
+
             // Navigate to worker dashboard
             await Future.delayed(const Duration(milliseconds: 500));
 
@@ -203,10 +224,18 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     workerName: worker.name,
                   ),
                 ),
-                    (route) => false,
+                (route) => false,
               );
             }
           } else {
+            // ✅ Save Persistent Login for Admin
+            await AuthPersistenceService().saveAdminLogin();
+
+            // ✅ UPDATED: Save FCM Token for Notifications (Admin)
+            // Assuming Admin ID is static or derived. For this app, we might use 'admin' or phone.
+            // Using 'admin' as ID for simplicity as used in FirestoreService notifications.
+            await NotificationService().updateUserToken('admin', 'admin');
+
             // Admin login
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -217,9 +246,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (context) => AdminDashboard(phoneNumber: widget.phoneNumber),
+                builder: (context) =>
+                    AdminDashboard(phoneNumber: widget.phoneNumber),
               ),
-                  (route) => false,
+              (route) => false,
             );
           }
         } else {
@@ -266,8 +296,14 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(AuthTranslations.getEnglish(AuthTranslations.otpSentSuccess)),
-                  Text(AuthTranslations.getArabic(AuthTranslations.otpSentSuccess)),
+                  Text(
+                    AuthTranslations.getEnglish(
+                      AuthTranslations.otpSentSuccess,
+                    ),
+                  ),
+                  Text(
+                    AuthTranslations.getArabic(AuthTranslations.otpSentSuccess),
+                  ),
                 ],
               ),
               backgroundColor: const Color(0xFF3B82F6),
@@ -300,10 +336,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(englishMessage),
-            Text(arabicMessage),
-          ],
+          children: [Text(englishMessage), Text(arabicMessage)],
         ),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 3),
@@ -314,7 +347,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
+    final backgroundColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF8F9FA);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -395,10 +430,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   ),
                   Text(
                     AuthTranslations.getArabic(AuthTranslations.verifyOtp),
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 20, color: subtitleColor),
                   ),
                 ],
               ),
@@ -410,17 +442,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 children: [
                   Text(
                     '${AuthTranslations.getEnglish(AuthTranslations.enterCodeSentTo)} ${widget.phoneNumber}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 16, color: subtitleColor),
                   ),
                   Text(
                     '${AuthTranslations.getArabic(AuthTranslations.enterCodeSentTo)} ${widget.phoneNumber}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: subtitleColor,
-                    ),
+                    style: TextStyle(fontSize: 14, color: subtitleColor),
                   ),
                 ],
               ),
@@ -438,12 +464,16 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         border: Border.all(
                           color: _otpControllers[index].text.isNotEmpty
                               ? const Color(0xFF6B5B9A)
-                              : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                              : (isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300),
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                            color: Colors.black.withOpacity(
+                              isDark ? 0.3 : 0.05,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -460,7 +490,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                           fontWeight: FontWeight.bold,
                           color: textColor,
                         ),
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         decoration: const InputDecoration(
                           counterText: '',
                           border: InputBorder.none,
@@ -494,33 +526,39 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
                       : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        AuthTranslations.getEnglish(AuthTranslations.verifyContinue),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              AuthTranslations.getEnglish(
+                                AuthTranslations.verifyContinue,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              AuthTranslations.getArabic(
+                                AuthTranslations.verifyContinue,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        AuthTranslations.getArabic(AuthTranslations.verifyContinue),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -533,20 +571,28 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     children: [
                       Text(
                         _canResend
-                            ? AuthTranslations.getEnglish(AuthTranslations.resendOtp)
+                            ? AuthTranslations.getEnglish(
+                                AuthTranslations.resendOtp,
+                              )
                             : '${AuthTranslations.getEnglish(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getEnglish(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
+                          color: _canResend
+                              ? const Color(0xFF3B82F6)
+                              : subtitleColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
                         _canResend
-                            ? AuthTranslations.getArabic(AuthTranslations.resendOtp)
+                            ? AuthTranslations.getArabic(
+                                AuthTranslations.resendOtp,
+                              )
                             : '${AuthTranslations.getArabic(AuthTranslations.resendOtpIn)} $_resendTimer ${AuthTranslations.getArabic(AuthTranslations.seconds)}',
                         style: TextStyle(
-                          color: _canResend ? const Color(0xFF3B82F6) : subtitleColor,
+                          color: _canResend
+                              ? const Color(0xFF3B82F6)
+                              : subtitleColor,
                           fontSize: 12,
                         ),
                       ),

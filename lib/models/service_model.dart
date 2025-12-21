@@ -34,10 +34,14 @@ class Service {
   }) : createdAt = createdAt ?? DateTime.now();
 
   // Calculated properties
+  // Calculated properties
+  // Note: logic updated to show Base Price as the Final Price (Inclusive/No Markup)
   double get commissionAmount => basePrice * (commission / 100);
   double get vatAmount => basePrice * (vat / 100);
-  double get totalPrice => basePrice + vatAmount;
-  double get finalPrice => totalPrice + commissionAmount;
+
+  // Total Price displayed to customer = Base Price
+  double get totalPrice => basePrice;
+  double get finalPrice => basePrice;
 
   // Convert to Map
   Map<String, dynamic> toMap() {

@@ -8,7 +8,9 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
+    final backgroundColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF8F9FA);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -39,7 +41,9 @@ class RoleSelectionScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -53,14 +57,18 @@ class RoleSelectionScreen extends StatelessWidget {
                       AuthTranslations.getEnglish(AuthTranslations.systemName),
                       style: TextStyle(
                         fontSize: 16,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                     Text(
                       AuthTranslations.getArabic(AuthTranslations.systemName),
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                        color: isDark
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade500,
                       ),
                     ),
                   ],
@@ -82,7 +90,9 @@ class RoleSelectionScreen extends StatelessWidget {
                       AuthTranslations.getArabic(AuthTranslations.continueAs),
                       style: TextStyle(
                         fontSize: 16,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -101,7 +111,8 @@ class RoleSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PhoneLoginScreen(role: 'Admin'),
+                        builder: (context) =>
+                            const PhoneLoginScreen(role: 'Admin'),
                       ),
                     );
                   },
@@ -120,7 +131,8 @@ class RoleSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PhoneLoginScreen(role: 'Worker'),
+                        builder: (context) =>
+                            const PhoneLoginScreen(role: 'Worker'),
                       ),
                     );
                   },
@@ -163,7 +175,9 @@ class RoleSelectionScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF3B82F6),
+                        color: isDark
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFF3B82F6),
                       ),
                     ),
                   ),
@@ -199,14 +213,14 @@ class RoleSelectionScreen extends StatelessWidget {
   }
 
   Widget _buildRoleCard(
-      BuildContext context, {
-        required bool isDark,
-        required IconData icon,
-        required String title,
-        required String description,
-        required Color color,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required bool isDark,
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 
     return InkWell(
@@ -262,7 +276,9 @@ class RoleSelectionScreen extends StatelessWidget {
                         AuthTranslations.getArabic(title),
                         style: TextStyle(
                           fontSize: 16,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -277,14 +293,18 @@ class RoleSelectionScreen extends StatelessWidget {
                         AuthTranslations.getEnglish(description),
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
                       Text(
                         AuthTranslations.getArabic(description),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                          color: isDark
+                              ? Colors.grey.shade500
+                              : Colors.grey.shade500,
                         ),
                       ),
                     ],
@@ -298,11 +318,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 color: color.withAlpha((0.1 * 255).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.arrow_forward_ios,
-                color: color,
-                size: 16,
-              ),
+              child: Icon(Icons.arrow_forward_ios, color: color, size: 16),
             ),
           ],
         ),

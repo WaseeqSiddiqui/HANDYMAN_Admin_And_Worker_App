@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -33,17 +35,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Wrap(
               spacing: 8,
               children: ['All', 'Workers', 'Customers', 'Specific']
-                  .map((type) => ChoiceChip(
-                label: Text(type),
-                selected: _recipientType == type,
-                onSelected: (selected) {
-                  setState(() => _recipientType = type);
-                },
-                selectedColor: const Color(0xFF005DFF),
-                labelStyle: TextStyle(
-                  color: _recipientType == type ? Colors.white : null,
-                ),
-              ))
+                  .map(
+                    (type) => ChoiceChip(
+                      label: Text(type),
+                      selected: _recipientType == type,
+                      onSelected: (selected) {
+                        setState(() => _recipientType = type);
+                      },
+                      selectedColor: const Color(0xFF005DFF),
+                      labelStyle: TextStyle(
+                        color: _recipientType == type ? Colors.white : null,
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 24),
@@ -93,23 +97,72 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildRecentNotificationsList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 5,
-      itemBuilder: (context, index) => Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          leading: const Icon(Icons.notifications, color: Color(0xFF005DFF)),
-          title: Text('System Maintenance Notice'),
-          subtitle: Text('Sent to All • Oct 23, 2025'),
-          trailing: const Icon(Icons.check_circle, color: Colors.green),
-        ),
-      ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('notifications')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+
+        // Client-side filtering for 'admin' or 'All'
+        final adminNotifications = docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final targets = List<String>.from(data['targetUserIds'] ?? []);
+          return targets.contains('admin') || targets.contains('All');
+        }).toList();
+
+        if (adminNotifications.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('No notifications found'),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: adminNotifications.length,
+          itemBuilder: (context, index) {
+            final data =
+                adminNotifications[index].data() as Map<String, dynamic>;
+            // Format timestamp if needed, using simple string for now or intl package if available
+            // For simplicity, showing a generic date or trying to parse if it exists
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.notifications,
+                  color: Color(0xFF005DFF),
+                ),
+                title: Text(data['title'] ?? 'No Title'),
+                subtitle: Text(data['message'] ?? 'No Body'),
+                trailing: data['isRead'] == true
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 16,
+                      )
+                    : const Icon(Icons.circle, color: Colors.red, size: 12),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  void _sendNotification() {
+  void _sendNotification() async {
     if (_titleController.text.isEmpty || _messageController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -120,7 +173,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return;
     }
 
-    // Send notification
+    // Send notification (Write to Firestore which Worker app listens to)
+    await NotificationService().createNotificationInFirestore(
+      title: _titleController.text,
+      body: _messageController.text,
+      type: 'system', // Default type for admin messages
+      targetUserIds: _recipientType == 'All'
+          ? ['All']
+          : [], // Simple logic for now
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Notification sent successfully'),

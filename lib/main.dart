@@ -4,11 +4,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'providers/app_state_provider.dart';
 import 'screens/splash_screen.dart';
 
+import 'services/notification_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Initialize Notifications
+  await NotificationService().initialize();
 
   runApp(const AdminWorkerApp());
 }

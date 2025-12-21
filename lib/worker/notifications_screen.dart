@@ -1,100 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class WorkerNotificationsScreen extends StatefulWidget {
   const WorkerNotificationsScreen({super.key});
 
   @override
-  State<WorkerNotificationsScreen> createState() => _WorkerNotificationsScreenState();
+  State<WorkerNotificationsScreen> createState() =>
+      _WorkerNotificationsScreenState();
 }
 
 class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
   String _selectedFilter = 'All';
 
-  // Mock notifications data
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': '1',
-      'title': 'New Service Request',
-      'message': 'You have been assigned a new AC Repair service at Building 12, Sultan Town',
-      'type': 'service',
-      'isRead': false,
-      'timestamp': DateTime.now().subtract(const Duration(minutes: 15)),
-      'icon': Icons.build_circle,
-      'color': Colors.blue,
-    },
-    {
-      'id': '2',
-      'title': 'Payment Received',
-      'message': 'SAR 420.00 has been added to your wallet for Service #SRV047',
-      'type': 'payment',
-      'isRead': false,
-      'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-      'icon': Icons.account_balance_wallet,
-      'color': Colors.green,
-    },
-    {
-      'id': '3',
-      'title': 'Service Reminder',
-      'message': 'You have a service scheduled today at 2:00 PM - Washing Machine Service',
-      'type': 'reminder',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(hours: 5)),
-      'icon': Icons.notifications_active,
-      'color': Colors.orange,
-    },
-    {
-      'id': '4',
-      'title': 'Credit Low Warning',
-      'message': 'Your credit balance is low (SAR 50.00). Please top-up to accept new services.',
-      'type': 'warning',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 1)),
-      'icon': Icons.warning,
-      'color': Colors.red,
-    },
-    {
-      'id': '5',
-      'title': 'System Update',
-      'message': 'New features have been added to the app. Check out the latest updates!',
-      'type': 'system',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 2)),
-      'icon': Icons.system_update,
-      'color': const Color(0xFF005DFF),
-    },
-    {
-      'id': '6',
-      'title': 'Service Completed',
-      'message': 'Service #SRV046 has been marked as completed. Invoice sent to customer.',
-      'type': 'service',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 3)),
-      'icon': Icons.check_circle,
-      'color': Colors.green,
-    },
-    {
-      'id': '7',
-      'title': 'Customer Review',
-      'message': 'You received a 5-star review from Fatima Khan for Washing Machine Service',
-      'type': 'review',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 5)),
-      'icon': Icons.star,
-      'color': Colors.amber,
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredNotifications {
-    if (_selectedFilter == 'All') {
-      return _notifications;
-    } else if (_selectedFilter == 'Unread') {
-      return _notifications.where((n) => !n['isRead']).toList();
-    } else {
-      return _notifications.where((n) => n['type'] == _selectedFilter.toLowerCase()).toList();
+  // Helper to map type to Icon and Color
+  Map<String, dynamic> _getTypeDetails(String type) {
+    switch (type.toLowerCase()) {
+      case 'service':
+        return {'icon': Icons.build_circle, 'color': Colors.blue};
+      case 'payment':
+        return {'icon': Icons.account_balance_wallet, 'color': Colors.green};
+      case 'reminder':
+        return {'icon': Icons.notifications_active, 'color': Colors.orange};
+      case 'warning':
+        return {'icon': Icons.warning, 'color': Colors.red};
+      case 'system':
+        return {'icon': Icons.system_update, 'color': const Color(0xFF005DFF)};
+      case 'review':
+        return {'icon': Icons.star, 'color': Colors.amber};
+      default:
+        return {'icon': Icons.notifications, 'color': Colors.grey};
     }
   }
-
-  int get _unreadCount => _notifications.where((n) => !n['isRead']).length;
 
   @override
   Widget build(BuildContext context) {
@@ -106,35 +43,15 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Notifications'),
-            if (_unreadCount > 0)
-              Text(
-                '$_unreadCount unread',
-                style: const TextStyle(fontSize: 12, color: Colors.white70),
-              ),
-          ],
-        ),
+        title: const Text('Notifications'),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         actions: [
-          if (_unreadCount > 0)
-            TextButton(
-              onPressed: _markAllAsRead,
-              child: const Text(
-                'Mark all read',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) {
               if (value == 'clear') {
                 _clearAllNotifications();
-              } else if (value == 'settings') {
-                _openNotificationSettings();
               }
             },
             itemBuilder: (context) => [
@@ -148,16 +65,6 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                   ],
                 ),
               ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_outlined),
-                    SizedBox(width: 8),
-                    Text('Notification settings'),
-                  ],
-                ),
-              ),
             ],
           ),
         ],
@@ -166,19 +73,79 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
         children: [
           _buildFilterChips(),
           Expanded(
-            child: _filteredNotifications.isEmpty
-                ? _buildEmptyState(textColor)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _filteredNotifications.length,
-                    itemBuilder: (context, index) {
-                      return _buildNotificationCard(
-                        _filteredNotifications[index],
-                        cardColor,
-                        textColor,
-                      );
-                    },
-                  ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('notifications')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                var docs = snapshot.data!.docs;
+
+                // Filter locally (or update query above)
+                if (_selectedFilter != 'All') {
+                  if (_selectedFilter == 'Unread') {
+                    docs = docs
+                        .where(
+                          (d) =>
+                              (d.data() as Map<String, dynamic>)['isRead'] ==
+                              false,
+                        )
+                        .toList();
+                  } else {
+                    docs = docs
+                        .where(
+                          (d) =>
+                              (d.data() as Map<String, dynamic>)['type'] ==
+                              _selectedFilter.toLowerCase(),
+                        )
+                        .toList();
+                  }
+                }
+
+                if (docs.isEmpty) {
+                  return _buildEmptyState(textColor);
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    var data = docs[index].data() as Map<String, dynamic>;
+                    String id = docs[index].id;
+
+                    // Add ID to data for easier handling
+                    data['id'] = id;
+
+                    // Add derived icon/color
+                    var details = _getTypeDetails(data['type'] ?? 'general');
+                    data['icon'] = details['icon'];
+                    data['color'] = details['color'];
+
+                    // Handle Timestamp
+                    if (data['timestamp'] is Timestamp) {
+                      data['timestamp'] = (data['timestamp'] as Timestamp)
+                          .toDate();
+                    } else {
+                      data['timestamp'] = DateTime.now();
+                    }
+
+                    return _buildNotificationCard(
+                      data,
+                      cardColor,
+                      textColor,
+                      id,
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -190,23 +157,36 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.all(16),
       child: Row(
-        children: ['All', 'Unread', 'Service', 'Payment', 'Reminder', 'Warning', 'System']
-            .map((filter) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: _selectedFilter == filter,
-                    onSelected: (selected) {
-                      setState(() => _selectedFilter = filter);
-                    },
-                    selectedColor: const Color(0xFF005DFF),
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == filter ? Colors.white : null,
-                      fontWeight: _selectedFilter == filter ? FontWeight.w600 : FontWeight.normal,
+        children:
+            [
+                  'All',
+                  'Unread',
+                  'Service',
+                  'Payment',
+                  'Reminder',
+                  'Warning',
+                  'System',
+                ]
+                .map(
+                  (filter) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(filter),
+                      selected: _selectedFilter == filter,
+                      onSelected: (selected) {
+                        setState(() => _selectedFilter = filter);
+                      },
+                      selectedColor: const Color(0xFF005DFF),
+                      labelStyle: TextStyle(
+                        color: _selectedFilter == filter ? Colors.white : null,
+                        fontWeight: _selectedFilter == filter
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
                   ),
-                ))
-            .toList(),
+                )
+                .toList(),
       ),
     );
   }
@@ -215,11 +195,14 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     Map<String, dynamic> notification,
     Color cardColor,
     Color textColor,
+    String docId,
   ) {
-    final bool isUnread = !notification['isRead'];
+    final bool isUnread =
+        !(notification['isRead'] ??
+            true); // Default to read if missing, or handle null
 
     return Dismissible(
-      key: Key(notification['id']),
+      key: Key(docId),
       direction: DismissDirection.endToStart,
       background: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -232,25 +215,16 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (direction) {
-        setState(() {
-          _notifications.removeWhere((n) => n['id'] == notification['id']);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Notification deleted'),
-            action: SnackBarAction(
-              label: 'UNDO',
-              onPressed: () {
-                setState(() {
-                  // In a real app, restore from a temporary list
-                });
-              },
-            ),
-          ),
-        );
+        FirebaseFirestore.instance
+            .collection('notifications')
+            .doc(docId)
+            .delete();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Notification deleted')));
       },
       child: GestureDetector(
-        onTap: () => _openNotification(notification),
+        onTap: () => _openNotification(notification, docId),
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
@@ -300,10 +274,12 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              notification['title'],
+                              notification['title'] ?? 'No Title',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                                fontWeight: isUnread
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
                                 color: textColor,
                               ),
                             ),
@@ -321,7 +297,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        notification['message'],
+                        notification['message'] ?? '',
                         style: TextStyle(
                           fontSize: 14,
                           color: textColor.withOpacity(0.7),
@@ -367,16 +343,6 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
               color: textColor.withOpacity(0.5),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _selectedFilter == 'All'
-                ? 'You\'re all caught up!'
-                : 'No ${_selectedFilter.toLowerCase()} notifications',
-            style: TextStyle(
-              fontSize: 14,
-              color: textColor.withOpacity(0.4),
-            ),
-          ),
         ],
       ),
     );
@@ -395,13 +361,14 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     } else if (difference.inDays < 7) {
       return '${difference.inDays}d ago';
     } else {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+      return DateFormat('dd/MM/yyyy').format(timestamp);
     }
   }
 
-  void _openNotification(Map<String, dynamic> notification) {
-    setState(() {
-      notification['isRead'] = true;
+  void _openNotification(Map<String, dynamic> notification, String docId) {
+    // Mark as read
+    FirebaseFirestore.instance.collection('notifications').doc(docId).update({
+      'isRead': true,
     });
 
     showDialog(
@@ -427,10 +394,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             const SizedBox(height: 12),
             Text(
               _formatTimestamp(notification['timestamp']),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -439,129 +403,43 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          if (notification['type'] == 'service')
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Navigate to service details
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Opening service details...')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF005DFF),
-              ),
-              child: const Text('View Service'),
-            ),
         ],
       ),
     );
   }
 
-  void _markAllAsRead() {
-    setState(() {
-      for (var notification in _notifications) {
-        notification['isRead'] = true;
-      }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All notifications marked as read'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _clearAllNotifications() {
-    showDialog(
+  void _clearAllNotifications() async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Notifications?'),
         content: const Text('This action cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _notifications.clear();
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('All notifications cleared'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Clear All'),
           ),
         ],
       ),
     );
-  }
 
-  void _openNotificationSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notification Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SwitchListTile(
-              title: const Text('Service Requests'),
-              subtitle: const Text('Get notified about new services'),
-              value: true,
-              onChanged: (value) {},
-            ),
-            SwitchListTile(
-              title: const Text('Payment Updates'),
-              subtitle: const Text('Wallet and payment notifications'),
-              value: true,
-              onChanged: (value) {},
-            ),
-            SwitchListTile(
-              title: const Text('Service Reminders'),
-              subtitle: const Text('Upcoming service reminders'),
-              value: true,
-              onChanged: (value) {},
-            ),
-            SwitchListTile(
-              title: const Text('System Updates'),
-              subtitle: const Text('App updates and announcements'),
-              value: false,
-              onChanged: (value) {},
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings saved'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF),
-            ),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
+    if (confirm == true) {
+      var snapshot = await FirebaseFirestore.instance
+          .collection('notifications')
+          .get();
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All notifications cleared')),
+        );
+      }
+    }
   }
 }

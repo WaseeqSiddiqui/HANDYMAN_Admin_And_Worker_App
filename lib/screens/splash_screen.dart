@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '/services/auth_persistence_service.dart';
 import '/screens/auth/role_selection.dart';
+import 'package:provider/provider.dart';
+import '/providers/app_state_provider.dart';
+import '/screens/dashboard/worker_dashboard.dart';
 import '/screens/dashboard/complete_admin_dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -66,9 +69,30 @@ class _SplashScreenState extends State<SplashScreen>
                 const AdminDashboard(phoneNumber: 'admin@handyman.com'),
           ),
         );
+      } else if (role == 'worker') {
+        // ✅ Persistent Login for Worker
+        final workerId = loginState['workerId'] as String?;
+        final phone = loginState['phone'] as String? ?? '';
+        final name = loginState['name'] as String?;
+
+        if (workerId != null) {
+          // Initialize AppStateProvider with current worker
+          Provider.of<AppStateProvider>(
+            context,
+            listen: false,
+          ).setCurrentWorker(workerId);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  WorkerDashboardScreen(phoneNumber: phone, workerName: name),
+            ),
+          );
+        } else {
+          _navigateToRoleSelection();
+        }
       } else {
-        // For worker, go to role selection (they'll need to login again)
-        // This is simpler and avoids state management complexity
         _navigateToRoleSelection();
       }
     } else {

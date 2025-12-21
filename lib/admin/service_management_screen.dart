@@ -850,8 +850,8 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     final nameController = TextEditingController();
     final nameArabicController = TextEditingController();
     final priceController = TextEditingController();
-    final commissionController = TextEditingController();
-    final vatController = TextEditingController();
+    final commissionController = TextEditingController(text: '20');
+    final vatController = TextEditingController(text: '15');
     String? selectedCategoryId;
     int? selectedSubcategoryIndex;
 
@@ -1059,26 +1059,25 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ),
               ElevatedButton(
                 onPressed: () async {
-                  // Validate empty fields
-                  bool isSubcategoryValid = true;
-                  if (selectedCat != null &&
-                      selectedCat.subcategories.isNotEmpty) {
-                    if (selectedSubcategoryIndex == null) {
-                      isSubcategoryValid = false;
-                    }
-                  }
+                  final missingFields = <String>[];
+                  if (nameController.text.isEmpty)
+                    missingFields.add('English Name');
+                  if (nameArabicController.text.isEmpty)
+                    missingFields.add('Arabic Name');
+                  if (selectedCategoryId == null) missingFields.add('Category');
+                  if (priceController.text.isEmpty) missingFields.add('Price');
+                  if (commissionController.text.isEmpty)
+                    missingFields.add('Commission');
+                  if (vatController.text.isEmpty) missingFields.add('VAT');
+                  if (selectedCat == null)
+                    missingFields.add('Selected Category (Internal)');
 
-                  if (nameController.text.isEmpty ||
-                      nameArabicController.text.isEmpty ||
-                      selectedCategoryId == null ||
-                      !isSubcategoryValid ||
-                      priceController.text.isEmpty ||
-                      commissionController.text.isEmpty ||
-                      vatController.text.isEmpty ||
-                      selectedCat == null) {
+                  if (missingFields.isNotEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('⚠️ Please fill all fields'),
+                      SnackBar(
+                        content: Text(
+                          '⚠️ Please fill: ${missingFields.join(', ')}',
+                        ),
                         backgroundColor: Colors.orange,
                       ),
                     );
@@ -1130,17 +1129,17 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
                   // Create Service
                   final hasSubcategories =
-                      selectedCat.subcategories.isNotEmpty &&
+                      selectedCat!.subcategories.isNotEmpty &&
                       selectedSubcategoryIndex != null;
 
                   final subId = hasSubcategories
                       ? '${selectedCategoryId}_$selectedSubcategoryIndex'
                       : '';
                   final subName = hasSubcategories
-                      ? selectedCat.subcategories[selectedSubcategoryIndex!]
+                      ? selectedCat!.subcategories[selectedSubcategoryIndex!]
                       : '';
                   final subNameAr = hasSubcategories
-                      ? selectedCat
+                      ? selectedCat!
                             .subcategoriesArabic[selectedSubcategoryIndex!]
                       : '';
 
@@ -1149,8 +1148,8 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     name: nameController.text,
                     nameArabic: nameArabicController.text,
                     categoryId: selectedCategoryId!,
-                    category: selectedCat.nameEnglish,
-                    categoryArabic: selectedCat.nameArabic,
+                    category: selectedCat!.nameEnglish, // Updated
+                    categoryArabic: selectedCat!.nameArabic, // Updated
                     subcategoryId: subId,
                     subcategory: subName,
                     subcategoryArabic: subNameAr,
