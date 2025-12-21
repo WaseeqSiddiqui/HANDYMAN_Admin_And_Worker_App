@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/firestore_service.dart';
 import '../models/review_model.dart';
+import '../services/worker_auth_service.dart';
 
 class ReviewsScreen extends StatefulWidget {
   const ReviewsScreen({super.key});
@@ -344,7 +345,16 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.person, size: 16, color: Colors.grey),
+                      CircleAvatar(
+                        radius: 8,
+                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        backgroundImage: review.workerId.isNotEmpty && WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl != null
+                            ? NetworkImage(WorkerAuthService().getWorkerById(review.workerId)!.profilePhotoUrl!)
+                            : null,
+                        child: review.workerId.isEmpty || WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl == null
+                            ? const Icon(Icons.person, size: 8, color: Colors.grey)
+                            : null,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Worker: ${review.workerName} (${review.workerId})',
@@ -555,16 +565,33 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      'Worker: ${review.workerName}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.red.withOpacity(0.1),
+                      backgroundImage: review.workerId.isNotEmpty && WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl != null
+                          ? NetworkImage(WorkerAuthService().getWorkerById(review.workerId)!.profilePhotoUrl!)
+                          : null,
+                      child: review.workerId.isEmpty || WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl == null
+                          ? const Icon(Icons.person, size: 24, color: Colors.red)
+                          : null,
                     ),
-                    Text('Worker ID: ${review.workerId}'),
-                    Text('Service: ${review.serviceName}'),
-                    Text('Rating: ${review.rating}/5'),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Worker: ${review.workerName}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text('Worker ID: ${review.workerId}'),
+                          Text('Service: ${review.serviceName}'),
+                          Text('Rating: ${review.rating}/5'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

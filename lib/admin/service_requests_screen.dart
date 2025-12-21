@@ -338,10 +338,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.engineering,
-                          size: 16,
-                          color: Colors.green[300],
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.green[300]!.withOpacity(0.2),
+                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
+                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                              : null,
+                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
+                              ? Icon(Icons.person, size: 12, color: Colors.green[300])
+                              : null,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -571,10 +576,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.engineering,
-                          size: 16,
-                          color: Colors.amber[300],
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.amber[300]!.withOpacity(0.2),
+                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
+                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                              : null,
+                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
+                              ? Icon(Icons.person, size: 12, color: Colors.amber[300])
+                              : null,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -857,10 +867,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.engineering,
-                          size: 16,
-                          color: Colors.orange[300],
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.orange[300]!.withOpacity(0.2),
+                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
+                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                              : null,
+                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
+                              ? Icon(Icons.person, size: 12, color: Colors.orange[300])
+                              : null,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -1075,10 +1090,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.engineering,
-                          size: 16,
-                          color: Colors.green[300],
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.green[300]!.withOpacity(0.2),
+                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
+                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                              : null,
+                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
+                              ? Icon(Icons.person, size: 12, color: Colors.green[300])
+                              : null,
                         ),
                         const SizedBox(width: 8),
                         Text(

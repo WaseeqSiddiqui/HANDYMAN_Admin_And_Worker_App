@@ -65,6 +65,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             'joinDate': worker.joinedDate,
             'totalServices': worker.completedServices,
             'creditBalance': worker.creditBalance,
+            'profilePhotoUrl': worker.profilePhotoUrl,
           };
         }).toList());
       });
@@ -464,10 +465,15 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
-                    child: Text(
+                    backgroundImage: worker['profilePhotoUrl'] != null && worker['profilePhotoUrl'].toString().isNotEmpty
+                        ? NetworkImage(worker['profilePhotoUrl'])
+                        : null,
+                    child: worker['profilePhotoUrl'] == null || worker['profilePhotoUrl'].toString().isEmpty
+                        ? Text(
                       (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
-                    ),
+                    )
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -905,10 +911,15 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: const Color(0xFF005DFF).withOpacity(0.1),
-                      child: Text(
+                      backgroundImage: worker['profilePhotoUrl'] != null && worker['profilePhotoUrl'].toString().isNotEmpty
+                          ? NetworkImage(worker['profilePhotoUrl'])
+                          : null,
+                      child: worker['profilePhotoUrl'] == null || worker['profilePhotoUrl'].toString().isEmpty
+                          ? Text(
                         (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
                         style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF005DFF)),
-                      ),
+                      )
+                          : null,
                     ),
                     const SizedBox(width: 16),
                     Expanded(

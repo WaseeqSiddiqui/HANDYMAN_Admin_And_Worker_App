@@ -9,6 +9,7 @@ import 'add_extra_items_screen.dart';
 import 'generate_invoice_screen.dart';
 import 'credit_screen.dart';
 import '/utils/worker_translations.dart';
+import '/services/worker_auth_service.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServiceRequest service;
@@ -96,6 +97,8 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildCustomerInfo(service),
+                          const SizedBox(height: 12),
+                          _buildWorkerInfo(service),
                           const SizedBox(height: 12),
                           _buildPriceBreakdown(service, totalPrice, commission, vat, workerEarnings),
 
@@ -402,6 +405,66 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         service.address,
                         style: const TextStyle(
                           fontSize: 13,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkerInfo(ServiceRequest service) {
+    if (service.workerId == null) return const SizedBox.shrink();
+
+    final worker = WorkerAuthService().getWorkerById(service.workerId!);
+    final workerName = service.workerName ?? (worker?.name ?? 'N/A');
+    final workerPhoto = worker?.profilePhotoUrl;
+
+    return Card(
+      elevation: 3,
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
+                  backgroundImage: workerPhoto != null && workerPhoto.isNotEmpty
+                      ? NetworkImage(workerPhoto)
+                      : null,
+                  child: workerPhoto == null || workerPhoto.isEmpty
+                      ? const Icon(Icons.engineering, color: Color(0xFF3B82F6), size: 24)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          WorkerTranslations.getEnglish(WorkerTranslations.assignedWorker),
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)
+                      ),
+                      Text(
+                          WorkerTranslations.getArabic(WorkerTranslations.assignedWorker),
+                          style: const TextStyle(fontSize: 10, color: Colors.grey)
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        workerName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
