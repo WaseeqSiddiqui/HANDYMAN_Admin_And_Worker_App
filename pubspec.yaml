@@ -61,6 +61,7 @@ dependencies:
 
   # Cryptography
   crypto: ^3.0.3
+  image_picker: ^1.2.1
 
 flutter:
   uses-material-design: true

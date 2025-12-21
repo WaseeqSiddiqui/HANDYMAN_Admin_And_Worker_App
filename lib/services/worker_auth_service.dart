@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/worker_data_model.dart';
 import 'firestore_service.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class WorkerAuthService {
   static WorkerAuthService _instance = WorkerAuthService._internal();
@@ -210,5 +212,22 @@ class WorkerAuthService {
 
     _firestoreService.updateWorker(updatedWorker);
     return true;
+  }
+
+  Future<String?> uploadProfilePhoto(File imageFile, String workerId) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('worker_profiles')
+          .child('$workerId.jpg');
+
+      final uploadTask = storageRef.putFile(imageFile);
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('❌ Error uploading profile photo: $e');
+      return null;
+    }
   }
 }

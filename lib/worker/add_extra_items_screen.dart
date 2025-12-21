@@ -219,15 +219,6 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                               ),
                               textDirection: TextDirection.rtl,
                             ),
-                            Text(
-                              '${WorkerTranslations.split(WorkerTranslations.sar)[1]} ${_totalExtraCharges.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              textDirection: TextDirection.rtl,
-                            ),
                           ],
                         ),
                       ],
@@ -485,7 +476,7 @@ FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
           ElevatedButton(
             onPressed: () => _addItem(type),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF),
+              backgroundColor: const Color(0xFF3B82F6),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
