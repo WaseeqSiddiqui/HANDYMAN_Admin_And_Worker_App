@@ -31,11 +31,13 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     if (workerId != null) {
       final allWorkers = _authService.getAllWorkers();
       _workerData = allWorkers.firstWhere(
-            (w) => w.id == workerId,
+        (w) => w.id == workerId,
         orElse: () => WorkerData(
           id: workerId,
           name: WorkerTranslations.getEnglish(WorkerTranslations.activeWorker),
-          nameArabic: WorkerTranslations.getArabic(WorkerTranslations.activeWorker),
+          nameArabic: WorkerTranslations.getArabic(
+            WorkerTranslations.activeWorker,
+          ),
           phone: '',
           email: '',
           nationalId: '',
@@ -48,17 +50,19 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       );
       setState(() {});
     }
-      setState(() {});
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, maxWidth: 800, maxHeight: 800);
+    final pickedFile = await picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
 
     if (pickedFile != null && _workerData != null) {
       final file = File(pickedFile.path);
-      
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -66,27 +70,42 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      final downloadUrl = await _authService.uploadProfilePhoto(file, _workerData!.id);
-      
+      final downloadUrl = await _authService.uploadProfilePhoto(
+        file,
+        _workerData!.id,
+      );
+
       // Hide loading indicator
       Navigator.pop(context);
 
       if (downloadUrl != null) {
-        final updatedWorker = _workerData!.copyWith(profilePhotoUrl: downloadUrl);
+        final updatedWorker = _workerData!.copyWith(
+          profilePhotoUrl: downloadUrl,
+        );
         _authService.updateWorker(_workerData!.phone, updatedWorker);
         setState(() {
           _workerData = updatedWorker;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(WorkerTranslations.getBilingual('Profile photo updated', 'تم تحديث الصورة الشخصية')),
+            content: Text(
+              WorkerTranslations.getBilingual(
+                'Profile photo updated',
+                'تم تحديث الصورة الشخصية',
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(WorkerTranslations.getBilingual('Failed to upload photo', 'فشل تحميل الصورة')),
+            content: Text(
+              WorkerTranslations.getBilingual(
+                'Failed to upload photo',
+                'فشل تحميل الصورة',
+              ),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -102,7 +121,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: Text(WorkerTranslations.getBilingual('Gallery', 'معرض الصور')),
+              title: Text(
+                WorkerTranslations.getBilingual('Gallery', 'معرض الصور'),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
@@ -140,19 +161,19 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       body: _workerData == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 24),
-            _buildInfoCard(),
-            const SizedBox(height: 16),
-            _buildStatsCard(),
-            const SizedBox(height: 16),
-            _buildFinancialCard(),
-          ],
-        ),
-      ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildProfileHeader(),
+                  const SizedBox(height: 24),
+                  _buildInfoCard(),
+                  const SizedBox(height: 16),
+                  _buildStatsCard(),
+                  const SizedBox(height: 16),
+                  _buildFinancialCard(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -230,17 +251,16 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           const SizedBox(height: 4),
           Text(
             _workerData!.nameArabic,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
             textDirection: TextDirection.rtl,
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: _workerData!.status == WorkerTranslations.getEnglish(WorkerTranslations.active)
+              color:
+                  _workerData!.status ==
+                      WorkerTranslations.getEnglish(WorkerTranslations.active)
                   ? Colors.green.withOpacity(0.3)
                   : Colors.red.withOpacity(0.3),
               borderRadius: BorderRadius.circular(20),
@@ -249,7 +269,12 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _workerData!.status == WorkerTranslations.getEnglish(WorkerTranslations.active) ? Icons.check_circle : Icons.block,
+                  _workerData!.status ==
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.active,
+                          )
+                      ? Icons.check_circle
+                      : Icons.block,
                   size: 16,
                   color: Colors.white,
                 ),
@@ -280,18 +305,39 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           children: [
             Text(
               WorkerTranslations.personalInformation,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.credit_card, WorkerTranslations.getEnglish(WorkerTranslations.fullName), _workerData!.name),
-            _buildInfoRow(Icons.badge, WorkerTranslations.getEnglish(WorkerTranslations.nationalID), _workerData!.nationalId),
-            _buildInfoRow(Icons.email, WorkerTranslations.getEnglish(WorkerTranslations.email), _workerData!.email),
-            _buildInfoRow(Icons.phone, WorkerTranslations.getEnglish(WorkerTranslations.phone), _workerData!.phone),
-            _buildInfoRow(Icons.payment, WorkerTranslations.getEnglish(WorkerTranslations.stcPayID), _workerData!.stcPayId),
-            _buildInfoRow(Icons.location_on, WorkerTranslations.getEnglish(WorkerTranslations.address), _workerData!.address),
+            _buildInfoRow(
+              Icons.credit_card,
+              WorkerTranslations.getEnglish(WorkerTranslations.fullName),
+              _workerData!.name,
+            ),
+            _buildInfoRow(
+              Icons.badge,
+              WorkerTranslations.getEnglish(WorkerTranslations.nationalID),
+              _workerData!.nationalId,
+            ),
+            _buildInfoRow(
+              Icons.email,
+              WorkerTranslations.getEnglish(WorkerTranslations.email),
+              _workerData!.email,
+            ),
+            _buildInfoRow(
+              Icons.phone,
+              WorkerTranslations.getEnglish(WorkerTranslations.phone),
+              _workerData!.phone,
+            ),
+            _buildInfoRow(
+              Icons.payment,
+              WorkerTranslations.getEnglish(WorkerTranslations.stcPayID),
+              _workerData!.stcPayId,
+            ),
+            _buildInfoRow(
+              Icons.location_on,
+              WorkerTranslations.getEnglish(WorkerTranslations.address),
+              _workerData!.address,
+            ),
             _buildInfoRow(
               Icons.location_on_outlined,
               WorkerTranslations.getArabic(WorkerTranslations.address),
@@ -315,17 +361,16 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           children: [
             Text(
               WorkerTranslations.statistics,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: _buildStatBox(
-                    WorkerTranslations.getEnglish(WorkerTranslations.completedServices),
+                    WorkerTranslations.getEnglish(
+                      WorkerTranslations.completedServices,
+                    ),
                     _workerData!.completedServices.toString(),
                     Icons.check_circle,
                     Colors.green,
@@ -353,7 +398,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       builder: (context, appState, child) {
         return Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -371,7 +418,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                   children: [
                     Expanded(
                       child: _buildStatBox(
-                        WorkerTranslations.getEnglish(WorkerTranslations.walletBalance),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.walletBalance,
+                        ),
                         '${WorkerTranslations.sar.split(' • ')[0]} ${appState.walletBalance.toStringAsFixed(0)}',
                         Icons.account_balance_wallet,
                         const Color(0xFF005DFF),
@@ -380,7 +429,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildStatBox(
-                        WorkerTranslations.getEnglish(WorkerTranslations.creditBalance),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.creditBalance,
+                        ),
                         '${WorkerTranslations.sar.split(' • ')[0]} ${appState.creditBalance.toStringAsFixed(0)}',
                         Icons.credit_card,
                         Colors.orange,
@@ -396,7 +447,12 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {bool isRtl = false}) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isRtl = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -410,10 +466,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -456,10 +509,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -471,11 +521,15 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     if (_workerData == null) return;
 
     final nameController = TextEditingController(text: _workerData!.name);
-    final nameArabicController = TextEditingController(text: _workerData!.nameArabic);
+    final nameArabicController = TextEditingController(
+      text: _workerData!.nameArabic,
+    );
     final emailController = TextEditingController(text: _workerData!.email);
     final stcPayController = TextEditingController(text: _workerData!.stcPayId);
     final addressController = TextEditingController(text: _workerData!.address);
-    final addressArabicController = TextEditingController(text: _workerData!.addressArabic);
+    final addressArabicController = TextEditingController(
+      text: _workerData!.addressArabic,
+    );
 
     showDialog(
       context: context,
@@ -488,7 +542,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.fullName),
+                  labelText: WorkerTranslations.getEnglish(
+                    WorkerTranslations.fullName,
+                  ),
                   prefixIcon: const Icon(Icons.person),
                   border: const OutlineInputBorder(),
                 ),
@@ -498,7 +554,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                 controller: nameArabicController,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getArabic(WorkerTranslations.fullName),
+                  labelText: WorkerTranslations.getArabic(
+                    WorkerTranslations.fullName,
+                  ),
                   prefixIcon: const Icon(Icons.person_outline),
                   border: const OutlineInputBorder(),
                 ),
@@ -507,7 +565,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.email),
+                  labelText: WorkerTranslations.getEnglish(
+                    WorkerTranslations.email,
+                  ),
                   prefixIcon: const Icon(Icons.email),
                   border: const OutlineInputBorder(),
                 ),
@@ -516,7 +576,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               TextField(
                 controller: stcPayController,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.stcPayID),
+                  labelText: WorkerTranslations.getEnglish(
+                    WorkerTranslations.stcPayID,
+                  ),
                   prefixIcon: const Icon(Icons.payment),
                   border: const OutlineInputBorder(),
                 ),
@@ -526,7 +588,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                 controller: addressController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getEnglish(WorkerTranslations.address),
+                  labelText: WorkerTranslations.getEnglish(
+                    WorkerTranslations.address,
+                  ),
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
                 ),
@@ -537,7 +601,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                 maxLines: 2,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: WorkerTranslations.getArabic(WorkerTranslations.address),
+                  labelText: WorkerTranslations.getArabic(
+                    WorkerTranslations.address,
+                  ),
                   prefixIcon: const Icon(Icons.location_on_outlined),
                   border: const OutlineInputBorder(),
                 ),
@@ -586,7 +652,12 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(WorkerTranslations.getBilingual('Profile updated successfully', 'تم تحديث الملف الشخصي بنجاح')),
+                  content: Text(
+                    WorkerTranslations.getBilingual(
+                      'Profile updated successfully',
+                      'تم تحديث الملف الشخصي بنجاح',
+                    ),
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
