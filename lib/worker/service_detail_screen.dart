@@ -992,14 +992,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                     Text(
                       WorkerTranslations.getArabic(
                         WorkerTranslations.currentCredit,
                       ),
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                      style: const TextStyle(fontSize: 11, color: Colors.black),
                     ),
                   ],
                 ),
@@ -1130,6 +1130,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF005DFF),
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 44),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1370,14 +1371,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   'Required: SAR ${requiredCredit.toStringAsFixed(2)}',
                   'المطلوب: ${requiredCredit.toStringAsFixed(2)} ريال',
                 ),
-                style: const TextStyle(fontSize: 11),
+                style: const TextStyle(fontSize: 11, color: Colors.black),
               ),
               Text(
                 WorkerTranslations.getBilingual(
                   'Available: SAR ${appState.creditBalance.toStringAsFixed(2)}',
                   'المتاح: ${appState.creditBalance.toStringAsFixed(2)} ريال',
                 ),
-                style: const TextStyle(fontSize: 11),
+                style: const TextStyle(fontSize: 11, color: Colors.black),
               ),
               Text(
                 'Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} • النقص: ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} ريال',
@@ -1465,14 +1466,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    WorkerTranslations.getEnglish('Complete Service'),
+                    WorkerTranslations.getEnglish(WorkerTranslations.completeService),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    WorkerTranslations.getArabic('Complete Service'),
+                    WorkerTranslations.getArabic(WorkerTranslations.completeService),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
@@ -1488,15 +1489,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  WorkerTranslations.getEnglish(
-                    'Complete service for ${service.customerName}?',
-                  ),
+                  'Complete service for ${service.customerName}?',
                   style: const TextStyle(fontSize: 12),
                 ),
                 Text(
-                  WorkerTranslations.getArabic(
-                    'Complete service for ${service.customerName}?',
-                  ),
+                  'إكمال الخدمة لـ ${service.customerName}?',
                   style: const TextStyle(fontSize: 11),
                 ),
               ],
@@ -1518,11 +1515,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Invoice:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.invoice),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Invoice:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.invoice),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1544,11 +1541,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Payment:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.payment),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Payment:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.payment),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1570,11 +1567,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Total Amount:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.totalAmount),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Total Amount:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.totalAmount),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1609,11 +1606,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Credit Deduction:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.creditDeducted),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Credit Deduction:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.creditDeducted),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1718,9 +1715,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(WorkerTranslations.getEnglish('Complete Service')),
+                Text('Confirm'),
                 Text(
-                  WorkerTranslations.getArabic('Complete Service'),
+                  'تأكيد',
                   style: const TextStyle(fontSize: 10),
                 ),
               ],
