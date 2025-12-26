@@ -23,9 +23,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
 
-  String _formatDate(DateTime dateTime) {
+  String _formatDateTime(DateTime dateTime, String time) {
     try {
-      return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
+      final date = DateFormat('MMM dd, yyyy').format(dateTime);
+      return '$date • $time';
     } catch (e) {
       return WorkerTranslations.getBilingual('N/A', 'غير متوفر');
     }
@@ -465,6 +466,51 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       const SizedBox(height: 4),
                       Text(
                         service.address,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 16, color: Colors.grey),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  color: Color(0xFF005DFF),
+                  size: 18,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.dateTime,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.dateTime,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDateTime(service.requestedDate, service.requestedTime),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black,

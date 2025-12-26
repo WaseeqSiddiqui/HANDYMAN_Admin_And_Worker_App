@@ -33,6 +33,7 @@ class AdminDashboard extends StatefulWidget {
 
 class AdminDashboardState extends State<AdminDashboard> {
   final _financialService = FinancialService();
+  bool _isBalanceVisible = false;
 
   @override
   void initState() {
@@ -588,23 +589,36 @@ class AdminDashboardState extends State<AdminDashboard> {
                 size: 24,
               ),
               const SizedBox(width: 8),
-              BilingualText(
-                english: AdminTranslations.split(
-                  AdminTranslations.financialOverview,
-                )[0],
-                arabic: AdminTranslations.split(
-                  AdminTranslations.financialOverview,
-                )[1],
-                englishStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: BilingualText(
+                  english: AdminTranslations.split(
+                    AdminTranslations.financialOverview,
+                  )[0],
+                  arabic: AdminTranslations.split(
+                    AdminTranslations.financialOverview,
+                  )[1],
+                  englishStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  arabicStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                arabicStyle: const TextStyle(
+              ),
+              IconButton(
+                icon: Icon(
+                  _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
                 ),
+                onPressed: () {
+                  setState(() {
+                    _isBalanceVisible = !_isBalanceVisible;
+                  });
+                },
               ),
             ],
           ),
@@ -619,7 +633,7 @@ class AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'SAR ${currentBalance.toStringAsFixed(2)}',
+                  _isBalanceVisible ? 'SAR ${currentBalance.toStringAsFixed(2)}' : 'SAR ****',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -636,7 +650,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           // Total Revenue
           _buildFinancialMetric(
             AdminTranslations.totalRevenue,
-            'SAR ${totalRevenue.toStringAsFixed(2)}',
+            _isBalanceVisible ? 'SAR ${totalRevenue.toStringAsFixed(2)}' : 'SAR ****',
             Icons.trending_up,
             Colors.greenAccent,
           ),
@@ -647,7 +661,7 @@ class AdminDashboardState extends State<AdminDashboard> {
               Expanded(
                 child: _buildFinancialMetric(
                   AdminTranslations.commission,
-                  'SAR ${totalCommission.toStringAsFixed(2)}',
+                  _isBalanceVisible ? 'SAR ${totalCommission.toStringAsFixed(2)}' : 'SAR ****',
                   Icons.money,
                   Colors.amberAccent,
                   isCompact: true,
@@ -657,7 +671,7 @@ class AdminDashboardState extends State<AdminDashboard> {
               Expanded(
                 child: _buildFinancialMetric(
                   AdminTranslations.vat,
-                  'SAR ${totalVAT.toStringAsFixed(2)}',
+                  _isBalanceVisible ? 'SAR ${totalVAT.toStringAsFixed(2)}' : 'SAR ****',
                   Icons.receipt,
                   Colors.orangeAccent,
                   isCompact: true,

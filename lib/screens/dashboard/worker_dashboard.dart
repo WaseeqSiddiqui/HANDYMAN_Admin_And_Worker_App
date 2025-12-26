@@ -41,6 +41,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   late String _workerName;
   late String _workerId;
   bool _isLoading = false;
+  bool _isBalanceVisible = false;
 
   @override
   void initState() {
@@ -101,7 +102,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   children: [
                     _buildWalletCreditCard(appState),
                     _buildQuickStats(appState),
-                    _buildQuickActions(),
+                    // _buildQuickActions(), // Removed as per request
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -447,20 +448,42 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          _buildBalanceCard(
-            WorkerTranslations.walletBalance,
-            appState.walletBalance,
-            Icons.account_balance_wallet,
-            Colors.white,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isBalanceVisible = !_isBalanceVisible;
+                  });
+                },
+                child: Icon(
+                  _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.white.withOpacity(0.8),
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-          _buildBalanceCard(
-            WorkerTranslations.creditBalance,
-            appState.creditBalance,
-            Icons.credit_card,
-            Colors.white70,
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildBalanceCard(
+                WorkerTranslations.walletBalance,
+                appState.walletBalance,
+                Icons.account_balance_wallet,
+                Colors.white,
+              ),
+              _buildBalanceCard(
+                WorkerTranslations.creditBalance,
+                appState.creditBalance,
+                Icons.credit_card,
+                Colors.white70,
+              ),
+            ],
           ),
         ],
       ),
@@ -495,7 +518,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${amount.toStringAsFixed(2)}',
+            _isBalanceVisible
+                ? '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${amount.toStringAsFixed(2)}'
+                : '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ****',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
