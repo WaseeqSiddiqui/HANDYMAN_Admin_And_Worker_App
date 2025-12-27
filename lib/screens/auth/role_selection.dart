@@ -23,7 +23,7 @@ class RoleSelectionScreen extends StatelessWidget {
               children: [
                 // Logo Section - HANDYMAN Logo (Clean without shadow)
                 _buildLogoSection(isDark),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 // Company Name - Column Format
                 Column(
@@ -73,7 +73,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
                 // Continue As - Column Format
                 Column(
@@ -97,7 +97,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Admin Card
                 _buildRoleCard(
@@ -186,28 +186,9 @@ class RoleSelectionScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 0),
         // Logo text below
-        Column(
-          children: [
-            Text(
-              'HANDYMAN',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF3B82F6),
-              ),
-            ),
-            Text(
-              'عامل الماهر',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
+
       ],
     );
   }

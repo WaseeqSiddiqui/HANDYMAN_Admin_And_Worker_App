@@ -23,9 +23,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
 
-  String _formatDate(DateTime dateTime) {
+  String _formatDateTime(DateTime dateTime, String time) {
     try {
-      return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
+      final date = DateFormat('MMM dd, yyyy').format(dateTime);
+      return '$date • $time';
     } catch (e) {
       return WorkerTranslations.getBilingual('N/A', 'غير متوفر');
     }
@@ -465,6 +466,51 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       const SizedBox(height: 4),
                       Text(
                         service.address,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 16, color: Colors.grey),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  color: Color(0xFF005DFF),
+                  size: 18,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.dateTime,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.dateTime,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDateTime(service.requestedDate, service.requestedTime),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black,
@@ -946,14 +992,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                     Text(
                       WorkerTranslations.getArabic(
                         WorkerTranslations.currentCredit,
                       ),
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                      style: const TextStyle(fontSize: 11, color: Colors.black),
                     ),
                   ],
                 ),
@@ -1084,6 +1130,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF005DFF),
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 44),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1324,14 +1371,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   'Required: SAR ${requiredCredit.toStringAsFixed(2)}',
                   'المطلوب: ${requiredCredit.toStringAsFixed(2)} ريال',
                 ),
-                style: const TextStyle(fontSize: 11),
+                style: const TextStyle(fontSize: 11, color: Colors.black),
               ),
               Text(
                 WorkerTranslations.getBilingual(
                   'Available: SAR ${appState.creditBalance.toStringAsFixed(2)}',
                   'المتاح: ${appState.creditBalance.toStringAsFixed(2)} ريال',
                 ),
-                style: const TextStyle(fontSize: 11),
+                style: const TextStyle(fontSize: 11, color: Colors.black),
               ),
               Text(
                 'Shortfall: SAR ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} • النقص: ${(requiredCredit - appState.creditBalance).toStringAsFixed(2)} ريال',
@@ -1419,14 +1466,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    WorkerTranslations.getEnglish('Complete Service'),
+                    WorkerTranslations.getEnglish(WorkerTranslations.completeService),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    WorkerTranslations.getArabic('Complete Service'),
+                    WorkerTranslations.getArabic(WorkerTranslations.completeService),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
@@ -1442,15 +1489,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  WorkerTranslations.getEnglish(
-                    'Complete service for ${service.customerName}?',
-                  ),
+                  'Complete service for ${service.customerName}?',
                   style: const TextStyle(fontSize: 12),
                 ),
                 Text(
-                  WorkerTranslations.getArabic(
-                    'Complete service for ${service.customerName}?',
-                  ),
+                  'إكمال الخدمة لـ ${service.customerName}?',
                   style: const TextStyle(fontSize: 11),
                 ),
               ],
@@ -1472,11 +1515,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Invoice:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.invoice),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Invoice:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.invoice),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1498,11 +1541,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Payment:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.payment),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Payment:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.payment),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1524,11 +1567,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Total Amount:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.totalAmount),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Total Amount:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.totalAmount),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1563,11 +1606,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish('Credit Deduction:'),
+                            WorkerTranslations.getEnglish(WorkerTranslations.creditDeducted),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic('Credit Deduction:'),
+                            WorkerTranslations.getArabic(WorkerTranslations.creditDeducted),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1672,9 +1715,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(WorkerTranslations.getEnglish('Complete Service')),
+                Text('Confirm'),
                 Text(
-                  WorkerTranslations.getArabic('Complete Service'),
+                  'تأكيد',
                   style: const TextStyle(fontSize: 10),
                 ),
               ],

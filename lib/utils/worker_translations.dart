@@ -221,6 +221,7 @@ class WorkerTranslations {
   static const String serviceCompletedSuccess = '✅ Service completed successfully! • ✅ اكتملت الخدمة بنجاح!';
   static const String walletUpdated = 'Wallet Updated: • تم تحديث المحفظة:';
   static const String creditDeducted = 'Credit Deducted: • تم خصم الرصيد:';
+  static const String completeService = 'Complete Service • إكمال الخدمة';
   static const String confirmComplete = 'Confirm Complete • تأكيد الإتمام';
   static const String completeServiceConfirm = 'Are you sure you want to complete this service? • هل أنت متأكد من إتمام هذه الخدمة؟';
   static const String thisWillProcess = 'This will process the payment and mark the service as completed. • سيتم معالجة الدفع وتحديد الخدمة كمكتملة.';

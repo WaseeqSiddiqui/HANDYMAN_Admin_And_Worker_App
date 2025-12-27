@@ -35,7 +35,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     super.dispose();
   }
 
-  String _formatDateTime(DateTime dateTime) {
+  String _formatDateTime(DateTime dateTime, String time) {
+    final date = intl.DateFormat('MMM dd, yyyy').format(dateTime);
+    if (time.isNotEmpty) return '$date • $time';
     return intl.DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
   }
 
@@ -199,15 +201,28 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       );
     }
 
+    // Sort: Unassigned first, then Assigned
+    // Secondary Sort: Newest date first
+    final sortedServices = List<ServiceRequest>.from(services)..sort((a, b) {
+      final aAssigned = a.workerId != null && a.workerId!.isNotEmpty;
+      final bAssigned = b.workerId != null && b.workerId!.isNotEmpty;
+
+      if (aAssigned != bAssigned) {
+        return aAssigned ? 1 : -1; // Unassigned (false) comes before Assigned (true)
+      }
+      // If same status, sort by date descending (newest first)
+      return b.requestedDate.compareTo(a.requestedDate);
+    });
+
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: Container(
         color: Colors.white, // White background for the list
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: services.length,
+          itemCount: sortedServices.length,
           itemBuilder: (context, index) {
-            return _buildRequestedServiceCard(services[index]);
+            return _buildRequestedServiceCard(sortedServices[index]);
           },
         ),
       ),
@@ -308,7 +323,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             // Date time - Bilingual format with white text
             _buildInfoRow(
               Icons.calendar_today,
-              _formatDateTime(service.requestedDate),
+              _formatDateTime(service.requestedDate, service.requestedTime),
               isArabic: false,
             ),
 
@@ -661,7 +676,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             ),
             _buildInfoRow(
               Icons.calendar_today,
-              _formatDateTime(service.requestedDate),
+              _formatDateTime(service.requestedDate, service.requestedTime),
               isArabic: false,
             ),
 
@@ -1503,7 +1518,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
               ),
               Text(
-                '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate)}',
+                '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate, service.requestedTime)}',
               ),
               const SizedBox(height: 16),
               Text(
@@ -1792,7 +1807,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(_formatDateTime(selectedDate)),
+                        Text(_formatDateTime(selectedDate, service.requestedTime)),
                         const Icon(Icons.calendar_today, size: 20),
                       ],
                     ),
@@ -1833,7 +1848,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate)}',
+                                '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate, service.requestedTime)}',
                               ),
                               Text(
                                 selectedWorker!.nameArabic,
