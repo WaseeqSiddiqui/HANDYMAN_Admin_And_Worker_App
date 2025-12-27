@@ -5,7 +5,7 @@
 
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '/providers/app_state_provider.dart';
@@ -42,6 +42,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   late String _workerId;
   bool _isLoading = false;
   bool _isBalanceVisible = false;
+  bool _showStats = true; // ✅ State for toggling stats visibility
 
   @override
   void initState() {
@@ -59,8 +60,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Provider.of<AppStateProvider>(context, listen: false)
-              .setCurrentWorker(_workerId);
+          Provider.of<AppStateProvider>(
+            context,
+            listen: false,
+          ).setCurrentWorker(_workerId);
         }
       });
     } else {
@@ -90,10 +93,13 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5), // ✅ CHANGED: Light gray background
+          backgroundColor: const Color(
+            0xFFF5F5F5,
+          ), // ✅ CHANGED: Light gray background
           appBar: _buildAppBar(),
           drawer: _buildDrawer(appState),
-          body: SingleChildScrollView( // ✅ MADE ENTIRE SCREEN SCROLLABLE
+          body: SingleChildScrollView(
+            // ✅ MADE ENTIRE SCREEN SCROLLABLE
             child: Column(
               children: [
                 // Top section
@@ -101,9 +107,70 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWalletCreditCard(appState),
-                    _buildQuickStats(appState),
-                    // _buildQuickActions(), // Removed as per request
-                    const SizedBox(height: 8),
+
+                    // Toggle Row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            WorkerTranslations.getBilingual(
+                              'Overview',
+                              'نظرة عامة',
+                            ),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                _showStats = !_showStats;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                  _showStats
+                                      ? WorkerTranslations.getBilingual(
+                                          'Hide',
+                                          'اخفاء',
+                                        )
+                                      : WorkerTranslations.getBilingual(
+                                          'Show',
+                                          'عرض',
+                                        ),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF3B82F6),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  _showStats
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: const Color(0xFF3B82F6),
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (_showStats) ...[
+                      _buildQuickStats(appState),
+                      const SizedBox(height: 8),
+                    ],
                   ],
                 ),
                 // Services section
@@ -120,7 +187,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF3B82F6), // Keeping app bar blue for contrast
+      backgroundColor: const Color(
+        0xFF3B82F6,
+      ), // Keeping app bar blue for contrast
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -128,7 +197,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           Text(
             WorkerTranslations.getEnglish(WorkerTranslations.workerDashboard),
             style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           Text(
             WorkerTranslations.getArabic(WorkerTranslations.workerDashboard),
@@ -145,11 +217,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         Stack(
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const WorkerNotificationsScreen()),
+                  builder: (context) => const WorkerNotificationsScreen(),
+                ),
               ),
             ),
             Positioned(
@@ -210,7 +286,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
 
           ListTile(
-            leading: const Icon(Icons.account_balance_wallet, color: Color(0xFF3B82F6)),
+            leading: const Icon(
+              Icons.account_balance_wallet,
+              color: Color(0xFF3B82F6),
+            ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -276,11 +355,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  WorkerTranslations.getEnglish(WorkerTranslations.transactionHistory),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.transactionHistory,
+                  ),
                   style: const TextStyle(fontSize: 14),
                 ),
                 Text(
-                  WorkerTranslations.getArabic(WorkerTranslations.transactionHistory),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.transactionHistory,
+                  ),
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -289,23 +372,32 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const WorkerTransactionsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const WorkerTransactionsScreen(),
+                ),
               );
             },
           ),
 
           ListTile(
-            leading: const Icon(Icons.check_circle_outline, color: Color(0xFF3B82F6)),
+            leading: const Icon(
+              Icons.check_circle_outline,
+              color: Color(0xFF3B82F6),
+            ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  WorkerTranslations.getEnglish(WorkerTranslations.completedServices),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.completedServices,
+                  ),
                   style: const TextStyle(fontSize: 14),
                 ),
                 Text(
-                  WorkerTranslations.getArabic(WorkerTranslations.completedServices),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.completedServices,
+                  ),
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -318,7 +410,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CompletedServicesScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const CompletedServicesScreen(),
+                ),
               );
             },
           ),
@@ -345,7 +439,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const WorkerProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const WorkerProfileScreen(),
+                ),
               );
             },
           ),
@@ -410,19 +506,25 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
-                    (route) => false,
+                MaterialPageRoute(
+                  builder: (context) => const RoleSelectionScreen(),
+                ),
+                (route) => false,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.logout)),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.logout),
+            ),
           ),
         ],
       ),
@@ -448,56 +550,66 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _isBalanceVisible = !_isBalanceVisible;
-                  });
-                },
-                child: Icon(
-                  _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.white.withOpacity(0.8),
-                  size: 20,
+          Expanded(
+            child: Row(
+              children: [
+                _buildBalanceCard(
+                  WorkerTranslations.walletBalance,
+                  appState.walletBalance,
+                  Icons.account_balance_wallet,
+                  Colors.white,
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                _buildBalanceCard(
+                  WorkerTranslations.creditBalance,
+                  appState.creditBalance,
+                  Icons.credit_card,
+                  Colors.white70,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildBalanceCard(
-                WorkerTranslations.walletBalance,
-                appState.walletBalance,
-                Icons.account_balance_wallet,
-                Colors.white,
+          const SizedBox(width: 12),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isBalanceVisible = !_isBalanceVisible;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
               ),
-              _buildBalanceCard(
-                WorkerTranslations.creditBalance,
-                appState.creditBalance,
-                Icons.credit_card,
-                Colors.white70,
+              child: Icon(
+                _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
+                color: Colors.white,
+                size: 20,
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceCard(String title, double amount, IconData icon, Color color) {
+  Widget _buildBalanceCard(
+    String title,
+    double amount,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 18),
+              Icon(icon, color: color, size: 16),
               const SizedBox(width: 6),
               Expanded(
                 child: Column(
@@ -506,24 +618,28 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     Text(
                       WorkerTranslations.getEnglish(title),
                       style: TextStyle(color: color, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       WorkerTranslations.getArabic(title),
                       style: TextStyle(color: color, fontSize: 10),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             _isBalanceVisible
                 ? '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${amount.toStringAsFixed(2)}'
                 : '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ****',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -568,7 +684,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final labelParts = label.split(' • ');
     final englishLabel = labelParts[0];
     final arabicLabel = labelParts.length > 1 ? labelParts[1] : labelParts[0];
@@ -592,26 +713,17 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           Column(
             children: [
               Text(
                 englishLabel,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(fontSize: 11, color: Colors.grey[700]),
               ),
               Text(
                 arabicLabel,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
           ),
@@ -638,10 +750,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ),
               Text(
                 WorkerTranslations.getArabic(WorkerTranslations.quickActions),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
           ),
@@ -655,9 +764,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     WorkerTranslations.topupCredit,
                     Icons.add_circle_outline,
                     const Color(0xFF3B82F6),
-                        () => Navigator.push(
+                    () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CreditScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const CreditScreen(),
+                      ),
                     ),
                   ),
                 ),
@@ -667,9 +778,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     WorkerTranslations.wallet,
                     Icons.account_balance_wallet_outlined,
                     Colors.green,
-                        () => Navigator.push(
+                    () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const WalletScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const WalletScreen(),
+                      ),
                     ),
                   ),
                 ),
@@ -681,7 +794,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final labelParts = label.split(' • ');
     final englishLabel = labelParts[0];
     final arabicLabel = labelParts.length > 1 ? labelParts[1] : labelParts[0];
@@ -721,10 +839,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   ),
                   Text(
                     arabicLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: color,
-                    ),
+                    style: TextStyle(fontSize: 11, color: color),
                   ),
                 ],
               ),
@@ -738,7 +853,8 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
 
   Widget _buildServicesSection(AppStateProvider appState) {
     return Container(
-      height: 400,
+      // ✅ Dynamic height to take up more space
+      height: MediaQuery.of(context).size.height * 0.75,
       child: DefaultTabController(
         length: 4,
         child: Column(
@@ -768,11 +884,21 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.getBilingual('Available', 'متاح')),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.getBilingual(
+                              'Available',
+                              'متاح',
+                            ),
+                          ),
                           style: const TextStyle(fontSize: 11),
                         ),
                         Text(
-                          WorkerTranslations.getArabic(WorkerTranslations.getBilingual('Available', 'متاح')),
+                          WorkerTranslations.getArabic(
+                            WorkerTranslations.getBilingual(
+                              'Available',
+                              'متاح',
+                            ),
+                          ),
                           style: const TextStyle(fontSize: 9),
                         ),
                       ],
@@ -783,11 +909,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.getBilingual('Active', 'نشط')),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.getBilingual('Active', 'نشط'),
+                          ),
                           style: const TextStyle(fontSize: 11),
                         ),
                         Text(
-                          WorkerTranslations.getArabic(WorkerTranslations.getBilingual('Active', 'نشط')),
+                          WorkerTranslations.getArabic(
+                            WorkerTranslations.getBilingual('Active', 'نشط'),
+                          ),
                           style: const TextStyle(fontSize: 9),
                         ),
                       ],
@@ -798,11 +928,21 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.getBilingual('Complete', 'مكتمل')),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.getBilingual(
+                              'Complete',
+                              'مكتمل',
+                            ),
+                          ),
                           style: const TextStyle(fontSize: 11),
                         ),
                         Text(
-                          WorkerTranslations.getArabic(WorkerTranslations.getBilingual('Complete', 'مكتمل')),
+                          WorkerTranslations.getArabic(
+                            WorkerTranslations.getBilingual(
+                              'Complete',
+                              'مكتمل',
+                            ),
+                          ),
                           style: const TextStyle(fontSize: 9),
                         ),
                       ],
@@ -813,11 +953,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.postpone),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.postpone,
+                          ),
                           style: const TextStyle(fontSize: 11),
                         ),
                         Text(
-                          WorkerTranslations.getArabic(WorkerTranslations.postpone),
+                          WorkerTranslations.getArabic(
+                            WorkerTranslations.postpone,
+                          ),
                           style: const TextStyle(fontSize: 9),
                         ),
                       ],
@@ -830,10 +974,26 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildServiceList(appState.availableServices, 'available', appState),
-                  _buildServiceList(appState.activeServices, 'active', appState),
-                  _buildServiceList(appState.completedServices, 'completed', appState),
-                  _buildServiceList(appState.postponedServices, 'postponed', appState),
+                  _buildServiceList(
+                    appState.availableServices,
+                    'available',
+                    appState,
+                  ),
+                  _buildServiceList(
+                    appState.activeServices,
+                    'active',
+                    appState,
+                  ),
+                  _buildServiceList(
+                    appState.completedServices,
+                    'completed',
+                    appState,
+                  ),
+                  _buildServiceList(
+                    appState.postponedServices,
+                    'postponed',
+                    appState,
+                  ),
                 ],
               ),
             ),
@@ -843,33 +1003,27 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     );
   }
 
-  Widget _buildServiceList(List<ServiceRequest> services, String type, AppStateProvider appState) {
+  Widget _buildServiceList(
+    List<ServiceRequest> services,
+    String type,
+    AppStateProvider appState,
+  ) {
     if (services.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _getEmptyIcon(type),
-              size: 64,
-              color: Colors.grey[300],
-            ),
+            Icon(_getEmptyIcon(type), size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Column(
               children: [
                 Text(
                   WorkerTranslations.getEnglish(WorkerTranslations.noServices),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 Text(
                   WorkerTranslations.getArabic(WorkerTranslations.noServices),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -903,7 +1057,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     }
   }
 
-  Widget _buildServiceCard(ServiceRequest service, String type, AppStateProvider appState) {
+  Widget _buildServiceCard(
+    ServiceRequest service,
+    String type,
+    AppStateProvider appState,
+  ) {
     final statusColor = _getStatusColor(service.status);
     final statusText = _getStatusText(service.status);
 
@@ -937,7 +1095,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -956,19 +1117,31 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.customer),
-                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.customer,
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                          ),
                         ),
                         Text(
                           service.customerName,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
                         ),
                       ],
                     ),
@@ -978,15 +1151,24 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          WorkerTranslations.getEnglish(WorkerTranslations.address),
-                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.address,
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                          ),
                         ),
                         Text(
                           service.address,
@@ -1003,13 +1185,19 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        WorkerTranslations.getEnglish(WorkerTranslations.dateTime),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.dateTime,
+                        ),
                         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       Text(
@@ -1033,11 +1221,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        WorkerTranslations.getEnglish(WorkerTranslations.totalAmount),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.totalAmount,
+                        ),
                         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       Text(
-                        WorkerTranslations.getArabic(WorkerTranslations.totalAmount),
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.totalAmount,
+                        ),
                         style: TextStyle(fontSize: 10, color: Colors.grey[700]),
                       ),
                       Text(
@@ -1060,8 +1252,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     );
   }
 
-
-  Widget _buildActionButtons(ServiceRequest service, String type, AppStateProvider appState) {
+  Widget _buildActionButtons(
+    ServiceRequest service,
+    String type,
+    AppStateProvider appState,
+  ) {
     switch (type) {
       case 'available':
         return Row(
@@ -1075,7 +1270,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1100,7 +1298,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1120,7 +1321,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         );
 
       case 'active':
-      // ✅ FIXED: Added Chat button alongside Service Details
+        // ✅ FIXED: Added Chat button alongside Service Details
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1136,12 +1337,16 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.black, // ✅ Fixed: Changed from white to black for visibility
+                foregroundColor: Colors
+                    .black, // ✅ Fixed: Changed from white to black for visibility
                 side: const BorderSide(color: Color(0xFF3B82F6)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1173,18 +1378,25 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.info_outline, size: 16),
                   Text(
-                    WorkerTranslations.getEnglish(WorkerTranslations.serviceDetails),
+                    WorkerTranslations.getEnglish(
+                      WorkerTranslations.serviceDetails,
+                    ),
                     style: const TextStyle(fontSize: 11),
                   ),
                   Text(
-                    WorkerTranslations.getArabic(WorkerTranslations.serviceDetails),
+                    WorkerTranslations.getArabic(
+                      WorkerTranslations.serviceDetails,
+                    ),
                     style: const TextStyle(fontSize: 9),
                   ),
                 ],
@@ -1223,7 +1435,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         return const SizedBox();
     }
   }
-
 
   Color _getStatusColor(ServiceRequestStatus status) {
     switch (status) {
@@ -1280,11 +1491,18 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   children: [
                     // ✅ FIXED: Using proper translation constant
                     Text(
-                      WorkerTranslations.getEnglish(WorkerTranslations.insufficientCredit),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      WorkerTranslations.getEnglish(
+                        WorkerTranslations.insufficientCredit,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
-                      WorkerTranslations.getArabic(WorkerTranslations.insufficientCredit),
+                      WorkerTranslations.getArabic(
+                        WorkerTranslations.insufficientCredit,
+                      ),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],
@@ -1296,7 +1514,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                WorkerTranslations.getEnglish(WorkerTranslations.needMoreCredit),
+                WorkerTranslations.getEnglish(
+                  WorkerTranslations.needMoreCredit,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -1315,18 +1535,29 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${WorkerTranslations.getEnglish(WorkerTranslations.available)}'),
-                        Text('${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.creditBalance.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                          '${WorkerTranslations.getEnglish(WorkerTranslations.available)}',
+                        ),
+                        Text(
+                          '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.creditBalance.toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${WorkerTranslations.getEnglish(WorkerTranslations.getBilingual('Required', 'مطلوب'))}:'),
-                        Text('${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${requiredCredit.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                        Text(
+                          '${WorkerTranslations.getEnglish(WorkerTranslations.getBilingual('Required', 'مطلوب'))}:',
+                        ),
+                        Text(
+                          '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${requiredCredit.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -1337,7 +1568,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+              child: Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -1347,8 +1580,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                   MaterialPageRoute(builder: (context) => const CreditScreen()),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6)),
-              child: Text(WorkerTranslations.getEnglish(WorkerTranslations.topupCredit)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3B82F6),
+              ),
+              child: Text(
+                WorkerTranslations.getEnglish(WorkerTranslations.topupCredit),
+              ),
             ),
           ],
         ),
@@ -1376,8 +1613,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${requiredCredit.toStringAsFixed(2)} '),
-            Text(WorkerTranslations.getEnglish(WorkerTranslations.creditReserved)),
+            Text(
+              '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${requiredCredit.toStringAsFixed(2)} ',
+            ),
+            Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.creditReserved),
+            ),
             const SizedBox(height: 4),
             Text(
               WorkerTranslations.getArabic(WorkerTranslations.creditReserved),
@@ -1388,7 +1629,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1397,13 +1640,19 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${service.serviceName} ${WorkerTranslations.getEnglish(WorkerTranslations.serviceAccepted)}'),
+                  content: Text(
+                    '${service.serviceName} ${WorkerTranslations.getEnglish(WorkerTranslations.serviceAccepted)}',
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4ADE80)),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.accept)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4ADE80),
+            ),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.accept),
+            ),
           ),
         ],
       ),
@@ -1456,7 +1705,10 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 return;
               }
               Navigator.pop(context);
-              appState.postponeService(service.id, reasonController.text.trim());
+              appState.postponeService(
+                service.id,
+                reasonController.text.trim(),
+              );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${service.serviceName} postponed'),
@@ -1471,7 +1723,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       ),
     );
   }
-
 
   void _resumeService(ServiceRequest service, AppStateProvider appState) {
     showDialog(
@@ -1494,7 +1745,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(WorkerTranslations.getEnglish(WorkerTranslations.movedToActive)),
+            Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.movedToActive),
+            ),
             const SizedBox(height: 4),
             Text(
               WorkerTranslations.getArabic(WorkerTranslations.movedToActive),
@@ -1505,7 +1758,9 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1515,13 +1770,17 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               // ✅ Removed setState() - appState.resumeService already calls notifyListeners()
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${service.serviceName} ${WorkerTranslations.getEnglish(WorkerTranslations.serviceResumed)}'),
+                  content: Text(
+                    '${service.serviceName} ${WorkerTranslations.getEnglish(WorkerTranslations.serviceResumed)}',
+                  ),
                   backgroundColor: Colors.blue,
                 ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: Text(WorkerTranslations.getEnglish(WorkerTranslations.resume)),
+            child: Text(
+              WorkerTranslations.getEnglish(WorkerTranslations.resume),
+            ),
           ),
         ],
       ),

@@ -145,6 +145,10 @@ class AppStateProvider with ChangeNotifier {
 
   // ✅ ALL GETTERS
   double get creditBalance => _currentWorkerData.creditBalance;
+  double get reservedCredit =>
+      _currentWorkerData.reservedCredit; // Added getter
+  double get availableCredit =>
+      creditBalance - reservedCredit; // Effective credit
   double get walletBalance => _currentWorkerData.walletBalance;
 
   double get pendingAmount {
@@ -390,8 +394,8 @@ class AppStateProvider with ChangeNotifier {
     _workerData[workerId] = WorkerFinancialData(
       workerId: workerId,
       creditBalance: workerData.creditBalance,
-      walletBalance: workerData
-          .walletBalance, // ✅ FIXED: Use persistent value from Firestore
+      reservedCredit: workerData.reservedCredit, // Initialize reservedCredit
+      walletBalance: workerData.walletBalance,
       // ACTUALLY: Wallet balance usually is calculated from transactions or persisted in WorkerData.
       // In WorkerData model there is no walletBalance, only creditBalance.
       // Transactions have balanceAfter.
@@ -474,6 +478,21 @@ class AppStateProvider with ChangeNotifier {
     if (service.workerId != currentWorkerId) return;
     if (service.status != ServiceRequestStatus.assigned) return;
 
+    // ✅ CHECK Credit Reservation
+    // We must ensure (Available Credit = Total - Reserved) >= Required
+    final requiredCredit = service.totalDeduction;
+    // Note: 'totalDeduction' usually means commission + VAT
+
+    if ((_currentWorkerData.creditBalance - _currentWorkerData.reservedCredit) <
+        requiredCredit) {
+      debugPrint('❌ Insufficient available credit to accept service.');
+      debugPrint('   Required: $requiredCredit');
+      debugPrint(
+        '   Available: ${_currentWorkerData.creditBalance - _currentWorkerData.reservedCredit}',
+      );
+      return; // Or throw/show error, but effectively blocks acceptance
+    }
+
     final updatedService = service.copyWith(
       status: ServiceRequestStatus.inProgress,
       postponeReason:
@@ -481,9 +500,28 @@ class AppStateProvider with ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
+    // ✅ Update Worker Reserved Credit
+    // Increase reserved credit
+    final newReserved = _currentWorkerData.reservedCredit + requiredCredit;
+
+    // Batch update via helper methods or manually ensuring both succeed
+    // Ideally use a batch or transaction, but for now sequential updates with error handling
+    try {
+      await _firestoreService.updateWorkerReservedCredit(
+        currentWorkerId!,
+        newReserved,
+      );
+      _currentWorkerData.reservedCredit = newReserved; // Optimistic update
+    } catch (e) {
+      debugPrint('❌ Error updating reserved credit: $e');
+      return; // Fail cleanly
+    }
+
     await _firestoreService.updateServiceRequest(updatedService);
 
-    debugPrint('✅ Service $serviceId accepted');
+    debugPrint(
+      '✅ Service $serviceId accepted (Reserved Credit: $requiredCredit)',
+    );
 
     // ✅ NOTIFICATION: Notify Customer
     // Since we don't have direct customer push token logic yet,
@@ -522,6 +560,18 @@ class AppStateProvider with ChangeNotifier {
     );
 
     await _firestoreService.updateServiceRequest(updatedService);
+
+    // Check credit again logic for resume?
+    // User requirement: "credit reserve ho jaye" (credit be reserved).
+    // If postponed, credit should ALREADY be reserved if we treat postponed as "active".
+    // Let's check logic:
+    // If postponed service releases reservation? NO, we didn't implement release on postpone.
+    // So "resume" just needs to verify we still have reservation? or just proceed.
+    // If we assume reservation is KEPT during postponement, then no need to reserve again.
+    // BUT, if postponed allowed someone to use credit elsewhere?
+    // Let's assume Postpone keeps reservation.
+    // Wait, earlier logic: cancelService releases credit. PostponeService logic below just updates status.
+    // So logic holds: Postpone keeps credit reserved.
 
     debugPrint('✅ Service $serviceId resumed');
   }
@@ -601,11 +651,17 @@ class AppStateProvider with ChangeNotifier {
     // ✅ Verify credit BEFORE completing service
     final requiredCredit = service.totalDeduction;
 
+    // Logic: We already reserved credit. So we expect (Total >= Deduction).
+    // We don't check (Available >= Deduction) because we are CONSUMING the reservation.
+    // We just check if Total Credit is enough (it should be, unless Admin deducted manually).
+
     if (_currentWorkerData.creditBalance < requiredCredit) {
-      debugPrint('❌ Cannot complete service: Insufficient credit');
+      debugPrint(
+        '❌ Cannot complete service: Insufficient TOTAL credit (Unexpected)',
+      );
       debugPrint('   Required: SAR ${requiredCredit.toStringAsFixed(2)}');
       debugPrint(
-        '   Available: SAR ${_currentWorkerData.creditBalance.toStringAsFixed(2)}',
+        '   Total: SAR ${_currentWorkerData.creditBalance.toStringAsFixed(2)}',
       );
       throw Exception('Insufficient credit balance');
     }
@@ -658,7 +714,14 @@ class AppStateProvider with ChangeNotifier {
     // Batch update via helper methods or individually
     // Important: Update Credit in Firestore
 
+    // ✅ LOGIC CHANGE:
+    // New Credit Balance = Old Credit Balance - Deduction
+    // New Reserved Credit = Old Reserved Credit - Deduction (Release reservation)
+
     final newCredit = _currentWorkerData.creditBalance - requiredCredit;
+    final newReserved = (_currentWorkerData.reservedCredit - requiredCredit)
+        .clamp(0.0, double.infinity);
+    // Use clamp just in case of slight precision errors or manual admin edits
 
     try {
       // 1. Update Service
@@ -680,10 +743,14 @@ class AppStateProvider with ChangeNotifier {
         // Don't throw - continue with other updates
       }
 
-      // 3. Update Worker Credit
+      // 3. Update Worker Credit & Release Reservation
       try {
         await _firestoreService.updateWorkerCredit(currentWorkerId!, newCredit);
-        debugPrint('✅ Worker credit updated');
+        await _firestoreService.updateWorkerReservedCredit(
+          currentWorkerId!,
+          newReserved,
+        );
+        debugPrint('✅ Worker credit updated & reservation released');
       } catch (e) {
         debugPrint('❌ Error updating worker credit: $e');
         // Don't throw - continue with other updates
@@ -722,6 +789,8 @@ class AppStateProvider with ChangeNotifier {
 
       // Update local state for immediate feedback
       _currentWorkerData.creditBalance = newCredit;
+      _currentWorkerData.reservedCredit =
+          newReserved; // Update local reservation
       if (paymentMethod != 'Cash') {
         final newWalletBalance = _currentWorkerData.walletBalance + totalPrice;
         _currentWorkerData.walletBalance = newWalletBalance;
@@ -855,6 +924,23 @@ class AppStateProvider with ChangeNotifier {
   }
 
   bool hasEnoughCredit(ServiceRequest service) {
+    if (currentWorkerId == null) return false;
+    // Check if we already reserved credit for THIS service (e.g. if it is in progress)
+    // If we already accepted it, we don't need *more* credit, we just need to ensure we have enough TOTAL.
+    // BUT the user scenario is: "accepted service A (reserved), accepted service B (reserved), completed B".
+    // If complete B, it shouldn't affect A's reservation.
+    // So "hasEnoughCredit" is usually called BEFORE accepting.
+    // Or during "Complete Service" flow?
+
+    // If status is 'assigned' (not yet accepted), we check against (Total - Reserved).
+    if (service.status == ServiceRequestStatus.assigned) {
+      return (creditBalance - reservedCredit) >= getRequiredCredit(service);
+    }
+
+    // If status is 'inProgress' (already accepted/reserved), we check against Total.
+    // Because the credit for THIS service is already inside 'reservedCredit'.
+    // So we just need to ensure Total Credit is still enough to cover this reservation.
+    // (Total >= Required) is sufficient because Required IS part of Reserved (which is part of Total).
     return creditBalance >= getRequiredCredit(service);
   }
 
@@ -1105,6 +1191,7 @@ class AppStateProvider with ChangeNotifier {
 class WorkerFinancialData {
   final String workerId;
   double creditBalance;
+  double reservedCredit; // Added reservedCredit
   double walletBalance;
   double pendingAmount = 0.0;
   double availableForWithdrawal = 0.0;
@@ -1121,6 +1208,7 @@ class WorkerFinancialData {
   WorkerFinancialData({
     required this.workerId,
     required this.creditBalance,
+    this.reservedCredit = 0.0, // Default to 0.0
     required this.walletBalance,
     this.lastWalletCreditDate,
   }) {

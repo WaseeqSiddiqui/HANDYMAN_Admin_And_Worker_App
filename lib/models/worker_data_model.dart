@@ -12,6 +12,7 @@ class WorkerData {
   final DateTime joinedDate;
   final int completedServices;
   final double creditBalance;
+  final double reservedCredit; // Added reservedCredit
   final double walletBalance; // Added walletBalance
   final String? profilePhotoUrl;
 
@@ -29,6 +30,7 @@ class WorkerData {
     required this.joinedDate,
     this.completedServices = 0,
     this.creditBalance = 100.0,
+    this.reservedCredit = 0.0, // Default to 0.0
     this.walletBalance = 0.0, // Default to 0.0
     this.profilePhotoUrl,
   });
@@ -47,6 +49,7 @@ class WorkerData {
     DateTime? joinedDate,
     int? completedServices,
     double? creditBalance,
+    double? reservedCredit,
     double? walletBalance,
     String? profilePhotoUrl,
   }) {
@@ -64,6 +67,7 @@ class WorkerData {
       joinedDate: joinedDate ?? this.joinedDate,
       completedServices: completedServices ?? this.completedServices,
       creditBalance: creditBalance ?? this.creditBalance,
+      reservedCredit: reservedCredit ?? this.reservedCredit,
       walletBalance: walletBalance ?? this.walletBalance,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
     );
@@ -84,6 +88,7 @@ class WorkerData {
       'joinedDate': joinedDate.toIso8601String(),
       'completedServices': completedServices,
       'creditBalance': creditBalance,
+      'reservedCredit': reservedCredit,
       'walletBalance': walletBalance,
       'profilePhotoUrl': profilePhotoUrl,
     };
@@ -108,6 +113,7 @@ class WorkerData {
             ),
       completedServices: map['completedServices'] ?? 0,
       creditBalance: (map['creditBalance'] ?? 100.0).toDouble(),
+      reservedCredit: (map['reservedCredit'] ?? 0.0).toDouble(),
       walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
       profilePhotoUrl: map['profilePhotoUrl'],
     );

@@ -320,22 +320,46 @@ class FirestoreService {
         'relatedId': serviceId,
       });
 
-      // Notify Worker (if assigned) -> REMOVED per user request (Only Admins need tray notif for cancellation)
-      /*
-      if (workerId != null) {
-        await _notificationsCollection.add({
-          'title': 'Service Cancelled',
-          'message': 'Service $serviceName has been cancelled by customer.',
-          'type': 'warning',
-          'timestamp': FieldValue.serverTimestamp(),
-          'isRead': false,
-          'targetUserIds': [workerId],
-          'relatedId': serviceId,
-        });
+      // ✅ LOGIC CHANGE: Release reserved credit if service was in progress
+      // We need to fetch the service to know if it was in a state where credit was reserved
+      // Optimization: We already fetched 'data' above (line 306).
+      // Check if status was 'inProgress' (or 'accepted' if that status existed, but here it's inProgress)
+      final oldStatus = data['status'];
+      final workerId = data['workerId'];
+
+      if (workerId != null && oldStatus == 'inProgress') {
+        // Calculate amount to release (Total Deduction)
+        // We need to recalculate or fetch total deduction.
+        // ServiceRequest model has totalDeduction getter, but here we have raw map.
+        // Let's instantiate model or calculate.
+        final serviceReq = ServiceRequest.fromJson(data);
+        final amountToRelease = serviceReq.totalDeduction;
+
+        if (amountToRelease > 0) {
+          debugPrint(
+            '🔄 Releasing reserved credit for cancelled service: $amountToRelease',
+          );
+          await _workersCollection.doc(workerId).update({
+            'reservedCredit': FieldValue.increment(-amountToRelease),
+          });
+        }
       }
-      */
     } catch (e) {
       debugPrint('Error cancelling service: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateWorkerReservedCredit(
+    String workerId,
+    double newReservedCredit,
+  ) async {
+    try {
+      await _workersCollection.doc(workerId).update({
+        'reservedCredit': newReservedCredit,
+      });
+    } catch (e) {
+      debugPrint('Error updating worker reserved credit: $e');
       throw e;
     }
   }
