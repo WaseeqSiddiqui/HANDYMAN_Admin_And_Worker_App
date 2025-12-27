@@ -68,6 +68,13 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            tooltip: 'Clear All Data',
+            onPressed: () => _confirmClearAllData(),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -1026,25 +1033,31 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   const SizedBox(height: 12),
                   TextField(
                     controller: commissionController,
+                    readOnly: true, // User request: Fixed default
+                    enabled: false,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     decoration: const InputDecoration(
-                      labelText: 'Commission (%)',
+                      labelText: 'Commission (20% - Fixed)',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.percent),
+                      filled: true,
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: vatController,
+                    readOnly: true, // User request: Fixed default
+                    enabled: false,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     decoration: const InputDecoration(
-                      labelText: 'VAT (%)',
+                      labelText: 'VAT (15% - Fixed)',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.receipt_long),
+                      filled: true,
                     ),
                   ),
                 ],
@@ -1410,25 +1423,31 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: commissionController,
+                readOnly: true, // User request: Fixed default
+                enabled: false,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Commission (%)',
+                  labelText: 'Commission (Fixed)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.percent),
+                  filled: true,
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: vatController,
+                readOnly: true, // User request: Fixed default
+                enabled: false,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'VAT (%)',
+                  labelText: 'VAT (Fixed)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.receipt_long),
+                  filled: true,
                 ),
               ),
             ],
@@ -1632,6 +1651,95 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             child: Text(
               AdminTranslations.split(AdminTranslations.deleteBtn)[0],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmClearAllData() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('⚠️ Clear All Catalogue Data?'),
+        content: const Text(
+          'This will PERMANENTLY DELETE all Categories, Subcategories, and Services.\n\nType "CONFIRM" to proceed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showFinalClearConfirmation();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Proceed'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFinalClearConfirmation() {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('🔥 Final Confirmation'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('To delete EVERYTHING, type "CONFIRM" below:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'CONFIRM',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (textController.text == 'CONFIRM') {
+                Navigator.pop(context); // Close dialog
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('🧹 Clearing catalogue...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                await _serviceManager.clearAllData();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ All data cleared successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('DELETE ALL'),
           ),
         ],
       ),

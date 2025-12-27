@@ -4,6 +4,7 @@ import '/providers/app_state_provider.dart';
 import '/services/worker_auth_service.dart';
 import '/models/worker_data_model.dart';
 import '/utils/worker_translations.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -171,6 +172,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                   _buildStatsCard(),
                   const SizedBox(height: 16),
                   _buildFinancialCard(),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

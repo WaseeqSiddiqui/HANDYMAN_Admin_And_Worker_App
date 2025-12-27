@@ -1,15 +1,53 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'firestore_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // Top-level function for background handling
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
-  // If you need to access other Firebase services here, you must initialize App again
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
+
+  // Show local notification for background messages if they are data-only
+  if (message.notification == null) {
+    print('Message is data-only. Showing local notification.');
+    final FlutterLocalNotificationsPlugin localNotifications =
+        FlutterLocalNotificationsPlugin();
+
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    final DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
+
+    await localNotifications.initialize(initializationSettings);
+
+    await localNotifications.show(
+      message.hashCode,
+      message.data['title'] ?? 'New Notification',
+      message.data['message'] ??
+          message.data['body'] ??
+          'You have a new message',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          channelDescription:
+              'This channel is used for important notifications.',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
 }
 
 class NotificationService {
@@ -23,6 +61,9 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // ✅ NEW: Direct Firestore Listener (Bypasses Cloud Functions/FCM for active app)
+  StreamSubscription? _notificationSubscription;
 
   Future<void> initialize() async {
     // 1. Request Permissions
@@ -47,17 +88,36 @@ class NotificationService {
   Future<void> updateUserToken(String userId, String role) async {
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
-      await FirestoreService().saveFcmToken(userId, token, role);
+      // Direct write to avoid circular dependency with FirestoreService if it exists
+      await _saveTokenToFirestore(userId, token, role);
       print("FCM Token updated for $userId ($role)");
     }
   }
 
-  // Need to use existing firestore reference but cast it if needed, or better, use FirestoreService singleton
-  // But wait, _firestore is defined as `FirebaseFirestore.instance` in this class (line 24).
-  // I need to use the `FirestoreService` class I just modified.
-
-  // So I will change _firestore usage in this method to use FirestoreService()
-  // OR add FirestoreService instance to this class.
+  Future<void> _saveTokenToFirestore(
+    String userId,
+    String token,
+    String role,
+  ) async {
+    try {
+      if (role == 'worker') {
+        await _firestore.collection('workers').doc(userId).update({
+          'fcmToken': token,
+        });
+      } else if (role == 'admin') {
+        await _firestore.collection('admins').doc(userId).set({
+          'fcmToken': token,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } else if (role == 'customer') {
+        await _firestore.collection('customers').doc(userId).update({
+          'fcmToken': token,
+        });
+      }
+    } catch (e) {
+      print("Error saving token: $e");
+    }
+  }
 
   Future<void> _requestPermission() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
@@ -69,7 +129,6 @@ class NotificationService {
       provisional: false,
       sound: true,
     );
-
     print('User granted permission: ${settings.authorizationStatus}');
   }
 
@@ -77,9 +136,12 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // iOS settings can be added here
     final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings();
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     final InitializationSettings initializationSettings =
         InitializationSettings(
@@ -90,93 +152,167 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle local notification tap
         print("Local Notification Tapped: ${response.payload}");
         // Navigate to specific screen based on payload
       },
     );
+
+    // Create channel for Android
+    if (Platform.isAndroid) {
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          _localNotifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      await androidImplementation?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'high_importance_channel', // id
+          'High Importance Notifications', // title
+          description: 'This channel is used for important notifications.',
+          importance: Importance.max,
+        ),
+      );
+    }
   }
 
   void _setupMessageHandlers() {
     // Foreground Message
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
 
       if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
+        _showLocalNotification(message);
+      } else {
         _showLocalNotification(message);
       }
-
-      // Save to Firestore so it appears in the In-App Notification Screen
       _saveNotificationToFirestore(message);
     });
 
     // Background/Terminated Tap
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published!');
-      // Navigate to specific screen
     });
 
-    // Check if app was opened from a terminated state
+    // App opened from terminated state
     _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
         print('App opened from terminated state by notification');
-        // Handle navigation
       }
     });
   }
 
+  // ✅ Manual Firestore Listener Logic
+  void startListeningToNotifications(String userId) {
+    if (_notificationSubscription != null) return;
+
+    print("Started listening to notifications for $userId");
+
+    // Helper to ignore initial load
+    bool isFirstSnapshot = true;
+
+    _notificationSubscription = _firestore
+        .collection('notifications')
+        .where('targetUserIds', arrayContains: userId)
+        // ✅ REMOVED orderBy/limit to avoid "Missing Index" errors
+        .snapshots()
+        .listen(
+          (snapshot) {
+            // 1. Ignore the very first snapshot (it contains existing history)
+            if (isFirstSnapshot) {
+              isFirstSnapshot = false;
+              print(
+                "📥 Notification Listener Initialized. Ignoring ${snapshot.docs.length} existing notifications.",
+              );
+              return;
+            }
+
+            // 2. Process changes only
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                final data = change.doc.data();
+                print("🔔 LIVE NOTIFICATION RECEIVED: ${data!['title']}");
+
+                _showLocalNotificationPayload(
+                  data['title'] ?? 'New Notification',
+                  data['message'] ?? 'You have a new update',
+                  data.toString(),
+                );
+              }
+            }
+          },
+          onError: (e) {
+            print("❌ Notification Listener Error: $e");
+          },
+        );
+  }
+
+  void stopListening() {
+    _notificationSubscription?.cancel();
+    _notificationSubscription = null;
+  }
+
   Future<void> _showLocalNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
+    String title =
+        notification?.title ?? message.data['title'] ?? 'New Notification';
+    String body =
+        notification?.body ??
+        message.data['message'] ??
+        message.data['body'] ??
+        '';
 
-    if (notification != null && android != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel', // id
-            'High Importance Notifications', // title
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-        ),
-        payload: message.data.toString(),
-      );
+    if (title.isNotEmpty || body.isNotEmpty) {
+      await _showLocalNotificationPayload(title, body, message.data.toString());
     }
+  }
+
+  Future<void> _showLocalNotificationPayload(
+    String title,
+    String body,
+    String payload,
+  ) async {
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          channelDescription:
+              'This channel is used for important notifications.',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+      payload: payload,
+    );
   }
 
   Future<void> _saveNotificationToFirestore(RemoteMessage message) async {
     try {
-      // Assuming 'notifications' collection. You might want to restructure this
-      // based on recipient (userID).
       await _firestore.collection('notifications').add({
-        'title': message.notification?.title ?? 'No Title',
-        'message': message.notification?.body ?? 'No Body',
+        'title':
+            message.notification?.title ?? message.data['title'] ?? 'No Title',
+        'message':
+            message.notification?.body ?? message.data['message'] ?? 'No Body',
         'type': message.data['type'] ?? 'general',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
         'data': message.data,
-        // You might want to add 'userId' here if the message data contains it
       });
     } catch (e) {
       print("Error saving notification to Firestore: $e");
     }
   }
 
-  // Helper to send notification (Data creation part - typically for Admin use or testing)
-  // Real sending happens via Firebase Cloud Functions or backend
+  // Helper to send notification
   Future<void> createNotificationInFirestore({
     required String title,
     required String body,
     required String type,
-    List<String>? targetUserIds, // 'All' or specific IDs
+    List<String>? targetUserIds,
   }) async {
     await sendNotification(
       title: title,
@@ -186,30 +322,18 @@ class NotificationService {
     );
   }
 
-  // Generalized method for all parts of the app to use
+  // Generalized method
   Future<void> sendNotification({
     required String title,
     required String body,
-    required String
-    type, // 'service', 'payment', 'system', 'reminder', 'warning', 'review'
-    List<String>? targetUserIds, // List of IDs or ['All']
-    String? relatedId, // ServiceRequestId, TransactionId, etc.
+    required String type,
+    List<String>? targetUserIds,
+    String? relatedId,
   }) async {
     try {
       if (targetUserIds == null || targetUserIds.isEmpty) {
-        // If no target, maybe default to admin or log warning
-        print("Warning: Notification has no target users: $title");
         return;
       }
-
-      // For each target user (or once if 'All'), create a document
-      // Current design: One doc per notification? Or one doc per user?
-      // If 'All', we need a way for all users to see it.
-      // Typically 'All' is a broadcast.
-      // If specific ID, it's personal.
-
-      // We will create ONE document, but with a 'targetUserIds' field.
-      // The receiving end (Worker/Admin) must filter by this field.
 
       await _firestore.collection('notifications').add({
         'title': title,
@@ -225,5 +349,15 @@ class NotificationService {
     } catch (e) {
       print("Error creating notification: $e");
     }
+  }
+
+  // 🔥 TEST METHOD
+  Future<void> showTestNotification() async {
+    print("Showing test notification...");
+    await _showLocalNotificationPayload(
+      'Test Notification',
+      'This is a test notification to verify system tray display.',
+      'test_payload',
+    );
   }
 }

@@ -108,12 +108,7 @@ class AppStateProvider with ChangeNotifier {
     _isInitialized = true;
     notifyListeners();
 
-    // Attempt to seed data if empty (happens one time only)
-    seedInitialData();
-  }
-
-  Future<void> seedInitialData() async {
-    // Dummy data seeding removed.
+    // Initialization complete
   }
 
   void loadMockData() {
@@ -413,6 +408,9 @@ class AppStateProvider with ChangeNotifier {
 
     debugPrint('✅ Worker $workerId ($currentWorkerName) initialized');
     notifyListeners();
+
+    // ✅ Start Notification Listener
+    NotificationService().startListeningToNotifications(workerId);
 
     // Subscribe to transactions stream for real-time updates
     _firestoreService.getTransactionsStream(workerId).listen((

@@ -32,14 +32,12 @@ exports.sendNotification = functions.firestore
         // For now, handling specific users.
         for (const userId of targetUserIds) {
             if (userId === "admin") {
-                // Fetch admin tokens (assuming single admin or multiple admins collection)
-                // For simplicity, checking a known admin doc or collection
-                const adminSnapshot = await admin.firestore().collection("workers").where("role", "==", "admin").get();
-                // Adjust query if admin is in separate collection
-                adminSnapshot.docs.forEach(doc => {
-                    const data = doc.data();
+                // ✅ UPDATED: Fetch from 'admins' collection
+                const adminDoc = await admin.firestore().collection("admins").doc("admin").get();
+                if (adminDoc.exists) {
+                    const data = adminDoc.data();
                     if (data.fcmToken) tokens.push(data.fcmToken);
-                });
+                }
             } else {
                 // Check Workers
                 let userDoc = await admin.firestore().collection("workers").doc(userId).get();

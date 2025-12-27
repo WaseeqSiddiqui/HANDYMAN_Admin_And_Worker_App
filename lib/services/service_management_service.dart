@@ -282,4 +282,10 @@ class ServiceManagementService {
     final updatedCategory = category.removeSubcategory(index);
     return await updateCategory(categoryId, updatedCategory);
   }
+
+  // ✅ New Method: Call Firestore to wipe data
+  Future<void> clearAllData() async {
+    await _firestoreService.clearServiceCatalogue();
+    // Local list updates will happen via stream
+  }
 }

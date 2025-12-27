@@ -5,6 +5,7 @@ import '/services/financial_service.dart';
 import '/services/auth_persistence_service.dart';
 import '/providers/app_state_provider.dart';
 import '/models/financial_transaction_model.dart';
+import '/services/notification_service.dart';
 import '/utils/admin_translations.dart';
 import '/widgets/bilingual_text.dart';
 
@@ -38,6 +39,12 @@ class AdminDashboardState extends State<AdminDashboard> {
   void initState() {
     super.initState();
     _financialService.addListener(_onFinancialUpdate);
+
+    // ✅ Start listening for Admin notifications
+    NotificationService().startListeningToNotifications('admin');
+
+    // ✅ Ensure Admin Token is saved for background notifications
+    NotificationService().updateUserToken('admin', 'admin');
   }
 
   @override
@@ -156,6 +163,8 @@ class AdminDashboardState extends State<AdminDashboard> {
                     const SizedBox(height: 20),
                     _buildRecentActivity(),
                     const SizedBox(height: 20),
+
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),

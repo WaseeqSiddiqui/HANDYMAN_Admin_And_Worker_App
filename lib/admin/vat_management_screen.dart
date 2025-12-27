@@ -8,12 +8,10 @@ class VATManagementScreen extends StatefulWidget {
   const VATManagementScreen({super.key});
 
   @override
-  State<VATManagementScreen> createState() =>
-      VATManagementScreenState();
+  State<VATManagementScreen> createState() => VATManagementScreenState();
 }
 
-class VATManagementScreenState
-    extends State<VATManagementScreen> {
+class VATManagementScreenState extends State<VATManagementScreen> {
   final _financialService = FinancialService();
   String _selectedPeriod = 'This Month';
 
@@ -37,16 +35,29 @@ class VATManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    final totalVAT = _financialService.getTotalVATCollected();
-    final vatRecords = _financialService.getVATRecords();
+    // ✅ Filter records based on selection
+    final vatRecords = _getFilteredRecords();
+
+    // ✅ Calculate total from FILTERED records
+    final totalVAT = vatRecords.fold<double>(
+      0.0,
+      (sum, record) => sum + record.vatAmount,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: BilingualText( // ✅ Bilingual app bar title
+        title: BilingualText(
+          // ✅ Bilingual app bar title
           english: AdminTranslations.split(AdminTranslations.vatManagement)[0],
           arabic: AdminTranslations.split(AdminTranslations.vatManagement)[1],
-          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          englishStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
@@ -54,7 +65,9 @@ class VATManagementScreenState
           IconButton(
             icon: const Icon(Icons.file_download),
             onPressed: () => _exportVATReport(),
-            tooltip: AdminTranslations.split(AdminTranslations.exportVatReport)[0],
+            tooltip: AdminTranslations.split(
+              AdminTranslations.exportVatReport,
+            )[0],
           ),
         ],
       ),
@@ -67,6 +80,39 @@ class VATManagementScreenState
         ],
       ),
     );
+  }
+
+  // ✅ New helper to filter records
+  List<VATRecord> _getFilteredRecords() {
+    final now = DateTime.now();
+    DateTime start;
+    DateTime end = DateTime.now(); // End is always now
+
+    // Check English string because value is stored in English (from buildPeriodSelector)
+    if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.today)) {
+      start = DateTime(now.year, now.month, now.day);
+      end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    } else if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.thisWeek)) {
+      // Start of week (Saturday in KSA? or usually Monday. Let's assume start of week is Saturday for KSA or Monday standard)
+      // Standard flutter: Weekday 1 = Monday.
+      // Let's just do last 7 days or 'Start of this week'.
+      // Simple approach: Subtract (weekday - 1) days to get Monday.
+      start = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: now.weekday - 1));
+    } else if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.thisMonth)) {
+      start = DateTime(now.year, now.month, 1);
+    } else {
+      // All Time
+      return _financialService.getVATRecords();
+    }
+
+    return _financialService.getVATByDateRange(start, end);
   }
 
   Widget _buildVATSummaryCard(double total, int recordCount) {
@@ -89,8 +135,11 @@ class VATManagementScreenState
         children: [
           // Title
           BilingualText(
-            english: AdminTranslations.split(AdminTranslations.totalVatCollected)[0],
-            arabic: AdminTranslations.split(AdminTranslations.totalVatCollected)[1],
+            english:
+                '${AdminTranslations.split(AdminTranslations.totalVatCollected)[0]} ($_selectedPeriod)',
+            arabic: AdminTranslations.split(
+              AdminTranslations.totalVatCollected,
+            )[1],
             englishStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -180,7 +229,8 @@ class VATManagementScreenState
       ),
       child: Row(
         children: periods.map((period) {
-          final isSelected = _selectedPeriod == AdminTranslations.getEnglish(period);
+          final isSelected =
+              _selectedPeriod == AdminTranslations.getEnglish(period);
           final periodText = AdminTranslations.getEnglish(period);
 
           return Expanded(
@@ -189,7 +239,9 @@ class VATManagementScreenState
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFF3B82F6)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -197,7 +249,9 @@ class VATManagementScreenState
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey.shade700,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
@@ -221,8 +275,12 @@ class VATManagementScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 BilingualText(
-                  english: AdminTranslations.split(AdminTranslations.vatRecords)[0],
-                  arabic: AdminTranslations.split(AdminTranslations.vatRecords)[1],
+                  english: AdminTranslations.split(
+                    AdminTranslations.vatRecords,
+                  )[0],
+                  arabic: AdminTranslations.split(
+                    AdminTranslations.vatRecords,
+                  )[1],
                   englishStyle: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -230,10 +288,7 @@ class VATManagementScreenState
                 ),
                 Text(
                   '${vatRecords.length} ${AdminTranslations.split(AdminTranslations.records)[0]}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -308,14 +363,19 @@ class VATManagementScreenState
                     Text(
                       'SAR ${record.vatAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        color: Color(0xFFFF9800), // ✅ Orange color for VAT amount
+                        color: Color(
+                          0xFFFF9800,
+                        ), // ✅ Orange color for VAT amount
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -363,18 +423,12 @@ class VATManagementScreenState
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 11,
-          ),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
       ],
     );
@@ -399,8 +453,12 @@ class VATManagementScreenState
           ),
           const SizedBox(height: 24),
           BilingualText(
-            english: AdminTranslations.split(AdminTranslations.noVatRecordsTitle)[0],
-            arabic: AdminTranslations.split(AdminTranslations.noVatRecordsTitle)[1],
+            english: AdminTranslations.split(
+              AdminTranslations.noVatRecordsTitle,
+            )[0],
+            arabic: AdminTranslations.split(
+              AdminTranslations.noVatRecordsTitle,
+            )[1],
             englishStyle: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -412,8 +470,12 @@ class VATManagementScreenState
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: BilingualText(
-              english: AdminTranslations.split(AdminTranslations.noVatRecords)[0],
-              arabic: AdminTranslations.split(AdminTranslations.noVatRecords)[1],
+              english: AdminTranslations.split(
+                AdminTranslations.noVatRecords,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.noVatRecords,
+              )[1],
               englishStyle: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade500,
@@ -441,7 +503,9 @@ class VATManagementScreenState
   void _exportVATReport() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AdminTranslations.split(AdminTranslations.vatReportExported)[0]),
+        content: Text(
+          AdminTranslations.split(AdminTranslations.vatReportExported)[0],
+        ),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),

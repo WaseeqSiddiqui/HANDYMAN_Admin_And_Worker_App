@@ -37,23 +37,43 @@ class CommissionManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    final totalCommission = _financialService.getTotalCommissionCollected();
-    final commissionRecords = _financialService.getCommissionRecords();
+    // ✅ Filter records based on selection
+    final commissionRecords = _getFilteredRecords();
+
+    // ✅ Calculate total from FILTERED records
+    final totalCommission = commissionRecords.fold<double>(
+      0.0,
+      (sum, record) => sum + record.commissionAmount,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: BilingualText( // ✅ Bilingual app bar title
-          english: AdminTranslations.split(AdminTranslations.commissionManagement)[0],
-          arabic: AdminTranslations.split(AdminTranslations.commissionManagement)[1],
-          englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          arabicStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        title: BilingualText(
+          // ✅ Bilingual app bar title
+          english: AdminTranslations.split(
+            AdminTranslations.commissionManagement,
+          )[0],
+          arabic: AdminTranslations.split(
+            AdminTranslations.commissionManagement,
+          )[1],
+          englishStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          arabicStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
-          _buildCommissionSummaryCard(totalCommission, commissionRecords.length),
+          _buildCommissionSummaryCard(
+            totalCommission,
+            commissionRecords.length,
+          ),
           _buildPeriodSelector(),
           const SizedBox(height: 8),
           Padding(
@@ -62,8 +82,12 @@ class CommissionManagementScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 BilingualText(
-                  english: AdminTranslations.split(AdminTranslations.commissionRecords)[0],
-                  arabic: AdminTranslations.split(AdminTranslations.commissionRecords)[1],
+                  english: AdminTranslations.split(
+                    AdminTranslations.commissionRecords,
+                  )[0],
+                  arabic: AdminTranslations.split(
+                    AdminTranslations.commissionRecords,
+                  )[1],
                   englishStyle: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -71,10 +95,7 @@ class CommissionManagementScreenState
                 ),
                 Text(
                   '${commissionRecords.length} ${AdminTranslations.split(AdminTranslations.records)[0]}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -88,6 +109,35 @@ class CommissionManagementScreenState
         ],
       ),
     );
+  }
+
+  // ✅ New helper to filter records
+  List<CommissionRecord> _getFilteredRecords() {
+    final now = DateTime.now();
+    DateTime start;
+    DateTime end = DateTime.now(); // End is always now
+
+    // Check English string because value is stored in English (from buildPeriodSelector)
+    if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.today)) {
+      start = DateTime(now.year, now.month, now.day);
+      end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    } else if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.thisWeek)) {
+      start = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: now.weekday - 1));
+    } else if (_selectedPeriod ==
+        AdminTranslations.getEnglish(AdminTranslations.thisMonth)) {
+      start = DateTime(now.year, now.month, 1);
+    } else {
+      // All Time
+      return _financialService.getCommissionRecords();
+    }
+
+    return _financialService.getCommissionByDateRange(start, end);
   }
 
   Widget _buildCommissionSummaryCard(double total, int recordCount) {
@@ -116,30 +166,14 @@ class CommissionManagementScreenState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               BilingualText(
-                english: AdminTranslations.split(AdminTranslations.totalCommission)[0],
-                arabic: AdminTranslations.split(AdminTranslations.totalCommission)[1],
+                english:
+                    '${AdminTranslations.split(AdminTranslations.totalCommission)[0]} ($_selectedPeriod)',
+                arabic: AdminTranslations.split(
+                  AdminTranslations.totalCommission,
+                )[1],
                 englishStyle: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.trending_up, color: Colors.white, size: 16),
-                    const SizedBox(width: 4),
-                    BilingualText(
-                      english: '20% Rate',
-                      arabic: 'معدل 20%',
-                      englishStyle: const TextStyle(color: Colors.white, fontSize: 12),
-                      arabicStyle: const TextStyle(color: Colors.white, fontSize: 11),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -176,7 +210,12 @@ class CommissionManagementScreenState
     );
   }
 
-  Widget _buildInfoChip(String labelEn, String labelAr, String value, IconData icon) {
+  Widget _buildInfoChip(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -230,24 +269,29 @@ class CommissionManagementScreenState
       ),
       child: Row(
         children: periods.map((period) {
-          final isSelected = _selectedPeriod == period;
-          final periodParts = AdminTranslations.split(period);
+          final isSelected =
+              _selectedPeriod == AdminTranslations.getEnglish(period);
+          final periodText = AdminTranslations.getEnglish(period);
 
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedPeriod = period),
+              onTap: () => setState(() => _selectedPeriod = periodText),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF6B5B9A) : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFF6B5B9A)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  periodParts[0], // Show English only for space
+                  periodText,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey.shade700,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
@@ -303,7 +347,11 @@ class CommissionManagementScreenState
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.person, size: 14, color: Colors.grey.shade600),
+                          Icon(
+                            Icons.person,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             record.workerName,
@@ -330,7 +378,10 @@ class CommissionManagementScreenState
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -378,7 +429,12 @@ class CommissionManagementScreenState
     );
   }
 
-  Widget _buildInfoRow(String labelEn, String labelAr, String value, IconData icon) {
+  Widget _buildInfoRow(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -399,17 +455,16 @@ class CommissionManagementScreenState
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
       ],
     );
   }
 
   Widget _buildEmptyState() {
-    final emptyMessageParts = AdminTranslations.split(AdminTranslations.noCommissionRecords);
+    final emptyMessageParts = AdminTranslations.split(
+      AdminTranslations.noCommissionRecords,
+    );
 
     return Center(
       child: Column(
@@ -421,16 +476,16 @@ class CommissionManagementScreenState
               color: Colors.grey.shade100,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.money_off,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            child: Icon(Icons.money_off, size: 64, color: Colors.grey.shade400),
           ),
           const SizedBox(height: 24),
           BilingualText(
-            english: AdminTranslations.split(AdminTranslations.commissionRecords)[0],
-            arabic: AdminTranslations.split(AdminTranslations.commissionRecords)[1],
+            english: AdminTranslations.split(
+              AdminTranslations.commissionRecords,
+            )[0],
+            arabic: AdminTranslations.split(
+              AdminTranslations.commissionRecords,
+            )[1],
             englishStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

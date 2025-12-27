@@ -205,6 +205,22 @@ class FirestoreService {
   Future<void> addServiceRequest(ServiceRequest service) async {
     try {
       await _servicesCollection.doc(service.id).set(service.toJson());
+
+      // ✅ NOTIFICATION: Notify Admin AND Worker of New Assignment
+      final targetIds = ['admin'];
+      if (service.workerId != null) {
+        targetIds.add(service.workerId!);
+      }
+
+      await _notificationsCollection.add({
+        'title': 'New Service Request',
+        'message': 'New service request created: ${service.serviceName}',
+        'type': 'service',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': targetIds,
+        'relatedId': service.id,
+      });
     } catch (e) {
       debugPrint('Error adding service request: $e');
       throw e;
@@ -213,7 +229,57 @@ class FirestoreService {
 
   Future<void> updateServiceRequest(ServiceRequest service) async {
     try {
+      // Fetch old status to check for changes
+      final doc = await _servicesCollection.doc(service.id).get();
+      final oldData = doc.data() as Map<String, dynamic>?;
+      final oldStatus = oldData?['status'];
+
       await _servicesCollection.doc(service.id).update(service.toJson());
+
+      // ✅ NOTIFICATION: Status Change
+      if (oldStatus != service.status) {
+        // SERVICE COMPLETED -> Notify Admin
+        if (service.status == 'completed') {
+          await _notificationsCollection.add({
+            'title': 'Service Completed',
+            'message': 'Service ${service.serviceName} marked as completed.',
+            'type': 'service',
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'targetUserIds': ['admin'], // Admin always needs to know
+            'relatedId': service.id,
+          });
+        }
+        // SERVICE POSTPONED -> Notify Admin (User requirement: Worker does it, so only Admin needs to know)
+        else if (service.status == 'postponed') {
+          await _notificationsCollection.add({
+            'title': 'Service Postponed',
+            'message':
+                'Service ${service.serviceName} has been postponed. Reason: ${service.postponeReason ?? "No reason provided"}',
+            'type': 'warning',
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'targetUserIds': ['admin'],
+            'relatedId': service.id,
+          });
+        }
+      }
+
+      // ✅ NOTIFICATION: Worker Re-assignment
+      // Check if workerId changed
+      final oldWorkerId = oldData?['workerId'];
+      if (service.workerId != null && service.workerId != oldWorkerId) {
+        await _notificationsCollection.add({
+          'title': 'New Assignment',
+          'message':
+              'You have been assigned to service: ${service.serviceName}',
+          'type': 'service',
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+          'targetUserIds': [service.workerId!],
+          'relatedId': service.id,
+        });
+      }
     } catch (e) {
       debugPrint('Error updating service request: $e');
       throw e;
@@ -239,7 +305,7 @@ class FirestoreService {
       final doc = await _servicesCollection.doc(serviceId).get();
       final data = doc.data() as Map<String, dynamic>;
       final serviceName = data['serviceName'] ?? 'Service';
-      final workerId = data['workerId'];
+      // final workerId = data['workerId']; -> Not used anymore in this scope
 
       // 2. Create Notification
       // Notify Admin
@@ -254,7 +320,8 @@ class FirestoreService {
         'relatedId': serviceId,
       });
 
-      // Notify Worker (if assigned)
+      // Notify Worker (if assigned) -> REMOVED per user request (Only Admins need tray notif for cancellation)
+      /*
       if (workerId != null) {
         await _notificationsCollection.add({
           'title': 'Service Cancelled',
@@ -266,6 +333,7 @@ class FirestoreService {
           'relatedId': serviceId,
         });
       }
+      */
     } catch (e) {
       debugPrint('Error cancelling service: $e');
       throw e;
@@ -399,6 +467,18 @@ class FirestoreService {
   Future<void> addWithdrawalRequest(WithdrawalRequest request) async {
     try {
       await _withdrawalCollection.doc(request.id).set(request.toMap());
+
+      // ✅ NOTIFICATION: Notify Admin of New Withdrawal Request
+      await _notificationsCollection.add({
+        'title': 'New Withdrawal Request',
+        'message':
+            '${request.workerName} requested withdrawal of SAR ${request.amount.toStringAsFixed(2)}',
+        'type': 'finance',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': ['admin'],
+        'relatedId': request.id,
+      });
     } catch (e) {
       debugPrint('Error adding withdrawal request: $e');
       throw e;
@@ -591,7 +671,9 @@ class FirestoreService {
         'type': 'review',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
-        'targetUserIds': ['admin', review.workerId], // Notify Admin and Worker
+        'targetUserIds': [
+          'admin',
+        ], // Notify Admin Only (User Request: Worker only gets Assignment/Withdrawal)
         'relatedId': review.id,
       });
     } catch (e) {
@@ -664,15 +746,24 @@ class FirestoreService {
   // DATA SEEDING (One-time use)
   // ---------------------------------------------------------------------------
 
-  Future<void> seedInitialData({
-    required List<WorkerData> workers,
-    required List<ServiceRequest> services,
-    required List<Transaction> transactions,
-    required List<ServiceCategory> categories,
-    required List<Customer> customers,
-    required List<Service> offeredServices,
-  }) async {
-    // Seeding disabled
-    debugPrint('Seeding disabled.');
+  // ✅ New Method: wipe clean
+  Future<void> clearServiceCatalogue() async {
+    try {
+      // Delete all categories
+      final catSnapshot = await _categoriesCollection.get();
+      for (var doc in catSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete all services
+      final srvSnapshot = await _offeredServicesCollection.get();
+      for (var doc in srvSnapshot.docs) {
+        await doc.reference.delete();
+      }
+      debugPrint('✅ Service Catalogue Cleared');
+    } catch (e) {
+      debugPrint('Error clearing catalogue: $e');
+      throw e;
+    }
   }
 }

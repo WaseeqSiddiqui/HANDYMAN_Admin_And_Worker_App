@@ -307,7 +307,8 @@ class FinancialService {
       );
       debugPrint('   Admin Wallet: SAR ${_currentBalance.toStringAsFixed(2)}');
 
-      // ✅ NOTIFICATION: Notify Worker of Earnings and Deductions
+      // ✅ NOTIFICATION: Notify Worker of Earnings -> REMOVED per user request (Only Assignment/Withdrawal)
+      /*
       await NotificationService().sendNotification(
         title: 'Payment Received',
         body:
@@ -316,6 +317,7 @@ class FinancialService {
         targetUserIds: [workerId],
         relatedId: transaction.id,
       );
+      */
 
       // ✅ NOTIFICATION: Notify Admin
       await NotificationService().sendNotification(
