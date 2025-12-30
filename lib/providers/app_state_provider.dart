@@ -4,7 +4,6 @@ import 'package:flutter/scheduler.dart';
 import '../services/worker_auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/worker_data_model.dart';
-import '/services/invoice_service.dart';
 import '/models/customer_model.dart';
 import '/models/customer_service_model.dart';
 import '../models/service_request_model.dart';
@@ -20,7 +19,6 @@ class AppStateProvider with ChangeNotifier {
   final _firestoreService = FirestoreService();
   final _financialService = FinancialService();
   final _workerAuthService = WorkerAuthService();
-  final _invoiceService = InvoiceService();
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -770,7 +768,7 @@ class AppStateProvider with ChangeNotifier {
         debugPrint('✅ Service status updated to completed');
       } catch (e) {
         debugPrint('❌ Error updating service status: $e');
-        throw e; // This is critical, must succeed
+        rethrow; // This is critical, must succeed
       }
 
       // 2. Add Transactions
@@ -851,7 +849,7 @@ class AppStateProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error completing service: $e');
-      throw e;
+      rethrow;
     }
 
     _currentWorkerData.calculatePendingAmount(activeServices);
@@ -1051,7 +1049,6 @@ class AppStateProvider with ChangeNotifier {
     if (currentWorkerId == null) return;
 
     if (_currentWorkerData.walletBalance >= amount) {
-      final walletBefore = _currentWorkerData.walletBalance;
       final creditBefore = _currentWorkerData.creditBalance;
 
       _currentWorkerData.walletBalance -= amount;

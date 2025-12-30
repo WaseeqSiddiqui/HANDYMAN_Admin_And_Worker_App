@@ -178,7 +178,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.3),
+        color: color.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -1398,7 +1398,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -1416,7 +1416,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1549,7 +1549,10 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
     WorkerData? selectedWorker;
     String? selectedCategory;
-    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
+    final categories = Provider.of<AppStateProvider>(
+      context,
+      listen: false,
+    ).serviceCategories;
 
     showDialog(
       context: context,
@@ -1561,305 +1564,50 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               : workers.where((w) => w.expertise == selectedCategory).toList();
 
           return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.person_add, color: Color(0xFF005DFF)),
-              const SizedBox(width: 8),
-              BilingualText(
-                english: AdminTranslations.split(
-                  AdminTranslations.assignWorker,
-                )[0],
-                arabic: AdminTranslations.split(
-                  AdminTranslations.assignWorker,
-                )[1],
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
-              ),
-              Text(
-                '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
-              ),
-              Text(
-                '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate, service.requestedTime)}',
-              ),
-              const SizedBox(height: 16),
-              
-              // Filter by Category
-              Text(
-                'Filter by Expertise / تصفية حسب التخصص',
-                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
-                  borderRadius: BorderRadius.circular(8),
+            title: Row(
+              children: [
+                const Icon(Icons.person_add, color: Color(0xFF005DFF)),
+                const SizedBox(width: 8),
+                BilingualText(
+                  english: AdminTranslations.split(
+                    AdminTranslations.assignWorker,
+                  )[0],
+                  arabic: AdminTranslations.split(
+                    AdminTranslations.assignWorker,
+                  )[1],
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    hint: const Text('All Categories / كل الفئات'),
-                    value: selectedCategory,
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: null,
-                        child: Text('All Categories / كل الفئات'),
-                      ),
-                      ...categories.map((cat) {
-                        return DropdownMenuItem<String>(
-                          value: cat.nameEnglish,
-                          child: Text('${cat.nameEnglish} - ${cat.nameArabic}'),
-                        );
-                      }),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                         selectedCategory = val;
-                         selectedWorker = null; // Reset worker when category changes
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Text(
-                AdminTranslations.split(AdminTranslations.selectWorker)[0],
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<WorkerData>(
-                    isExpanded: true,
-                    hint: Text(
-                      AdminTranslations.split(
-                        AdminTranslations.chooseWorker,
-                      )[0],
-                    ),
-                    value: selectedWorker,
-                    items: filteredWorkers.map((worker) {
-                      return DropdownMenuItem<WorkerData>(
-                        value: worker,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              worker.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              '${worker.expertise} • ${worker.nameArabic}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                              textDirection: TextDirection.rtl,
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (worker) =>
-                        setState(() => selectedWorker = worker),
-                  ),
-                ),
-              ),
-              if (filteredWorkers.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'No workers found for this category',
-                    style: TextStyle(color: Colors.red[300], fontSize: 12),
-                  ),
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(
-                AdminTranslations.split(AdminTranslations.cancelBtn)[0],
-              ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: selectedWorker == null
-                  ? null
-                  : () {
-                      final appState = Provider.of<AppStateProvider>(
-                        context,
-                        listen: false,
-                      );
-                      appState.assignServiceToWorker(
-                        service.id,
-                        selectedWorker!.id,
-                        selectedWorker!.name,
-                      );
-                      Navigator.pop(dialogContext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${AdminTranslations.split(AdminTranslations.serviceAssignedSuccess)[0]} ${selectedWorker!.name}',
-                              ),
-                              Text(
-                                selectedWorker!.nameArabic,
-                                style: const TextStyle(fontSize: 12),
-                                textDirection: TextDirection.rtl,
-                              ),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                    },
-              child: Text(
-                AdminTranslations.split(AdminTranslations.assignBtn)[0],
-              ),
-            ),
-          ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _viewServiceDetails(ServiceRequest service) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ServiceDetailScreen(service: service),
-      ),
-    );
-  }
-
-  void _rescheduleService(ServiceRequest service) {
-    final authService = WorkerAuthService();
-    final allWorkers = authService.getActiveWorkers();
-
-    final availableWorkers = allWorkers
-        .where((w) => w.id != (service.workerId ?? ''))
-        .toList();
-
-    if (availableWorkers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AdminTranslations.split(AdminTranslations.noOtherWorkers)[0],
-          ),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    WorkerData? selectedWorker;
-    DateTime selectedDate = service.requestedDate;
-    String? selectedCategory;
-    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
-           final filteredWorkers = selectedCategory == null
-              ? availableWorkers
-              : availableWorkers.where((w) => w.expertise == selectedCategory).toList();
-              
-          return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.calendar_today, color: Colors.blue),
-              const SizedBox(width: 8),
-              BilingualText(
-                english: AdminTranslations.split(
-                  AdminTranslations.rescheduleService,
-                )[0],
-                arabic: AdminTranslations.split(
-                  AdminTranslations.rescheduleService,
-                )[1],
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
+            content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
-                      ),
-                      if (service.workerName != null) ...[
-                        Text(
-                          '${AdminTranslations.split(AdminTranslations.previousWorker)[0]}: ${service.workerName}',
-                        ),
-                        if (service.workerNameArabic != null)
-                          Text(
-                            service.workerNameArabic!,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                            textDirection: TextDirection.rtl,
-                          ),
-                      ],
-                      if (service.postponeReason != null)
-                        Text(
-                          '${AdminTranslations.split(AdminTranslations.reasonLabel)[0]} ${service.postponeReason}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                    ],
-                  ),
+                Text(
+                  '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
+                ),
+                Text(
+                  '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
+                ),
+                Text(
+                  '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate, service.requestedTime)}',
                 ),
                 const SizedBox(height: 16),
-                
-                 // Filter by Category
+
+                // Filter by Category
                 Text(
                   'Filter by Expertise / تصفية حسب التخصص',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.withOpacity(0.5)),
                     borderRadius: BorderRadius.circular(8),
@@ -1877,14 +1625,17 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         ...categories.map((cat) {
                           return DropdownMenuItem<String>(
                             value: cat.nameEnglish,
-                            child: Text('${cat.nameEnglish} - ${cat.nameArabic}'),
+                            child: Text(
+                              '${cat.nameEnglish} - ${cat.nameArabic}',
+                            ),
                           );
                         }),
                       ],
                       onChanged: (val) {
                         setState(() {
                           selectedCategory = val;
-                          selectedWorker = null;
+                          selectedWorker =
+                              null; // Reset worker when category changes
                         });
                       },
                     ),
@@ -1893,7 +1644,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 const SizedBox(height: 12),
 
                 Text(
-                  AdminTranslations.split(AdminTranslations.selectNewWorker)[0],
+                  AdminTranslations.split(AdminTranslations.selectWorker)[0],
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -1954,97 +1705,378 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       style: TextStyle(color: Colors.red[300], fontSize: 12),
                     ),
                   ),
-                  
-                const SizedBox(height: 16),
-                Text(
-                  AdminTranslations.split(AdminTranslations.selectNewDate)[0],
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(
+                  AdminTranslations.split(AdminTranslations.cancelBtn)[0],
                 ),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: () async {
-                    final DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (picked != null) {
-                      setState(() => selectedDate = picked);
-                    }
-                  },
-                  child: Container(
+              ),
+              ElevatedButton(
+                onPressed: selectedWorker == null
+                    ? null
+                    : () {
+                        final appState = Provider.of<AppStateProvider>(
+                          context,
+                          listen: false,
+                        );
+                        appState.assignServiceToWorker(
+                          service.id,
+                          selectedWorker!.id,
+                          selectedWorker!.name,
+                        );
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${AdminTranslations.split(AdminTranslations.serviceAssignedSuccess)[0]} ${selectedWorker!.name}',
+                                ),
+                                Text(
+                                  selectedWorker!.nameArabic,
+                                  style: const TextStyle(fontSize: 12),
+                                  textDirection: TextDirection.rtl,
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                child: Text(
+                  AdminTranslations.split(AdminTranslations.assignBtn)[0],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _viewServiceDetails(ServiceRequest service) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ServiceDetailScreen(service: service),
+      ),
+    );
+  }
+
+  void _rescheduleService(ServiceRequest service) {
+    final authService = WorkerAuthService();
+    final allWorkers = authService.getActiveWorkers();
+
+    final availableWorkers = allWorkers
+        .where((w) => w.id != (service.workerId ?? ''))
+        .toList();
+
+    if (availableWorkers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AdminTranslations.split(AdminTranslations.noOtherWorkers)[0],
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    WorkerData? selectedWorker;
+    DateTime selectedDate = service.requestedDate;
+    String? selectedCategory;
+    final categories = Provider.of<AppStateProvider>(
+      context,
+      listen: false,
+    ).serviceCategories;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          final filteredWorkers = selectedCategory == null
+              ? availableWorkers
+              : availableWorkers
+                    .where((w) => w.expertise == selectedCategory)
+                    .toList();
+
+          return AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.calendar_today, color: Colors.blue),
+                const SizedBox(width: 8),
+                BilingualText(
+                  english: AdminTranslations.split(
+                    AdminTranslations.rescheduleService,
+                  )[0],
+                  arabic: AdminTranslations.split(
+                    AdminTranslations.rescheduleService,
+                  )[1],
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
                     padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.serviceLabel)[0]}: ${AdminTranslations.split(service.serviceName)[0]}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.customerLabel)[0]}: ${service.customerName}',
+                        ),
+                        if (service.workerName != null) ...[
+                          Text(
+                            '${AdminTranslations.split(AdminTranslations.previousWorker)[0]}: ${service.workerName}',
+                          ),
+                          if (service.workerNameArabic != null)
+                            Text(
+                              service.workerNameArabic!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                        ],
+                        if (service.postponeReason != null)
+                          Text(
+                            '${AdminTranslations.split(AdminTranslations.reasonLabel)[0]} ${service.postponeReason}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Filter by Category
+                  Text(
+                    'Filter by Expertise / تصفية حسب التخصص',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        hint: const Text('All Categories / كل الفئات'),
+                        value: selectedCategory,
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All Categories / كل الفئات'),
+                          ),
+                          ...categories.map((cat) {
+                            return DropdownMenuItem<String>(
+                              value: cat.nameEnglish,
+                              child: Text(
+                                '${cat.nameEnglish} - ${cat.nameArabic}',
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (val) {
+                          setState(() {
+                            selectedCategory = val;
+                            selectedWorker = null;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Text(
+                    AdminTranslations.split(
+                      AdminTranslations.selectNewWorker,
+                    )[0],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _formatDateTime(selectedDate, service.requestedTime),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<WorkerData>(
+                        isExpanded: true,
+                        hint: Text(
+                          AdminTranslations.split(
+                            AdminTranslations.chooseWorker,
+                          )[0],
                         ),
-                        const Icon(Icons.calendar_today, size: 20),
-                      ],
+                        value: selectedWorker,
+                        items: filteredWorkers.map((worker) {
+                          return DropdownMenuItem<WorkerData>(
+                            value: worker,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  worker.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  '${worker.expertise} • ${worker.nameArabic}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                  textDirection: TextDirection.rtl,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (worker) =>
+                            setState(() => selectedWorker = worker),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(
-                AdminTranslations.split(AdminTranslations.cancelBtn)[0],
-              ),
-            ),
-            ElevatedButton(
-              onPressed: selectedWorker == null
-                  ? null
-                  : () {
-                      final appState = Provider.of<AppStateProvider>(
-                        context,
-                        listen: false,
-                      );
+                  if (filteredWorkers.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'No workers found for this category',
+                        style: TextStyle(color: Colors.red[300], fontSize: 12),
+                      ),
+                    ),
 
-                      appState.reschedulePostponedService(
-                        serviceId: service.id,
-                        newWorkerId: selectedWorker!.id,
-                        newWorkerName: selectedWorker!.name,
-                        newScheduledDate: selectedDate,
+                  const SizedBox(height: 16),
+                  Text(
+                    AdminTranslations.split(AdminTranslations.selectNewDate)[0],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
-
-                      Navigator.pop(dialogContext);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate, service.requestedTime)}',
-                              ),
-                              Text(
-                                selectedWorker!.nameArabic,
-                                style: const TextStyle(fontSize: 12),
-                                textDirection: TextDirection.rtl,
-                              ),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 4),
-                        ),
-                      );
+                      if (picked != null) {
+                        setState(() => selectedDate = picked);
+                      }
                     },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: Text(
-                AdminTranslations.split(AdminTranslations.reschedule)[0],
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDateTime(
+                              selectedDate,
+                              service.requestedTime,
+                            ),
+                          ),
+                          const Icon(Icons.calendar_today, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(
+                  AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: selectedWorker == null
+                    ? null
+                    : () {
+                        final appState = Provider.of<AppStateProvider>(
+                          context,
+                          listen: false,
+                        );
+
+                        appState.reschedulePostponedService(
+                          serviceId: service.id,
+                          newWorkerId: selectedWorker!.id,
+                          newWorkerName: selectedWorker!.name,
+                          newScheduledDate: selectedDate,
+                        );
+
+                        Navigator.pop(dialogContext);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${AdminTranslations.split(AdminTranslations.serviceRescheduledSuccess)[0]} ${selectedWorker!.name} ${AdminTranslations.split(AdminTranslations.onDate)[0]} ${_formatDateTime(selectedDate, service.requestedTime)}',
+                                ),
+                                Text(
+                                  selectedWorker!.nameArabic,
+                                  style: const TextStyle(fontSize: 12),
+                                  textDirection: TextDirection.rtl,
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                child: Text(
+                  AdminTranslations.split(AdminTranslations.reschedule)[0],
+                ),
+              ),
+            ],
           );
         },
       ),

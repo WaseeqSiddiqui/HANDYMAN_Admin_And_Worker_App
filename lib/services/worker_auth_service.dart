@@ -25,7 +25,6 @@ class WorkerAuthService {
   // Local cache to maintain synchronous compatibility
   final Map<String, WorkerData> _registeredWorkers = {};
   final List<VoidCallback> _listeners = [];
-  bool _isInitialized = false;
 
   void _initializeListeners() {
     _workersSubscription = _firestoreService.getWorkersStream().listen(
@@ -38,7 +37,6 @@ class WorkerAuthService {
             '👤 Worker ${worker.id} (${worker.name}): completedServices = ${worker.completedServices}',
           );
         }
-        _isInitialized = true;
         _notifyListeners();
         debugPrint(
           '🔄 WorkerAuthService: Synced ${workers.length} workers from Firestore',
@@ -153,19 +151,23 @@ class WorkerAuthService {
     return true;
   }
 
-  bool deleteWorker(String phone) {
-    // Implementing delete might require a delete method in FirestoreService if we want it
-    // For now, simple optimistic remove.
-    // NOTE: FirestoreService didn't have deleteWorker, so I'll skip firestore call or add it later if needed.
-    // The previous implementation was just memory.
+  Future<bool> deleteWorker(String phone) async {
     final normalized = _normalizePhoneNumber(phone);
-    if (!_registeredWorkers.containsKey(normalized)) return false;
+    final worker = _registeredWorkers[normalized];
+    if (worker == null) return false;
 
+    // Optimistic remove
     _registeredWorkers.remove(normalized);
     _notifyListeners();
 
-    // TODO: Add delete to FirestoreService if required
-    return true;
+    try {
+      await _firestoreService.deleteWorker(worker.id);
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to delete worker from Firestore: $e');
+      // Optional: restore if failed? For now, we assume admin wants it gone.
+      return false;
+    }
   }
 
   List<WorkerData> getAllWorkers() => _registeredWorkers.values.toList();

@@ -10,7 +10,8 @@ class CustomerManagementScreen extends StatefulWidget {
   const CustomerManagementScreen({super.key});
 
   @override
-  State<CustomerManagementScreen> createState() => _CustomerManagementScreenState();
+  State<CustomerManagementScreen> createState() =>
+      _CustomerManagementScreenState();
 }
 
 class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
@@ -20,7 +21,9 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AdminTranslations.split(AdminTranslations.customerManagement)[0]),
+        title: Text(
+          AdminTranslations.split(AdminTranslations.customerManagement)[0],
+        ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
       ),
@@ -42,7 +45,9 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 child: TextField(
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
-                    hintText: AdminTranslations.split(AdminTranslations.searchCustomers)[0],
+                    hintText: AdminTranslations.split(
+                      AdminTranslations.searchCustomers,
+                    )[0],
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -66,20 +71,31 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildStatItem(
-                      AdminTranslations.split(AdminTranslations.totalCustomers)[0],
-                      AdminTranslations.split(AdminTranslations.totalCustomers)[1],
+                      AdminTranslations.split(
+                        AdminTranslations.totalCustomers,
+                      )[0],
+                      AdminTranslations.split(
+                        AdminTranslations.totalCustomers,
+                      )[1],
                       customers.length.toString(),
                       Icons.people,
                     ),
                     Container(
                       width: 1,
                       height: 40,
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.1),
                     ),
                     _buildStatItem(
-                      AdminTranslations.split(AdminTranslations.activeServices)[0],
-                      AdminTranslations.split(AdminTranslations.activeServices)[1],
-                      _getCustomerActiveServices(customers, appState).toString(),
+                      AdminTranslations.split(
+                        AdminTranslations.activeServices,
+                      )[0],
+                      AdminTranslations.split(
+                        AdminTranslations.activeServices,
+                      )[1],
+                      _getCustomerActiveServices(
+                        customers,
+                        appState,
+                      ).toString(),
                       Icons.build,
                     ),
                   ],
@@ -91,47 +107,71 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
               Expanded(
                 child: filteredCustomers.isEmpty
                     ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _searchQuery.isEmpty ? Icons.people_outline : Icons.search_off,
-                        size: 80,
-                        color: Colors.grey[300],
-                      ),
-                      const SizedBox(height: 16),
-                      BilingualText(
-                        english: _searchQuery.isEmpty
-                            ? AdminTranslations.split(AdminTranslations.noCustomersYet)[0]
-                            : AdminTranslations.split(AdminTranslations.noCustomersFound)[0],
-                        arabic: _searchQuery.isEmpty
-                            ? AdminTranslations.split(AdminTranslations.noCustomersYet)[1]
-                            : AdminTranslations.split(AdminTranslations.noCustomersFound)[1],
-                        englishStyle: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      BilingualText(
-                        english: _searchQuery.isEmpty
-                            ? AdminTranslations.split(AdminTranslations.customersWillAppear)[0]
-                            : AdminTranslations.split(AdminTranslations.tryDifferentSearch)[0],
-                        arabic: _searchQuery.isEmpty
-                            ? AdminTranslations.split(AdminTranslations.customersWillAppear)[1]
-                            : AdminTranslations.split(AdminTranslations.tryDifferentSearch)[1],
-                        englishStyle: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                )
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _searchQuery.isEmpty
+                                  ? Icons.people_outline
+                                  : Icons.search_off,
+                              size: 80,
+                              color: Colors.grey[300],
+                            ),
+                            const SizedBox(height: 16),
+                            BilingualText(
+                              english: _searchQuery.isEmpty
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.noCustomersYet,
+                                    )[0]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.noCustomersFound,
+                                    )[0],
+                              arabic: _searchQuery.isEmpty
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.noCustomersYet,
+                                    )[1]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.noCustomersFound,
+                                    )[1],
+                              englishStyle: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            BilingualText(
+                              english: _searchQuery.isEmpty
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.customersWillAppear,
+                                    )[0]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.tryDifferentSearch,
+                                    )[0],
+                              arabic: _searchQuery.isEmpty
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.customersWillAppear,
+                                    )[1]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.tryDifferentSearch,
+                                    )[1],
+                              englishStyle: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
                     : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: filteredCustomers.length,
-                  itemBuilder: (context, index) {
-                    final customer = filteredCustomers[index];
-                    return _buildCustomerCard(customer, appState);
-                  },
-                ),
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredCustomers.length,
+                        itemBuilder: (context, index) {
+                          final customer = filteredCustomers[index];
+                          return _buildCustomerCard(customer, appState);
+                        },
+                      ),
               ),
             ],
           );
@@ -140,7 +180,12 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     );
   }
 
-  Widget _buildStatItem(String labelEn, String labelAr, String value, IconData icon) {
+  Widget _buildStatItem(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 28),
@@ -156,17 +201,17 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
         BilingualText(
           english: labelEn,
           arabic: labelAr,
-          englishStyle: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          englishStyle: const TextStyle(color: Colors.white70, fontSize: 12),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
-  int _getCustomerActiveServices(List<Customer> customers, AppStateProvider appState) {
+  int _getCustomerActiveServices(
+    List<Customer> customers,
+    AppStateProvider appState,
+  ) {
     int count = 0;
     for (var customer in customers) {
       final customerServices = appState.getCustomerServices(customer.id);
@@ -174,7 +219,6 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     }
     return count;
   }
-
 
   Widget _buildCustomerCard(Customer customer, AppStateProvider appState) {
     final customerServices = appState.getCustomerServices(customer.id);
@@ -220,7 +264,11 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.phone, size: 14, color: Colors.grey[600]),
+                            Icon(
+                              Icons.phone,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               customer.phone,
@@ -231,11 +279,16 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                             ),
                           ],
                         ),
-                        if (customer.email != null && customer.email!.isNotEmpty) ...[
+                        if (customer.email != null &&
+                            customer.email!.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              Icon(Icons.email, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.email,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -255,7 +308,8 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onPressed: () => _showCustomerDetails(customer, customerServices),
+                    onPressed: () =>
+                        _showCustomerDetails(customer, customerServices),
                   ),
                 ],
               ),
@@ -266,7 +320,11 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.shopping_bag, size: 16, color: Colors.grey[600]),
+                      Icon(
+                        Icons.shopping_bag,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${customerServices.length} ${AdminTranslations.split(AdminTranslations.servicesLowercase)[0]}',
@@ -280,10 +338,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   ),
                   Text(
                     '${AdminTranslations.split(AdminTranslations.registered)[0]}: ${customer.registeredAt.day}/${customer.registeredAt.month}/${customer.registeredAt.year}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -349,8 +404,12 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                             ),
                           ),
                           BilingualText(
-                            english: AdminTranslations.split(AdminTranslations.customerDetails)[0],
-                            arabic: AdminTranslations.split(AdminTranslations.customerDetails)[1],
+                            english: AdminTranslations.split(
+                              AdminTranslations.customerDetails,
+                            )[0],
+                            arabic: AdminTranslations.split(
+                              AdminTranslations.customerDetails,
+                            )[1],
                             englishStyle: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -385,8 +444,10 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
                 BilingualText(
-                  english: '${AdminTranslations.split(AdminTranslations.serviceHistory)[0]} (${services.length})',
-                  arabic: '${AdminTranslations.split(AdminTranslations.serviceHistory)[1]} (${services.length})',
+                  english:
+                      '${AdminTranslations.split(AdminTranslations.serviceHistory)[0]} (${services.length})',
+                  arabic:
+                      '${AdminTranslations.split(AdminTranslations.serviceHistory)[1]} (${services.length})',
                   englishStyle: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -402,8 +463,12 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                           Icon(Icons.inbox, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
                           BilingualText(
-                            english: AdminTranslations.split(AdminTranslations.noServicesYet)[0],
-                            arabic: AdminTranslations.split(AdminTranslations.noServicesYet)[1],
+                            english: AdminTranslations.split(
+                              AdminTranslations.noServicesYet,
+                            )[0],
+                            arabic: AdminTranslations.split(
+                              AdminTranslations.noServicesYet,
+                            )[1],
                             englishStyle: TextStyle(color: Colors.grey[600]),
                             textAlign: TextAlign.center,
                           ),
@@ -412,34 +477,38 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                     ),
                   )
                 else
-                  ...services.map((service) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: _getStatusColor(service.status).withOpacity(0.2),
-                        child: Icon(
-                          _getStatusIcon(service.status),
-                          color: _getStatusColor(service.status),
-                          size: 20,
+                  ...services.map(
+                    (service) => Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: _getStatusColor(
+                            service.status,
+                          ).withValues(alpha: 0.2),
+                          child: Icon(
+                            _getStatusIcon(service.status),
+                            color: _getStatusColor(service.status),
+                            size: 20,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        service.service,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        '${service.status} • ${service.id}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      trailing: Text(
-                        'SAR ${service.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        title: Text(
+                          service.service,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${service.status} • ${service.id}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: Text(
+                          'SAR ${service.price.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  )).toList(),
+                  ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -447,7 +516,9 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                     backgroundColor: const Color(0xFF005DFF),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: Text(AdminTranslations.split(AdminTranslations.closeBtn)[0]),
+                  child: Text(
+                    AdminTranslations.split(AdminTranslations.closeBtn)[0],
+                  ),
                 ),
               ],
             ),
@@ -457,7 +528,12 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     );
   }
 
-  Widget _buildDetailRow(String labelEn, String labelAr, String value, IconData icon) {
+  Widget _buildDetailRow(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(

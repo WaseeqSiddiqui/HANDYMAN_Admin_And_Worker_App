@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '/utils/admin_translations.dart';
 import '/widgets/bilingual_text.dart';
 import '/services/service_management_service.dart';
@@ -174,7 +173,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             Icon(
               Icons.category_outlined,
               size: 64,
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             BilingualText(
@@ -182,11 +181,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               arabic: 'لا توجد فئات حتى الآن',
               englishStyle: TextStyle(
                 fontSize: 18,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
               arabicStyle: TextStyle(
                 fontSize: 16,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -212,7 +211,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               decoration: BoxDecoration(
                 color: const Color(
                   0xFF005DFF,
-                ).withOpacity(0.1), // Updated to deep purple
+                ).withValues(alpha: 0.1), // Updated to deep purple
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -235,7 +234,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   category.nameArabic,
                   style: TextStyle(
                     fontSize: 14,
-                    color: textColor.withOpacity(0.7),
+                    color: textColor.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -245,8 +244,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               child: BilingualText(
                 english: '${category.subcategories.length} subcategories',
                 arabic: '${category.subcategories.length} فئة فرعية',
-                englishStyle: TextStyle(color: textColor.withOpacity(0.6)),
-                arabicStyle: TextStyle(color: textColor.withOpacity(0.6)),
+                englishStyle: TextStyle(
+                  color: textColor.withValues(alpha: 0.6),
+                ),
+                arabicStyle: TextStyle(color: textColor.withValues(alpha: 0.6)),
               ),
             ),
             trailing: Row(
@@ -285,7 +286,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             Icon(
               Icons.list_alt_outlined,
               size: 64,
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             BilingualText(
@@ -293,11 +294,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               arabic: 'لا توجد فئات متاحة',
               englishStyle: TextStyle(
                 fontSize: 18,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
               arabicStyle: TextStyle(
                 fontSize: 16,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -332,7 +333,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                   category.nameArabic,
                   style: TextStyle(
                     fontSize: 12,
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -345,10 +346,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                         english: 'No subcategories',
                         arabic: 'لا توجد فئات فرعية',
                         englishStyle: TextStyle(
-                          color: textColor.withOpacity(0.5),
+                          color: textColor.withValues(alpha: 0.5),
                         ),
                         arabicStyle: TextStyle(
-                          color: textColor.withOpacity(0.5),
+                          color: textColor.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -370,7 +371,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                             category.subcategoriesArabic[index],
                             style: TextStyle(
                               fontSize: 12,
-                              color: textColor.withOpacity(0.6),
+                              color: textColor.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -420,7 +421,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
             Icon(
               Icons.room_service_outlined,
               size: 64,
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             BilingualText(
@@ -428,11 +429,11 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               arabic: 'لا توجد خدمات حتى الآن',
               englishStyle: TextStyle(
                 fontSize: 18,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
               arabicStyle: TextStyle(
                 fontSize: 16,
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -474,7 +475,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                             service.nameArabic,
                             style: TextStyle(
                               fontSize: 14,
-                              color: textColor.withOpacity(0.7),
+                              color: textColor.withValues(alpha: 0.7),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -484,7 +485,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                                 : service.category,
                             style: TextStyle(
                               fontSize: 12,
-                              color: textColor.withOpacity(0.6),
+                              color: textColor.withValues(alpha: 0.6),
                             ),
                           ),
                           Text(
@@ -493,7 +494,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                                 : service.categoryArabic,
                             style: TextStyle(
                               fontSize: 11,
-                              color: textColor.withOpacity(0.5),
+                              color: textColor.withValues(alpha: 0.5),
                             ),
                           ),
                         ],
@@ -504,7 +505,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       onChanged: (value) {
                         _serviceManager.toggleServiceStatus(service.id);
                       },
-                      activeColor: const Color(
+                      activeTrackColor: const Color(
                         0xFF005DFF,
                       ), // Updated to deep purple
                     ),
@@ -577,7 +578,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -742,7 +743,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       );
                     }).toList();
                   },
-                  value: selectedCategoryId,
+                  initialValue: selectedCategoryId,
                   decoration: const InputDecoration(
                     labelText: 'Select Category',
                     border: OutlineInputBorder(),
@@ -914,7 +915,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                         );
                       }).toList();
                     },
-                    value: selectedCategoryId,
+                    initialValue: selectedCategoryId,
                     decoration: const InputDecoration(
                       labelText: 'Category',
                       border: OutlineInputBorder(),
@@ -967,7 +968,7 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                                 },
                               );
                             },
-                            value: selectedSubcategoryIndex,
+                            initialValue: selectedSubcategoryIndex,
                             decoration: const InputDecoration(
                               labelText: 'Subcategory',
                               border: OutlineInputBorder(),
@@ -1073,17 +1074,27 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
               ElevatedButton(
                 onPressed: () async {
                   final missingFields = <String>[];
-                  if (nameController.text.isEmpty)
+                  if (nameController.text.isEmpty) {
                     missingFields.add('English Name');
-                  if (nameArabicController.text.isEmpty)
+                  }
+                  if (nameArabicController.text.isEmpty) {
                     missingFields.add('Arabic Name');
-                  if (selectedCategoryId == null) missingFields.add('Category');
-                  if (priceController.text.isEmpty) missingFields.add('Price');
-                  if (commissionController.text.isEmpty)
+                  }
+                  if (selectedCategoryId == null) {
+                    missingFields.add('Category');
+                  }
+                  if (priceController.text.isEmpty) {
+                    missingFields.add('Price');
+                  }
+                  if (commissionController.text.isEmpty) {
                     missingFields.add('Commission');
-                  if (vatController.text.isEmpty) missingFields.add('VAT');
-                  if (selectedCat == null)
+                  }
+                  if (vatController.text.isEmpty) {
+                    missingFields.add('VAT');
+                  }
+                  if (selectedCat == null) {
                     missingFields.add('Selected Category (Internal)');
+                  }
 
                   if (missingFields.isNotEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1149,10 +1160,10 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                       ? '${selectedCategoryId}_$selectedSubcategoryIndex'
                       : '';
                   final subName = hasSubcategories
-                      ? selectedCat!.subcategories[selectedSubcategoryIndex!]
+                      ? selectedCat.subcategories[selectedSubcategoryIndex!]
                       : '';
                   final subNameAr = hasSubcategories
-                      ? selectedCat!
+                      ? selectedCat
                             .subcategoriesArabic[selectedSubcategoryIndex!]
                       : '';
 
@@ -1161,8 +1172,8 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
                     name: nameController.text,
                     nameArabic: nameArabicController.text,
                     categoryId: selectedCategoryId!,
-                    category: selectedCat!.nameEnglish, // Updated
-                    categoryArabic: selectedCat!.nameArabic, // Updated
+                    category: selectedCat.nameEnglish, // Updated
+                    categoryArabic: selectedCat.nameArabic, // Updated
                     subcategoryId: subId,
                     subcategory: subName,
                     subcategoryArabic: subNameAr,
@@ -1725,14 +1736,14 @@ class _ServiceManagementScreenState extends State<ServiceManagementScreen>
 
                 await _serviceManager.clearAllData();
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ All data cleared successfully'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ All data cleared successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(

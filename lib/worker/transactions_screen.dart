@@ -16,14 +16,15 @@ class WorkerTransactionsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              WorkerTranslations.getEnglish(WorkerTranslations.transactionHistory),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              WorkerTranslations.getEnglish(
+                WorkerTranslations.transactionHistory,
               ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              WorkerTranslations.getArabic(WorkerTranslations.transactionHistory),
+              WorkerTranslations.getArabic(
+                WorkerTranslations.transactionHistory,
+              ),
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.normal,
@@ -43,7 +44,11 @@ class WorkerTransactionsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.receipt_long,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     WorkerTranslations.noTransactions,
@@ -123,7 +128,7 @@ class WorkerTransactionsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -146,20 +151,14 @@ class WorkerTransactionsScreen extends StatelessWidget {
                   // Bilingual Subtitle - Fixed: Single text widget
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade800,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
                   ),
                   const SizedBox(height: 4),
 
                   // Date
                   Text(
                     _formatDate(transaction.createdAt),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                   ),
                 ],
               ),
@@ -182,7 +181,10 @@ class WorkerTransactionsScreen extends StatelessWidget {
                 if (transaction.reference != null)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(8),
@@ -210,25 +212,25 @@ class WorkerTransactionsScreen extends StatelessWidget {
           return WorkerTranslations.justNow;
         }
         return WorkerTranslations.getBilingual(
-            '${diff.inMinutes} min ago',
-            '${diff.inMinutes} دقيقة مضت'
+          '${diff.inMinutes} min ago',
+          '${diff.inMinutes} دقيقة مضت',
         );
       }
       return WorkerTranslations.getBilingual(
-          '${diff.inHours} h ago',
-          '${diff.inHours} ساعة مضت'
+        '${diff.inHours} h ago',
+        '${diff.inHours} ساعة مضت',
       );
     } else if (diff.inDays == 1) {
       return WorkerTranslations.yesterday;
     } else if (diff.inDays < 7) {
       return WorkerTranslations.getBilingual(
-          '${diff.inDays} days ago',
-          '${diff.inDays} أيام مضت'
+        '${diff.inDays} days ago',
+        '${diff.inDays} أيام مضت',
       );
     } else {
       return WorkerTranslations.getBilingual(
-          '${date.day}/${date.month}/${date.year}',
-          '${date.day}/${date.month}/${date.year}'
+        '${date.day}/${date.month}/${date.year}',
+        '${date.day}/${date.month}/${date.year}',
       );
     }
   }

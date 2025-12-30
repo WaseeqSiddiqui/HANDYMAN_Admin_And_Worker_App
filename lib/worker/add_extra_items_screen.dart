@@ -23,10 +23,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
   final TextEditingController _priceController = TextEditingController();
 
   double get _totalExtraCharges {
-    return _extraItems.fold(
-      0.0,
-          (sum, item) => sum + item.price,
-    );
+    return _extraItems.fold(0.0, (sum, item) => sum + item.price);
   }
 
   @override
@@ -59,7 +56,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFF005DFF).withOpacity(0.1),
+            color: const Color(0xFF005DFF).withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -104,59 +101,69 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           Expanded(
             child: _extraItems.isEmpty
                 ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.inbox, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  // No items message
-                  Column(
-                    children: [
-                      Text(
-                        WorkerTranslations.split(WorkerTranslations.noExtraItemsAdded)[0],
-                        style: const TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                      Text(
-                        WorkerTranslations.split(WorkerTranslations.noExtraItemsAdded)[1],
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
-                        textDirection: TextDirection.rtl,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            )
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        // No items message
+                        Column(
+                          children: [
+                            Text(
+                              WorkerTranslations.split(
+                                WorkerTranslations.noExtraItemsAdded,
+                              )[0],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              WorkerTranslations.split(
+                                WorkerTranslations.noExtraItemsAdded,
+                              )[1],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _extraItems.length,
-              itemBuilder: (context, index) {
-                final item = _extraItems[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: item.type == 'Service'
-                          ? Colors.blue
-                          : Colors.orange,
-                      child: Icon(
-                        item.type == 'Service'
-                            ? Icons.build
-                            : Icons.inventory,
-                        color: Colors.white,
-                      ),
-                    ),
-                    title: Text(item.name),
-                    subtitle: Text(
-                      '${WorkerTranslations.split(WorkerTranslations.type)[0]} ${item.type} • ${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${item.price.toStringAsFixed(2)}',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeItem(index),
-                    ),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _extraItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _extraItems[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: item.type == 'Service'
+                                ? Colors.blue
+                                : Colors.orange,
+                            child: Icon(
+                              item.type == 'Service'
+                                  ? Icons.build
+                                  : Icons.inventory,
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(item.name),
+                          subtitle: Text(
+                            '${WorkerTranslations.split(WorkerTranslations.type)[0]} ${item.type} • ${WorkerTranslations.split(WorkerTranslations.sar)[0]} ${item.price.toStringAsFixed(2)}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _removeItem(index),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           // Total and Action Buttons
           Container(
@@ -165,7 +172,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -188,7 +195,9 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              WorkerTranslations.split(WorkerTranslations.totalExtraCharges)[0],
+                              WorkerTranslations.split(
+                                WorkerTranslations.totalExtraCharges,
+                              )[0],
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -211,7 +220,9 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              WorkerTranslations.split(WorkerTranslations.totalExtraCharges)[1],
+                              WorkerTranslations.split(
+                                WorkerTranslations.totalExtraCharges,
+                              )[1],
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -235,9 +246,15 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                         label: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(WorkerTranslations.split(WorkerTranslations.addService)[0]),
                             Text(
-                              WorkerTranslations.split(WorkerTranslations.addService)[1],
+                              WorkerTranslations.split(
+                                WorkerTranslations.addService,
+                              )[0],
+                            ),
+                            Text(
+                              WorkerTranslations.split(
+                                WorkerTranslations.addService,
+                              )[1],
                               style: const TextStyle(fontSize: 10),
                               textDirection: TextDirection.rtl,
                             ),
@@ -258,9 +275,15 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                         label: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(WorkerTranslations.split(WorkerTranslations.addPart)[0]),
                             Text(
-                              WorkerTranslations.split(WorkerTranslations.addPart)[1],
+                              WorkerTranslations.split(
+                                WorkerTranslations.addPart,
+                              )[0],
+                            ),
+                            Text(
+                              WorkerTranslations.split(
+                                WorkerTranslations.addPart,
+                              )[1],
                               style: const TextStyle(fontSize: 10),
                               textDirection: TextDirection.rtl,
                             ),
@@ -286,9 +309,15 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(WorkerTranslations.split(WorkerTranslations.saveReturn)[0]),
                         Text(
-                          WorkerTranslations.split(WorkerTranslations.saveReturn)[1],
+                          WorkerTranslations.split(
+                            WorkerTranslations.saveReturn,
+                          )[0],
+                        ),
+                        Text(
+                          WorkerTranslations.split(
+                            WorkerTranslations.saveReturn,
+                          )[1],
                           style: const TextStyle(fontSize: 12),
                           textDirection: TextDirection.rtl,
                         ),
@@ -315,7 +344,9 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${WorkerTranslations.split(WorkerTranslations.addBtn)[0]} $type'),
+            Text(
+              '${WorkerTranslations.split(WorkerTranslations.addBtn)[0]} $type',
+            ),
             Text(
               '${WorkerTranslations.split(WorkerTranslations.addBtn)[1]} ${type == 'Service' ? 'خدمة' : 'قطعة'}',
               style: const TextStyle(fontSize: 14),
@@ -332,7 +363,7 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF005DFF).withOpacity(0.1),
+                  color: const Color(0xFF005DFF).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -370,7 +401,10 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.only(
@@ -397,7 +431,10 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                             : 'Enter part name / أدخل اسم القطعة',
                         hintStyle: const TextStyle(fontSize: 14),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                       ),
                       textInputAction: TextInputAction.next,
                     ),
@@ -417,7 +454,10 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.only(
@@ -436,14 +476,21 @@ class _AddExtraItemsScreenState extends State<AddExtraItemsScreen> {
                     ),
                     TextField(
                       controller: _priceController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
-FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d{0,4}(\.\d{0,2})?$'),
+                        ),
                       ],
                       decoration: const InputDecoration(
                         hintText: '0.00',
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         prefixText: 'SAR ',
                         prefixStyle: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -505,9 +552,15 @@ FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(WorkerTranslations.split(WorkerTranslations.pleaseFillAllFields)[0]),
               Text(
-                WorkerTranslations.split(WorkerTranslations.pleaseFillAllFields)[1],
+                WorkerTranslations.split(
+                  WorkerTranslations.pleaseFillAllFields,
+                )[0],
+              ),
+              Text(
+                WorkerTranslations.split(
+                  WorkerTranslations.pleaseFillAllFields,
+                )[1],
                 style: const TextStyle(fontSize: 12),
                 textDirection: TextDirection.rtl,
               ),
@@ -526,9 +579,15 @@ FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(WorkerTranslations.split(WorkerTranslations.pleaseEnterValidPrice)[0]),
               Text(
-                WorkerTranslations.split(WorkerTranslations.pleaseEnterValidPrice)[1],
+                WorkerTranslations.split(
+                  WorkerTranslations.pleaseEnterValidPrice,
+                )[0],
+              ),
+              Text(
+                WorkerTranslations.split(
+                  WorkerTranslations.pleaseEnterValidPrice,
+                )[1],
                 style: const TextStyle(fontSize: 12),
                 textDirection: TextDirection.rtl,
               ),
@@ -541,12 +600,14 @@ FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
     }
 
     setState(() {
-      _extraItems.add(ExtraItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: name,
-        type: type,
-        price: price,
-      ));
+      _extraItems.add(
+        ExtraItem(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: name,
+          type: type,
+          price: price,
+        ),
+      );
     });
 
     Navigator.pop(context);
@@ -555,7 +616,9 @@ FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('$type ${WorkerTranslations.split(WorkerTranslations.addedSuccessfully)[0]}'),
+            Text(
+              '$type ${WorkerTranslations.split(WorkerTranslations.addedSuccessfully)[0]}',
+            ),
             Text(
               '${type == 'Service' ? 'خدمة' : 'قطعة'} ${WorkerTranslations.split(WorkerTranslations.addedSuccessfully)[1]}',
               style: const TextStyle(fontSize: 12),

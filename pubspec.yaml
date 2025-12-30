@@ -71,7 +71,10 @@ flutter:
   assets:
     - assets/images/
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_launcher_icons: "^0.13.1"
+  flutter_lints: ^6.0.0
     # Or if you want to specify individual files:
     # - assets/images/logo.png
     # - assets/images/icon.png

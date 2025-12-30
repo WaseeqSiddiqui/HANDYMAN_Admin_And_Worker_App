@@ -13,7 +13,6 @@ class CreditScreen extends StatefulWidget {
 
 class _CreditScreenState extends State<CreditScreen> {
   final TextEditingController _amountController = TextEditingController();
-  bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -115,7 +114,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF005DFF).withOpacity(0.3),
+                    color: const Color(0xFF005DFF).withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -174,7 +173,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF4CAF50).withOpacity(0.3),
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -243,7 +242,7 @@ class _CreditScreenState extends State<CreditScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -273,7 +272,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
                 style: TextStyle(
                   fontSize: 14,
-                  color: textColor.withOpacity(0.8),
+                  color: textColor.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -296,7 +295,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 WorkerTranslations.getArabic(WorkerTranslations.amountSAR),
                 style: TextStyle(
                   fontSize: 12,
-                  color: textColor.withOpacity(0.7),
+                  color: textColor.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -337,9 +336,9 @@ class _CreditScreenState extends State<CreditScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,16 +433,16 @@ class _CreditScreenState extends State<CreditScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 20),
@@ -502,7 +501,7 @@ class _CreditScreenState extends State<CreditScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -536,7 +535,7 @@ class _CreditScreenState extends State<CreditScreen> {
                       ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: textColor.withOpacity(0.7),
+                        color: textColor.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -645,8 +644,8 @@ class _CreditScreenState extends State<CreditScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCredit
-              ? Colors.green.withOpacity(0.2)
-              : Colors.red.withOpacity(0.2),
+              ? Colors.green.withValues(alpha: 0.2)
+              : Colors.red.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -657,8 +656,8 @@ class _CreditScreenState extends State<CreditScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isCredit
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -728,7 +727,7 @@ class _CreditScreenState extends State<CreditScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -833,14 +832,12 @@ class _CreditScreenState extends State<CreditScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              setState(() => _isLoading = true);
 
               await Future.delayed(const Duration(seconds: 1));
 
               appState.transferWalletToCredit(amount);
 
               setState(() {
-                _isLoading = false;
                 _amountController.clear();
               });
 

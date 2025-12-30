@@ -64,6 +64,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     if (pickedFile != null && _workerData != null) {
       final file = File(pickedFile.path);
 
+      if (!mounted) return;
       // Show loading indicator
       showDialog(
         context: context,
@@ -76,6 +77,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
         _workerData!.id,
       );
 
+      if (!mounted) return;
       // Hide loading indicator
       Navigator.pop(context);
 
@@ -191,7 +193,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF005DFF).withOpacity(0.3),
+            color: const Color(0xFF005DFF).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -263,8 +265,8 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
               color:
                   _workerData!.status ==
                       WorkerTranslations.getEnglish(WorkerTranslations.active)
-                  ? Colors.green.withOpacity(0.3)
-                  : Colors.red.withOpacity(0.3),
+                  ? Colors.green.withValues(alpha: 0.3)
+                  : Colors.red.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -491,9 +493,9 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [

@@ -27,14 +27,20 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
         if (service == null) {
           return Scaffold(
             appBar: AppBar(
-              title: Text(AdminTranslations.split(AdminTranslations.generateInvoice)[0]),
+              title: Text(
+                AdminTranslations.split(AdminTranslations.generateInvoice)[0],
+              ),
               backgroundColor: const Color(0xFF005DFF),
               foregroundColor: Colors.white,
             ),
             body: Center(
               child: BilingualText(
-                english: AdminTranslations.split(AdminTranslations.serviceNotFound)[0],
-                arabic: AdminTranslations.split(AdminTranslations.serviceNotFound)[1],
+                english: AdminTranslations.split(
+                  AdminTranslations.serviceNotFound,
+                )[0],
+                arabic: AdminTranslations.split(
+                  AdminTranslations.serviceNotFound,
+                )[1],
                 englishStyle: const TextStyle(fontSize: 16),
               ),
             ),
@@ -51,7 +57,9 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(AdminTranslations.split(AdminTranslations.generateInvoice)[0]),
+            title: Text(
+              AdminTranslations.split(AdminTranslations.generateInvoice)[0],
+            ),
             backgroundColor: const Color(0xFF6B5B9A),
             foregroundColor: Colors.white,
           ),
@@ -66,7 +74,12 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                 const SizedBox(height: 16),
                 _buildInvoiceSummary(basePrice, extraCharges, total),
                 const SizedBox(height: 16),
-                _buildWorkerPaymentInfo(commission, vat, workerPayment, workerEarnings),
+                _buildWorkerPaymentInfo(
+                  commission,
+                  vat,
+                  workerPayment,
+                  workerEarnings,
+                ),
                 const SizedBox(height: 24),
                 _buildPaymentMethod(),
                 const SizedBox(height: 24),
@@ -83,14 +96,20 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                     ),
                     child: _isGenerating
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                        : Text(AdminTranslations.split(AdminTranslations.generateCompleteService)[0]),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            AdminTranslations.split(
+                              AdminTranslations.generateCompleteService,
+                            )[0],
+                          ),
                   ),
                 ),
               ],
@@ -109,9 +128,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.serviceDetails)[0],
-              arabic: AdminTranslations.split(AdminTranslations.serviceDetails)[1],
-              englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.serviceDetails,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.serviceDetails,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
@@ -143,9 +169,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.customerInformation)[0],
-              arabic: AdminTranslations.split(AdminTranslations.customerInformation)[1],
-              englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.customerInformation,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.customerInformation,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
@@ -175,7 +208,10 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             child: BilingualText(
               english: '$labelEn:',
               arabic: '$labelAr:',
-              englishStyle: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey),
+              englishStyle: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
             ),
           ),
           Expanded(
@@ -189,7 +225,11 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
     );
   }
 
-  Widget _buildInvoiceSummary(double basePrice, double extraCharges, double total) {
+  Widget _buildInvoiceSummary(
+    double basePrice,
+    double extraCharges,
+    double total,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -197,9 +237,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.customerInvoice)[0],
-              arabic: AdminTranslations.split(AdminTranslations.customerInvoice)[1],
-              englishStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.customerInvoice,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.customerInvoice,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const Divider(),
             _buildSummaryRow(
@@ -226,7 +273,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -235,9 +282,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: BilingualText(
-                      english: AdminTranslations.split(AdminTranslations.customerPaysOnly)[0],
-                      arabic: AdminTranslations.split(AdminTranslations.customerPaysOnly)[1],
-                      englishStyle: const TextStyle(fontSize: 12, color: Colors.blue),
+                      english: AdminTranslations.split(
+                        AdminTranslations.customerPaysOnly,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.customerPaysOnly,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ],
@@ -250,11 +304,11 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
   }
 
   Widget _buildWorkerPaymentInfo(
-      double commission,
-      double vat,
-      double workerPayment,
-      double workerEarnings,
-      ) {
+    double commission,
+    double vat,
+    double workerPayment,
+    double workerEarnings,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -262,9 +316,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.workerPaymentBreakdown)[0],
-              arabic: AdminTranslations.split(AdminTranslations.workerPaymentBreakdown)[1],
-              englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.workerPaymentBreakdown,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.workerPaymentBreakdown,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const Divider(),
             _buildSummaryRow(
@@ -290,16 +351,23 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   BilingualText(
-                    english: AdminTranslations.split(AdminTranslations.workerEarnings)[0],
-                    arabic: AdminTranslations.split(AdminTranslations.workerEarnings)[1],
-                    englishStyle: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    english: AdminTranslations.split(
+                      AdminTranslations.workerEarnings,
+                    )[0],
+                    arabic: AdminTranslations.split(
+                      AdminTranslations.workerEarnings,
+                    )[1],
+                    englishStyle: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'SAR ${workerEarnings.toStringAsFixed(2)}',
@@ -318,7 +386,13 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String labelEn, String labelAr, String value, {bool isBold = false, Color? color}) {
+  Widget _buildSummaryRow(
+    String labelEn,
+    String labelAr,
+    String value, {
+    bool isBold = false,
+    Color? color,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -352,9 +426,16 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BilingualText(
-              english: AdminTranslations.split(AdminTranslations.paymentMethod)[0],
-              arabic: AdminTranslations.split(AdminTranslations.paymentMethod)[1],
-              englishStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              english: AdminTranslations.split(
+                AdminTranslations.paymentMethod,
+              )[0],
+              arabic: AdminTranslations.split(
+                AdminTranslations.paymentMethod,
+              )[1],
+              englishStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             RadioListTile(
               title: Text(AdminTranslations.split(AdminTranslations.cash)[0]),
@@ -363,7 +444,9 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
               onChanged: (value) => setState(() => _paymentMethod = value!),
             ),
             RadioListTile(
-              title: Text(AdminTranslations.split(AdminTranslations.onlinePayment)[0]),
+              title: Text(
+                AdminTranslations.split(AdminTranslations.onlinePayment)[0],
+              ),
               value: 'Online',
               groupValue: _paymentMethod,
               onChanged: (value) => setState(() => _paymentMethod = value!),
@@ -375,9 +458,9 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
   }
 
   Future<void> _generateInvoice(
-      AppStateProvider appState,
-      ServiceRequest service,
-      ) async {
+    AppStateProvider appState,
+    ServiceRequest service,
+  ) async {
     setState(() => _isGenerating = true);
 
     try {

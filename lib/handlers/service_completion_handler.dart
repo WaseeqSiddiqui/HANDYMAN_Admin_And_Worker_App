@@ -36,12 +36,15 @@ class ServiceCompletionHandler {
       );
 
       // Extract service data
-      final serviceId = serviceData['id'] ?? 'SRV_${DateTime.now().millisecondsSinceEpoch}';
-      final serviceName = serviceData['service'] ?? serviceData['serviceType'] ?? 'Service';
+      final serviceId =
+          serviceData['id'] ?? 'SRV_${DateTime.now().millisecondsSinceEpoch}';
+      final serviceName =
+          serviceData['service'] ?? serviceData['serviceType'] ?? 'Service';
       final workerName = serviceData['worker'] ?? 'Worker';
       final workerId = serviceData['workerId'] ?? 'WKR_001';
       final customerName = serviceData['customer'] ?? 'Customer';
-      final basePrice = (serviceData['baseAmount'] ?? serviceData['price'] ?? 0.0).toDouble();
+      final basePrice =
+          (serviceData['baseAmount'] ?? serviceData['price'] ?? 0.0).toDouble();
       final extraCharges = (serviceData['extraCharges'] ?? 0.0).toDouble();
       final paymentMethod = serviceData['paymentMethod'] ?? 'Cash';
 
@@ -86,7 +89,9 @@ class ServiceCompletionHandler {
 
   /// Show success dialog with financial breakdown
   static void _showSuccessDialog(
-      BuildContext context, FinancialTransaction transaction) {
+    BuildContext context,
+    FinancialTransaction transaction,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -95,17 +100,18 @@ class ServiceCompletionHandler {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle, color: Colors.green, size: 32),
+              child: const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 32,
+              ),
             ),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text(
-                'Service Completed!',
-                style: TextStyle(fontSize: 20),
-              ),
+              child: Text('Service Completed!', style: TextStyle(fontSize: 20)),
             ),
           ],
         ),
@@ -116,25 +122,35 @@ class ServiceCompletionHandler {
             children: [
               const Text(
                 'Financial Summary',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const Divider(),
               _buildSummaryRow('Service', transaction.serviceName),
               _buildSummaryRow('Customer', transaction.customerName),
               const SizedBox(height: 8),
-              _buildAmountRow('Total Amount', transaction.totalAmount, Colors.blue),
-              _buildAmountRow('Commission (20%)', transaction.commission, Colors.purple),
+              _buildAmountRow(
+                'Total Amount',
+                transaction.totalAmount,
+                Colors.blue,
+              ),
+              _buildAmountRow(
+                'Commission (20%)',
+                transaction.commission,
+                Colors.purple,
+              ),
               _buildAmountRow('VAT (15%)', transaction.vat, Colors.orange),
               const Divider(),
-              _buildAmountRow('Your Earnings', transaction.workerEarnings, Colors.green, isBold: true),
+              _buildAmountRow(
+                'Your Earnings',
+                transaction.workerEarnings,
+                Colors.green,
+                isBold: true,
+              ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
@@ -144,10 +160,7 @@ class ServiceCompletionHandler {
                     Expanded(
                       child: Text(
                         'All financial records have been updated automatically',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.green),
                       ),
                     ),
                   ],
@@ -187,8 +200,12 @@ class ServiceCompletionHandler {
     );
   }
 
-  static Widget _buildAmountRow(String label, double amount, Color color,
-      {bool isBold = false}) {
+  static Widget _buildAmountRow(
+    String label,
+    double amount,
+    Color color, {
+    bool isBold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

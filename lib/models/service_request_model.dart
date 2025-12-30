@@ -118,6 +118,7 @@ class ServiceRequest {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? invoiceGenerated, // ✅ Added
+    String? customerLanguage,
   }) {
     return ServiceRequest(
       id: id ?? this.id,

@@ -183,6 +183,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           : [], // Simple logic for now
     );
 
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Notification sent successfully'),

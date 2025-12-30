@@ -53,6 +53,34 @@ class Review {
     );
   }
 
+  Review copyWith({
+    String? id,
+    String? customerName,
+    String? customerId,
+    String? workerName,
+    String? workerId,
+    String? serviceName,
+    String? serviceId,
+    double? rating,
+    String? comment,
+    DateTime? createdAt,
+    String? status,
+  }) {
+    return Review(
+      id: id ?? this.id,
+      customerName: customerName ?? this.customerName,
+      customerId: customerId ?? this.customerId,
+      workerName: workerName ?? this.workerName,
+      workerId: workerId ?? this.workerId,
+      serviceName: serviceName ?? this.serviceName,
+      serviceId: serviceId ?? this.serviceId,
+      rating: rating ?? this.rating,
+      comment: comment ?? this.comment,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

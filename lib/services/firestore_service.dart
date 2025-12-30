@@ -101,7 +101,7 @@ class FirestoreService {
       }).toList();
     } catch (e) {
       debugPrint('Error fetching workers: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -110,7 +110,7 @@ class FirestoreService {
       await _workersCollection.doc(worker.id).set(worker.toMap());
     } catch (e) {
       debugPrint('Error adding worker: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -119,7 +119,7 @@ class FirestoreService {
       await _workersCollection.doc(worker.id).update(worker.toMap());
     } catch (e) {
       debugPrint('Error updating worker: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -130,7 +130,27 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error updating worker credit: $e');
-      throw e;
+      rethrow;
+    }
+  }
+
+  Future<void> deleteWorker(String workerId) async {
+    try {
+      await _workersCollection.doc(workerId).delete();
+      debugPrint('✅ Worker deleted from Firestore: $workerId');
+    } catch (e) {
+      debugPrint('❌ Error deleting worker: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateReview(Review review) async {
+    try {
+      await _reviewsCollection.doc(review.id).update(review.toMap());
+      debugPrint('✅ Review updated: ${review.id}');
+    } catch (e) {
+      debugPrint('❌ Error updating review: $e');
+      rethrow;
     }
   }
 
@@ -141,7 +161,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error updating worker wallet: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -156,7 +176,7 @@ class FirestoreService {
       );
     } catch (e) {
       debugPrint('❌ Error incrementing worker completed services: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -198,7 +218,7 @@ class FirestoreService {
       }).toList();
     } catch (e) {
       debugPrint('Error fetching services: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -223,7 +243,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error adding service request: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -237,9 +257,9 @@ class FirestoreService {
       await _servicesCollection.doc(service.id).update(service.toJson());
 
       // ✅ NOTIFICATION: Status Change
-      if (oldStatus != service.status) {
+      if (oldStatus != service.status.name) {
         // SERVICE COMPLETED -> Notify Admin
-        if (service.status == 'completed') {
+        if (service.status == ServiceRequestStatus.completed) {
           await _notificationsCollection.add({
             'title': 'Service Completed',
             'message': 'Service ${service.serviceName} marked as completed.',
@@ -251,7 +271,7 @@ class FirestoreService {
           });
         }
         // SERVICE POSTPONED -> Notify Admin (User requirement: Worker does it, so only Admin needs to know)
-        else if (service.status == 'postponed') {
+        else if (service.status.name == 'postponed') {
           await _notificationsCollection.add({
             'title': 'Service Postponed',
             'message':
@@ -282,7 +302,7 @@ class FirestoreService {
       }
     } catch (e) {
       debugPrint('Error updating service request: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -346,7 +366,7 @@ class FirestoreService {
       }
     } catch (e) {
       debugPrint('Error cancelling service: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -360,7 +380,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error updating worker reserved credit: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -391,7 +411,7 @@ class FirestoreService {
       }).toList();
     } catch (e) {
       debugPrint('Error fetching transactions: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -402,7 +422,7 @@ class FirestoreService {
           .set(transaction.toJson());
     } catch (e) {
       debugPrint('Error adding transaction: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -429,7 +449,7 @@ class FirestoreService {
       await _adminWalletCollection.doc(transaction.id).set(transaction.toMap());
     } catch (e) {
       debugPrint('Error adding admin wallet transaction: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -450,7 +470,7 @@ class FirestoreService {
       await _commissionCollection.doc(record.id).set(record.toMap());
     } catch (e) {
       debugPrint('Error adding commission record: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -470,7 +490,7 @@ class FirestoreService {
       await _vatCollection.doc(record.id).set(record.toMap());
     } catch (e) {
       debugPrint('Error adding VAT record: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -505,7 +525,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error adding withdrawal request: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -514,7 +534,7 @@ class FirestoreService {
       await _withdrawalCollection.doc(request.id).update(request.toMap());
     } catch (e) {
       debugPrint('Error updating withdrawal request: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -535,7 +555,7 @@ class FirestoreService {
       await _categoriesCollection.doc(category.id).set(category.toMap());
     } catch (e) {
       debugPrint('Error adding service category: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -544,7 +564,7 @@ class FirestoreService {
       await _categoriesCollection.doc(category.id).update(category.toMap());
     } catch (e) {
       debugPrint('Error updating service category: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -553,7 +573,7 @@ class FirestoreService {
       await _categoriesCollection.doc(categoryId).delete();
     } catch (e) {
       debugPrint('Error deleting service category: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -574,7 +594,7 @@ class FirestoreService {
       await _customersCollection.doc(customer.id).set(customer.toMap());
     } catch (e) {
       debugPrint('Error adding customer: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -598,7 +618,7 @@ class FirestoreService {
       await _invoicesCollection.doc(invoice.invoiceNumber).set(invoice.toMap());
     } catch (e) {
       debugPrint('Error adding invoice: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -631,7 +651,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error adding offered service: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -640,7 +660,7 @@ class FirestoreService {
       await _offeredServicesCollection.doc(service.id).update(service.toMap());
     } catch (e) {
       debugPrint('Error updating offered service: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -649,7 +669,7 @@ class FirestoreService {
       await _offeredServicesCollection.doc(serviceId).delete();
     } catch (e) {
       debugPrint('Error deleting offered service: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -714,7 +734,7 @@ class FirestoreService {
       });
     } catch (e) {
       debugPrint('Error adding review: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -774,7 +794,7 @@ class FirestoreService {
       debugPrint('Message sent successfully!');
     } catch (e) {
       debugPrint('Error sending message: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -799,7 +819,7 @@ class FirestoreService {
       debugPrint('✅ Service Catalogue Cleared');
     } catch (e) {
       debugPrint('Error clearing catalogue: $e');
-      throw e;
+      rethrow;
     }
   }
 }

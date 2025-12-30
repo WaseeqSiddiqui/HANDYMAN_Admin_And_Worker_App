@@ -187,6 +187,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               return;
             }
 
+            if (!mounted) return;
+
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -237,6 +239,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             await NotificationService().updateUserToken('admin', 'admin');
 
             // Admin login
+            if (!mounted) return;
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Phone verified successfully!'),
@@ -392,7 +396,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -471,8 +475,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(
-                              isDark ? 0.3 : 0.05,
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.3 : 0.05,
                             ),
                             blurRadius: 10,
                             offset: const Offset(0, 3),

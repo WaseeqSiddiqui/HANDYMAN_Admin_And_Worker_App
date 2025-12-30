@@ -43,7 +43,6 @@ class ServiceInvoice {
 
   factory ServiceInvoice.fromServiceRequest(ServiceRequest req) {
     final totalExtra = req.extraItems.fold(0.0, (sum, e) => sum + e.price);
-    final subtotal = req.basePrice + totalExtra;
 
     final validCustomerId = (req.customerId.isNotEmpty)
         ? req.customerId

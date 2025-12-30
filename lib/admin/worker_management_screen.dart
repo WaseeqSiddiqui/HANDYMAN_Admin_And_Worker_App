@@ -274,10 +274,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -420,41 +420,13 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: isSelected
-                    ? Colors.white.withOpacity(0.9)
+                    ? Colors.white.withValues(alpha: 0.9)
                     : Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String statusEn, String statusAr) {
-    final isSelected = _filterStatus == statusEn;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(statusEn, style: const TextStyle(fontSize: 12)),
-            Text(
-              statusAr,
-              style: const TextStyle(fontSize: 10),
-              textDirection: TextDirection.rtl,
-            ),
-          ],
-        ),
-        selected: isSelected,
-        onSelected: (selected) => setState(() => _filterStatus = statusEn),
-        selectedColor: const Color(0xFF3B82F6),
-        backgroundColor: Colors.white,
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -517,7 +489,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
+                    backgroundColor: const Color(
+                      0xFF3B82F6,
+                    ).withValues(alpha: 0.1),
                     backgroundImage:
                         worker['profilePhotoUrl'] != null &&
                             worker['profilePhotoUrl'].toString().isNotEmpty
@@ -579,11 +553,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: isPending
-                          ? Colors.orange.withOpacity(0.1)
+                          ? Colors.orange.withValues(alpha: 0.1)
                           : // 🔥 NEW: Orange for pending
                             isActive
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -725,7 +699,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     final addressArabicController = TextEditingController();
     final initialCreditController = TextEditingController(text: '100');
     String? selectedExpertise;
-    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
+    final categories = Provider.of<AppStateProvider>(
+      context,
+      listen: false,
+    ).serviceCategories;
 
     showDialog(
       context: context,
@@ -733,343 +710,359 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-        title: Row(
-          children: [
-            Text(AdminTranslations.split(AdminTranslations.addWorker)[0]),
-            const SizedBox(width: 4),
-            Text(
-              AdminTranslations.split(AdminTranslations.addWorker)[1],
-              style: const TextStyle(fontSize: 14),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.fullNameEnglish,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.person),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameArabicController,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.fullNameArabic,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nationalIdController,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.nationalId,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.credit_card),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.email,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.email),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                  LengthLimitingTextInputFormatter(13),
-                ],
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.phoneNumber,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.phone),
-                  border: const OutlineInputBorder(),
-                  hintText: '5XXXXXXXX',
-                  helperText: 'Format: 5XXXXXXXX ',
-                  helperStyle: const TextStyle(fontSize: 10),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedExpertise,
-                isExpanded: true, // 🔥 Allow dropdown to expand and handle overflow
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.expertise)[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.work),
-                  border: const OutlineInputBorder(),
-                ),
-                items: categories.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat.nameEnglish,
-                    child: Text(
-                      '${cat.nameEnglish} - ${cat.nameArabic}',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() => selectedExpertise = val);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: stcPayController,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.stcPayId,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.payment),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addressController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.addressEnglish,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.location_on),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addressArabicController,
-                maxLines: 2,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.addressArabic,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.location_on_outlined),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: initialCreditController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [LengthLimitingTextInputFormatter(4)],
-                decoration: InputDecoration(
-                  labelText: AdminTranslations.split(
-                    AdminTranslations.initialCredit,
-                  )[0],
-                  labelStyle: const TextStyle(fontSize: 14),
-                  prefixIcon: const Icon(Icons.account_balance_wallet),
-                  border: const OutlineInputBorder(),
-                  hintText: AdminTranslations.split(
-                    AdminTranslations.defaultCredit,
-                  )[0],
-                  helperText: AdminTranslations.split(
-                    AdminTranslations.initialCreditHelper,
-                  )[0],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
-                const SizedBox(width: 4),
-                Text(
-                  AdminTranslations.split(AdminTranslations.cancelBtn)[1],
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              // Validate
-              if (nameController.text.isEmpty ||
-                  nameArabicController.text.isEmpty ||
-                  nationalIdController.text.isEmpty ||
-                  emailController.text.isEmpty ||
-                  phoneController.text.isEmpty ||
-                  stcPayController.text.isEmpty ||
-                  addressController.text.isEmpty ||
-                  addressArabicController.text.isEmpty) {
-                // Show snackbar without closing dialog
-                _showCustomSnackBar(
-                  AdminTranslations.split(AdminTranslations.fillAllFields)[0],
-                  AdminTranslations.split(AdminTranslations.fillAllFields)[1],
-                  Colors.red,
-                );
-                return;
-              }
-
-              // ✅ NEW VALIDATIONS
-              if (!_isValidNationalId(nationalIdController.text.trim())) {
-                _showCustomSnackBar(
-                  'Invalid National ID. Must be 10 digits.',
-                  'رقم الهوية غير صالح. يجب أن يتكون من 10 أرقام.',
-                  Colors.red,
-                );
-                return;
-              }
-
-              if (!_isValidEmail(emailController.text.trim())) {
-                _showCustomSnackBar(
-                  'Invalid Email Address.',
-                  'البريد الإلكتروني غير صالح.',
-                  Colors.red,
-                );
-                return;
-              }
-
-              final initialCredit = double.tryParse(
-                initialCreditController.text.trim(),
-              );
-              if (initialCredit == null || initialCredit < 0) {
-                _showCustomSnackBar(
-                  AdminTranslations.split(
-                    AdminTranslations.validCreditAmount,
-                  )[0],
-                  AdminTranslations.split(
-                    AdminTranslations.validCreditAmount,
-                  )[1],
-                  Colors.red,
-                );
-                return;
-              }
-
-              String formattedPhone = _formatPhoneNumber(
-                phoneController.text.trim(),
-              );
-              if (!_isValidSaudiPhone(formattedPhone)) {
-                _showCustomSnackBar(
-                  'Invalid Saudi phone number. Use format: 5XXXXXXXX',
-                  'رقم هاتف سعودي غير صالح. استخدم التنسيق: 5XXXXXXXX',
-                  Colors.red,
-                );
-                return;
-              }
-
-              // STC Pay Validation (same as phone for now, or just check if it's a valid phone)
-              String formattedStcPay = _formatPhoneNumber(
-                stcPayController.text.trim(),
-              );
-              if (!_isValidSaudiPhone(formattedStcPay)) {
-                _showCustomSnackBar(
-                  'Invalid STC Pay number. Use format: 5XXXXXXXX',
-                  'رقم STC Pay غير صالح. استخدم التنسيق: 5XXXXXXXX',
-                  Colors.red,
-                );
-                return;
-              }
-
-              // Create worker data
-              final newWorkerId =
-                  'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-              final newWorker = WorkerData(
-                id: newWorkerId,
-                name: nameController.text.trim(),
-                nameArabic: nameArabicController.text.trim(),
-                nationalId: nationalIdController.text.trim(),
-                email: emailController.text.trim(),
-                phone: formattedPhone, // 🔥 USE FORMATTED PHONE
-                stcPayId: formattedStcPay, // 🔥 USE FORMATTED STC PAY
-                address: addressController.text.trim(),
-                addressArabic: addressArabicController.text.trim(),
-                status: 'Active', // 🔥 Set as Active by default
-                joinedDate: DateTime.now(),
-                completedServices: 0,
-                creditBalance: initialCredit,
-                expertise: selectedExpertise ?? 'General',
-              );
-
-              final success = _authService.addWorker(newWorker);
-
-              // ✅ CRITICAL: Initialize credit in AppStateProvider for new worker
-              if (success) {
-                if (context.mounted) {
-                  Provider.of<AppStateProvider>(
-                    context,
-                    listen: false,
-                  ).syncWorkerCredit(newWorkerId, initialCredit);
-                }
-              }
-
-              if (success) {
-                // ✅ Close dialog ONLY IF SUCCESSFUL
-                if (context.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-
-                _showCustomSnackBar(
-                  '${AdminTranslations.split(AdminTranslations.workerAdded)[0]} - ${nameController.text.trim()}',
-                  '${AdminTranslations.split(AdminTranslations.workerAdded)[1]} - ${nameArabicController.text.trim()}',
-                  Colors.green,
-                );
-              } else {
-                // DON'T CLOSE DIALOG if worker exists
-                _showCustomSnackBar(
-                  AdminTranslations.split(AdminTranslations.workerExists)[0],
-                  AdminTranslations.split(AdminTranslations.workerExists)[1],
-                  Colors.red,
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF005DFF),
-              foregroundColor: Colors.white,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            title: Row(
               children: [
                 Text(AdminTranslations.split(AdminTranslations.addWorker)[0]),
                 const SizedBox(width: 4),
                 Text(
                   AdminTranslations.split(AdminTranslations.addWorker)[1],
-                  style: const TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ),
-          ),
-        ],
-      );
-    },
-  ));
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.fullNameEnglish,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.person),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameArabicController,
+                    textDirection: TextDirection.rtl,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.fullNameArabic,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nationalIdController,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.nationalId,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.credit_card),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.email,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.email),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                      LengthLimitingTextInputFormatter(13),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.phoneNumber,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.phone),
+                      border: const OutlineInputBorder(),
+                      hintText: '5XXXXXXXX',
+                      helperText: 'Format: 5XXXXXXXX ',
+                      helperStyle: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedExpertise,
+                    isExpanded:
+                        true, // 🔥 Allow dropdown to expand and handle overflow
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.expertise,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.work),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: categories.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat.nameEnglish,
+                        child: Text(
+                          '${cat.nameEnglish} - ${cat.nameArabic}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setState(() => selectedExpertise = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: stcPayController,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.stcPayId,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.payment),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: addressController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.addressEnglish,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.location_on),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: addressArabicController,
+                    maxLines: 2,
+                    textDirection: TextDirection.rtl,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.addressArabic,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.location_on_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: initialCreditController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [LengthLimitingTextInputFormatter(4)],
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.initialCredit,
+                      )[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.account_balance_wallet),
+                      border: const OutlineInputBorder(),
+                      hintText: AdminTranslations.split(
+                        AdminTranslations.defaultCredit,
+                      )[0],
+                      helperText: AdminTranslations.split(
+                        AdminTranslations.initialCreditHelper,
+                      )[0],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      AdminTranslations.split(AdminTranslations.cancelBtn)[1],
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  // Validate
+                  if (nameController.text.isEmpty ||
+                      nameArabicController.text.isEmpty ||
+                      nationalIdController.text.isEmpty ||
+                      emailController.text.isEmpty ||
+                      phoneController.text.isEmpty ||
+                      stcPayController.text.isEmpty ||
+                      addressController.text.isEmpty ||
+                      addressArabicController.text.isEmpty) {
+                    // Show snackbar without closing dialog
+                    _showCustomSnackBar(
+                      AdminTranslations.split(
+                        AdminTranslations.fillAllFields,
+                      )[0],
+                      AdminTranslations.split(
+                        AdminTranslations.fillAllFields,
+                      )[1],
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  // ✅ NEW VALIDATIONS
+                  if (!_isValidNationalId(nationalIdController.text.trim())) {
+                    _showCustomSnackBar(
+                      'Invalid National ID. Must be 10 digits.',
+                      'رقم الهوية غير صالح. يجب أن يتكون من 10 أرقام.',
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  if (!_isValidEmail(emailController.text.trim())) {
+                    _showCustomSnackBar(
+                      'Invalid Email Address.',
+                      'البريد الإلكتروني غير صالح.',
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  final initialCredit = double.tryParse(
+                    initialCreditController.text.trim(),
+                  );
+                  if (initialCredit == null || initialCredit < 0) {
+                    _showCustomSnackBar(
+                      AdminTranslations.split(
+                        AdminTranslations.validCreditAmount,
+                      )[0],
+                      AdminTranslations.split(
+                        AdminTranslations.validCreditAmount,
+                      )[1],
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  String formattedPhone = _formatPhoneNumber(
+                    phoneController.text.trim(),
+                  );
+                  if (!_isValidSaudiPhone(formattedPhone)) {
+                    _showCustomSnackBar(
+                      'Invalid Saudi phone number. Use format: 5XXXXXXXX',
+                      'رقم هاتف سعودي غير صالح. استخدم التنسيق: 5XXXXXXXX',
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  // STC Pay Validation (same as phone for now, or just check if it's a valid phone)
+                  String formattedStcPay = _formatPhoneNumber(
+                    stcPayController.text.trim(),
+                  );
+                  if (!_isValidSaudiPhone(formattedStcPay)) {
+                    _showCustomSnackBar(
+                      'Invalid STC Pay number. Use format: 5XXXXXXXX',
+                      'رقم STC Pay غير صالح. استخدم التنسيق: 5XXXXXXXX',
+                      Colors.red,
+                    );
+                    return;
+                  }
+
+                  // Create worker data
+                  final newWorkerId =
+                      'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+                  final newWorker = WorkerData(
+                    id: newWorkerId,
+                    name: nameController.text.trim(),
+                    nameArabic: nameArabicController.text.trim(),
+                    nationalId: nationalIdController.text.trim(),
+                    email: emailController.text.trim(),
+                    phone: formattedPhone, // 🔥 USE FORMATTED PHONE
+                    stcPayId: formattedStcPay, // 🔥 USE FORMATTED STC PAY
+                    address: addressController.text.trim(),
+                    addressArabic: addressArabicController.text.trim(),
+                    status: 'Active', // 🔥 Set as Active by default
+                    joinedDate: DateTime.now(),
+                    completedServices: 0,
+                    creditBalance: initialCredit,
+                    expertise: selectedExpertise ?? 'General',
+                  );
+
+                  final success = _authService.addWorker(newWorker);
+
+                  // ✅ CRITICAL: Initialize credit in AppStateProvider for new worker
+                  if (success) {
+                    if (context.mounted) {
+                      Provider.of<AppStateProvider>(
+                        context,
+                        listen: false,
+                      ).syncWorkerCredit(newWorkerId, initialCredit);
+                    }
+                  }
+
+                  if (success) {
+                    // ✅ Close dialog ONLY IF SUCCESSFUL
+                    if (context.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+
+                    _showCustomSnackBar(
+                      '${AdminTranslations.split(AdminTranslations.workerAdded)[0]} - ${nameController.text.trim()}',
+                      '${AdminTranslations.split(AdminTranslations.workerAdded)[1]} - ${nameArabicController.text.trim()}',
+                      Colors.green,
+                    );
+                  } else {
+                    // DON'T CLOSE DIALOG if worker exists
+                    _showCustomSnackBar(
+                      AdminTranslations.split(
+                        AdminTranslations.workerExists,
+                      )[0],
+                      AdminTranslations.split(
+                        AdminTranslations.workerExists,
+                      )[1],
+                      Colors.red,
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF005DFF),
+                  foregroundColor: Colors.white,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AdminTranslations.split(AdminTranslations.addWorker)[0],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      AdminTranslations.split(AdminTranslations.addWorker)[1],
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _showWorkerDetailsDialog(Map<String, dynamic> worker) {
@@ -1104,7 +1097,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: const Color(0xFF005DFF).withOpacity(0.1),
+                      backgroundColor: const Color(
+                        0xFF005DFF,
+                      ).withValues(alpha: 0.1),
                       backgroundImage:
                           worker['profilePhotoUrl'] != null &&
                               worker['profilePhotoUrl'].toString().isNotEmpty
@@ -1151,11 +1146,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Colors.blue.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                              border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Text(
                               worker['expertise'] ?? 'General',
@@ -1390,7 +1390,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1476,7 +1476,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF005DFF).withOpacity(0.1),
+                  color: const Color(0xFF005DFF).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1767,7 +1767,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
       text: (worker['creditBalance'] as double).toStringAsFixed(2),
     );
     String? selectedExpertise = worker['expertise'];
-    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
+    final categories = Provider.of<AppStateProvider>(
+      context,
+      listen: false,
+    ).serviceCategories;
 
     showDialog(
       context: context,
@@ -1854,12 +1857,18 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               StatefulBuilder(
                 builder: (context, setDropdownState) {
                   return DropdownButtonFormField<String>(
-                    value: (selectedExpertise != null && categories.any((c) => c.nameEnglish == selectedExpertise)) 
-                        ? selectedExpertise 
+                    value:
+                        (selectedExpertise != null &&
+                            categories.any(
+                              (c) => c.nameEnglish == selectedExpertise,
+                            ))
+                        ? selectedExpertise
                         : null,
                     isExpanded: true,
                     decoration: InputDecoration(
-                      labelText: AdminTranslations.split(AdminTranslations.expertise)[0],
+                      labelText: AdminTranslations.split(
+                        AdminTranslations.expertise,
+                      )[0],
                       labelStyle: const TextStyle(fontSize: 14),
                       prefixIcon: const Icon(Icons.work),
                       border: const OutlineInputBorder(),
@@ -1876,7 +1885,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     onChanged: (val) {
                       setDropdownState(() => selectedExpertise = val);
                     },
-                    hint: Text(selectedExpertise ?? 'Select Expertise / اختر التخصص'),
+                    hint: Text(
+                      selectedExpertise ?? 'Select Expertise / اختر التخصص',
+                    ),
                   );
                 },
               ),
@@ -2127,7 +2138,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),

@@ -36,7 +36,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -120,7 +120,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                      color: const Color(0xFF6B5B9A).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -151,7 +151,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
+                                color: Colors.green.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -331,7 +331,9 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                              color: const Color(
+                                0xFF6B5B9A,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
@@ -373,7 +375,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
+                              color: Colors.green.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(

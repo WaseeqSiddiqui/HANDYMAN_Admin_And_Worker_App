@@ -139,7 +139,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                     color: Theme.of(context).scaffoldBackgroundColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
+                        color: Colors.grey.withValues(alpha: 0.2),
                         spreadRadius: 1,
                         blurRadius: 5,
                         offset: const Offset(0, -3),
@@ -204,10 +204,10 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Colors.blue.withOpacity(0.3),
+                            color: Colors.blue.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -442,8 +442,8 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: item.type == 'Service'
-                                    ? Colors.blue.withOpacity(0.1)
-                                    : Colors.orange.withOpacity(0.1),
+                                    ? Colors.blue.withValues(alpha: 0.1)
+                                    : Colors.orange.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Icon(
@@ -497,7 +497,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -595,7 +595,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -735,7 +735,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                   ),
                   borderRadius: BorderRadius.circular(12),
                   color: _paymentMethod == 'Cash'
-                      ? Colors.green.withOpacity(0.05)
+                      ? Colors.green.withValues(alpha: 0.05)
                       : Colors.transparent,
                 ),
                 child: Row(
@@ -743,7 +743,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -817,7 +817,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                   ),
                   borderRadius: BorderRadius.circular(12),
                   color: _paymentMethod == 'STC/Bank'
-                      ? const Color(0xFF005DFF).withOpacity(0.05)
+                      ? const Color(0xFF005DFF).withValues(alpha: 0.05)
                       : Colors.transparent,
                 ),
                 child: Row(
@@ -825,7 +825,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF005DFF).withOpacity(0.1),
+                        color: const Color(0xFF005DFF).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -887,7 +887,7 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

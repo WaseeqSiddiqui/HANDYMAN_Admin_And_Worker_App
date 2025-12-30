@@ -68,7 +68,7 @@ class AdminDashboardState extends State<AdminDashboard> {
     final totalVAT = report.totalVAT;
     final currentBalance = _financialService.getCurrentBalance();
 
-    final appState = Provider.of<AppStateProvider>(context, listen: false);
+    final appState = Provider.of<AppStateProvider>(context);
 
     final activeServices = appState.adminAllActiveServices.where((service) {
       final statusString = service.status.toString().toLowerCase();
@@ -581,7 +581,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           BoxShadow(
             color: const Color(
               0xFF3B82F6,
-            ).withOpacity(0.3), // Electric Blue shadow
+            ).withValues(alpha: 0.3), // Electric Blue shadow
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -642,7 +642,9 @@ class AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _isBalanceVisible ? 'SAR ${currentBalance.toStringAsFixed(2)}' : 'SAR ****',
+                  _isBalanceVisible
+                      ? 'SAR ${currentBalance.toStringAsFixed(2)}'
+                      : 'SAR ****',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -654,12 +656,14 @@ class AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
           const SizedBox(height: 20),
-          Container(height: 1, color: Colors.white.withOpacity(0.2)),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           // Total Revenue
           _buildFinancialMetric(
             AdminTranslations.totalRevenue,
-            _isBalanceVisible ? 'SAR ${totalRevenue.toStringAsFixed(2)}' : 'SAR ****',
+            _isBalanceVisible
+                ? 'SAR ${totalRevenue.toStringAsFixed(2)}'
+                : 'SAR ****',
             Icons.trending_up,
             Colors.greenAccent,
           ),
@@ -670,7 +674,9 @@ class AdminDashboardState extends State<AdminDashboard> {
               Expanded(
                 child: _buildFinancialMetric(
                   AdminTranslations.commission,
-                  _isBalanceVisible ? 'SAR ${totalCommission.toStringAsFixed(2)}' : 'SAR ****',
+                  _isBalanceVisible
+                      ? 'SAR ${totalCommission.toStringAsFixed(2)}'
+                      : 'SAR ****',
                   Icons.money,
                   Colors.amberAccent,
                   isCompact: true,
@@ -680,7 +686,9 @@ class AdminDashboardState extends State<AdminDashboard> {
               Expanded(
                 child: _buildFinancialMetric(
                   AdminTranslations.vat,
-                  _isBalanceVisible ? 'SAR ${totalVAT.toStringAsFixed(2)}' : 'SAR ****',
+                  _isBalanceVisible
+                      ? 'SAR ${totalVAT.toStringAsFixed(2)}'
+                      : 'SAR ****',
                   Icons.receipt,
                   Colors.orangeAccent,
                   isCompact: true,
@@ -705,7 +713,7 @@ class AdminDashboardState extends State<AdminDashboard> {
     return Container(
       padding: EdgeInsets.all(isCompact ? 10 : 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -713,7 +721,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.2),
+              color: iconColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: iconColor, size: isCompact ? 18 : 24),
@@ -794,7 +802,7 @@ class AdminDashboardState extends State<AdminDashboard> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -806,7 +814,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -958,9 +966,9 @@ class AdminDashboardState extends State<AdminDashboard> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1085,7 +1093,7 @@ class AdminDashboardState extends State<AdminDashboard> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1096,7 +1104,7 @@ class AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(

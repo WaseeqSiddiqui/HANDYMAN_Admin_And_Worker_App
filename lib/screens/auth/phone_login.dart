@@ -17,7 +17,7 @@ class PhoneLoginScreen extends StatefulWidget {
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   // SHA256 Hash of +966535616095
-  static const String _ADMIN_PHONE_HASH =
+  static const String adminPhoneHash =
       '35a09c312fabbb5fd09e6dc4fc98a44a5ba8381375ac228bd1d75faa0aeb7401';
 
   final TextEditingController _phoneController = TextEditingController();
@@ -79,7 +79,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     if (widget.role == 'Admin') {
       final bytes = utf8.encode(formattedPhone);
       final digest = sha256.convert(bytes);
-      if (digest.toString() != _ADMIN_PHONE_HASH) {
+      if (digest.toString() != adminPhoneHash) {
         _showError('Unauthorized Access', 'دخول غير مصرح به');
         return;
       }
@@ -227,7 +227,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       height: 80,
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.black.withOpacity(0.3)
+                            ? Colors.black.withValues(alpha: 0.3)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         // REMOVED: BoxShadow to eliminate blue cloud effect
@@ -358,7 +358,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.3 : 0.05,
+                      ),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -398,7 +400,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           Container(
                             width: 1,
                             height: 24,
-                            color: subtitleColor.withOpacity(0.3),
+                            color: subtitleColor.withValues(alpha: 0.3),
                           ),
                         ],
                       ),

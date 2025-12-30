@@ -49,23 +49,25 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     try {
       setState(() {
         _workers.clear();
-        _workers.addAll(_authService.getAllWorkers().map((worker) {
-          return {
-            'id': worker.id,
-            'name': worker.name,
-            'nameArabic': worker.nameArabic,
-            'nationalId': worker.nationalId,
-            'email': worker.email,
-            'phone': worker.phone,
-            'stcPayId': worker.stcPayId,
-            'address': worker.address,
-            'addressArabic': worker.addressArabic,
-            'status': worker.status,
-            'joinDate': worker.joinedDate,
-            'totalServices': worker.completedServices,
-            'creditBalance': worker.creditBalance,
-          };
-        }).toList());
+        _workers.addAll(
+          _authService.getAllWorkers().map((worker) {
+            return {
+              'id': worker.id,
+              'name': worker.name,
+              'nameArabic': worker.nameArabic,
+              'nationalId': worker.nationalId,
+              'email': worker.email,
+              'phone': worker.phone,
+              'stcPayId': worker.stcPayId,
+              'address': worker.address,
+              'addressArabic': worker.addressArabic,
+              'status': worker.status,
+              'joinDate': worker.joinedDate,
+              'totalServices': worker.completedServices,
+              'creditBalance': worker.creditBalance,
+            };
+          }).toList(),
+        );
       });
     } catch (e) {
       debugPrint('Error loading workers: $e');
@@ -104,10 +106,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             // English text - top with font size 16
             Text(
               AdminTranslations.split(AdminTranslations.workerManagement)[0],
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 2),
             // Arabic text - bottom with font size 14
@@ -132,10 +131,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             child: _filteredWorkers.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _filteredWorkers.length,
-              itemBuilder: (context, index) => _buildWorkerCard(_filteredWorkers[index]),
-            ),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredWorkers.length,
+                    itemBuilder: (context, index) =>
+                        _buildWorkerCard(_filteredWorkers[index]),
+                  ),
           ),
         ],
       ),
@@ -164,9 +164,24 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
   }
 
   Widget _buildSummaryCards() {
-    final activeWorkers = _workers.where((w) => w['status'] == AdminTranslations.split(AdminTranslations.active)[0]).length;
-    final blockedWorkers = _workers.where((w) => w['status'] == AdminTranslations.split(AdminTranslations.blocked)[0]).length;
-    final totalServices = _workers.fold(0, (sum, w) => sum + (w['totalServices'] as int));
+    final activeWorkers = _workers
+        .where(
+          (w) =>
+              w['status'] ==
+              AdminTranslations.split(AdminTranslations.active)[0],
+        )
+        .length;
+    final blockedWorkers = _workers
+        .where(
+          (w) =>
+              w['status'] ==
+              AdminTranslations.split(AdminTranslations.blocked)[0],
+        )
+        .length;
+    final totalServices = _workers.fold(
+      0,
+      (sum, w) => sum + (w['totalServices'] as int),
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -174,31 +189,31 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         children: [
           Expanded(
             child: _buildSmallStatCard(
-                AdminTranslations.split(AdminTranslations.activeWorkers)[0],
-                AdminTranslations.split(AdminTranslations.activeWorkers)[1],
-                '$activeWorkers',
-                Icons.people,
-                Colors.green
+              AdminTranslations.split(AdminTranslations.activeWorkers)[0],
+              AdminTranslations.split(AdminTranslations.activeWorkers)[1],
+              '$activeWorkers',
+              Icons.people,
+              Colors.green,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: _buildSmallStatCard(
-                AdminTranslations.split(AdminTranslations.blocked)[0],
-                AdminTranslations.split(AdminTranslations.blocked)[1],
-                '$blockedWorkers',
-                Icons.block,
-                Colors.red
+              AdminTranslations.split(AdminTranslations.blocked)[0],
+              AdminTranslations.split(AdminTranslations.blocked)[1],
+              '$blockedWorkers',
+              Icons.block,
+              Colors.red,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: _buildSmallStatCard(
-                AdminTranslations.split(AdminTranslations.services)[0],
-                AdminTranslations.split(AdminTranslations.services)[1],
-                '$totalServices',
-                Icons.build_circle,
-                Colors.blue
+              AdminTranslations.split(AdminTranslations.services)[0],
+              AdminTranslations.split(AdminTranslations.services)[1],
+              '$totalServices',
+              Icons.build_circle,
+              Colors.blue,
             ),
           ),
         ],
@@ -206,16 +221,22 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     );
   }
 
-  Widget _buildSmallStatCard(String labelEn, String labelAr, String value, IconData icon, Color color) {
+  Widget _buildSmallStatCard(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -225,12 +246,28 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
           Column(
             children: [
-              Text(labelEn, style: const TextStyle(fontSize: 10, color: Colors.grey), textAlign: TextAlign.center),
-              Text(labelAr, style: const TextStyle(fontSize: 10, color: Colors.grey), textAlign: TextAlign.center, textDirection: TextDirection.rtl),
+              Text(
+                labelEn,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                labelAr,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
             ],
           ),
         ],
@@ -247,22 +284,23 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             controller: _searchController,
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
-              hintText: AdminTranslations.split(AdminTranslations.searchWorkers)[0],
-              hintStyle: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              hintText: AdminTranslations.split(
+                AdminTranslations.searchWorkers,
+              )[0],
+              hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {});
-                },
-              )
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {});
+                      },
+                    )
                   : null,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -272,9 +310,18 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.all)[0], AdminTranslations.split(AdminTranslations.all)[1]),
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.active)[0], AdminTranslations.split(AdminTranslations.active)[1]),
-                _buildFilterChip(AdminTranslations.split(AdminTranslations.blocked)[0], AdminTranslations.split(AdminTranslations.blocked)[1]),
+                _buildFilterChip(
+                  AdminTranslations.split(AdminTranslations.all)[0],
+                  AdminTranslations.split(AdminTranslations.all)[1],
+                ),
+                _buildFilterChip(
+                  AdminTranslations.split(AdminTranslations.active)[0],
+                  AdminTranslations.split(AdminTranslations.active)[1],
+                ),
+                _buildFilterChip(
+                  AdminTranslations.split(AdminTranslations.blocked)[0],
+                  AdminTranslations.split(AdminTranslations.blocked)[1],
+                ),
               ],
             ),
           ),
@@ -292,7 +339,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(statusEn, style: const TextStyle(fontSize: 12)),
-            Text(statusAr, style: const TextStyle(fontSize: 10), textDirection: TextDirection.rtl),
+            Text(
+              statusAr,
+              style: const TextStyle(fontSize: 10),
+              textDirection: TextDirection.rtl,
+            ),
           ],
         ),
         selected: isSelected,
@@ -319,13 +370,21 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               Text(
                 _workers.isEmpty
                     ? AdminTranslations.split(AdminTranslations.noWorkersYet)[0]
-                    : AdminTranslations.split(AdminTranslations.noWorkersFound)[0],
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                    : AdminTranslations.split(
+                        AdminTranslations.noWorkersFound,
+                      )[0],
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               Text(
                 _workers.isEmpty
                     ? AdminTranslations.split(AdminTranslations.noWorkersYet)[1]
-                    : AdminTranslations.split(AdminTranslations.noWorkersFound)[1],
+                    : AdminTranslations.split(
+                        AdminTranslations.noWorkersFound,
+                      )[1],
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                 textDirection: TextDirection.rtl,
               ),
@@ -338,7 +397,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
   Widget _buildWorkerCard(Map<String, dynamic> worker) {
     final status = worker['status'] as String;
-    final isActive = status == AdminTranslations.split(AdminTranslations.active)[0];
+    final isActive =
+        status == AdminTranslations.split(AdminTranslations.active)[0];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -356,10 +416,17 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: const Color(0xFF6B5B9A).withOpacity(0.1),
+                    backgroundColor: const Color(
+                      0xFF6B5B9A,
+                    ).withValues(alpha: 0.1),
                     child: Text(
-                      (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF6B5B9A)),
+                      (worker['name']?.toString().substring(0, 1) ?? 'W')
+                          .toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6B5B9A),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -368,45 +435,85 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            worker['name']?.toString() ?? 'Unknown',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                          worker['name']?.toString() ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          worker['nameArabic']?.toString() ?? worker['name']?.toString() ?? '',
-                          style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
+                          worker['nameArabic']?.toString() ??
+                              worker['name']?.toString() ??
+                              '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
                           textDirection: TextDirection.rtl,
                         ),
                         const SizedBox(height: 4),
-                        Text('${worker['id']} • ${worker['phone']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          '${worker['id']} • ${worker['phone']}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                      color: isActive
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(isActive ? Icons.check_circle : Icons.block, size: 14, color: isActive ? Colors.green : Colors.red),
+                        Icon(
+                          isActive ? Icons.check_circle : Icons.block,
+                          size: 14,
+                          color: isActive ? Colors.green : Colors.red,
+                        ),
                         const SizedBox(width: 4),
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                                isActive
-                                    ? AdminTranslations.split(AdminTranslations.active)[0]
-                                    : AdminTranslations.split(AdminTranslations.blocked)[0],
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isActive ? Colors.green : Colors.red)
+                              isActive
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.active,
+                                    )[0]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.blocked,
+                                    )[0],
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isActive ? Colors.green : Colors.red,
+                              ),
                             ),
                             Text(
                               isActive
-                                  ? AdminTranslations.split(AdminTranslations.active)[1]
-                                  : AdminTranslations.split(AdminTranslations.blocked)[1],
-                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: isActive ? Colors.green : Colors.red),
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.active,
+                                    )[1]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.blocked,
+                                    )[1],
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                color: isActive ? Colors.green : Colors.red,
+                              ),
                               textDirection: TextDirection.rtl,
                             ),
                           ],
@@ -421,20 +528,24 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: _buildInfoColumn(
+                  Expanded(
+                    child: _buildInfoColumn(
                       AdminTranslations.split(AdminTranslations.services)[0],
                       AdminTranslations.split(AdminTranslations.services)[1],
                       '${worker['totalServices']}',
                       Icons.build,
-                      Colors.blue
-                  )),
-                  Expanded(child: _buildInfoColumn(
+                      Colors.blue,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildInfoColumn(
                       AdminTranslations.split(AdminTranslations.credit)[0],
                       AdminTranslations.split(AdminTranslations.credit)[1],
                       'SAR ${(worker['creditBalance'] as double).toStringAsFixed(0)}',
                       Icons.credit_card,
-                      const Color(0xFF6B5B9A)
-                  )),
+                      const Color(0xFF6B5B9A),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -444,16 +555,38 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     );
   }
 
-  Widget _buildInfoColumn(String labelEn, String labelAr, String value, IconData icon, Color color) {
+  Widget _buildInfoColumn(
+    String labelEn,
+    String labelAr,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(height: 4),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
         Column(
           children: [
-            Text(labelEn, style: const TextStyle(fontSize: 10, color: Colors.grey), textAlign: TextAlign.center),
-            Text(labelAr, style: const TextStyle(fontSize: 9, color: Colors.grey), textAlign: TextAlign.center, textDirection: TextDirection.rtl),
+            Text(
+              labelEn,
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              labelAr,
+              style: const TextStyle(fontSize: 9, color: Colors.grey),
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+            ),
           ],
         ),
       ],
@@ -492,7 +625,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.fullNameEnglish)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.fullNameEnglish,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.person),
                   border: const OutlineInputBorder(),
@@ -503,7 +638,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: nameArabicController,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.fullNameArabic)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.fullNameArabic,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.person_outline),
                   border: const OutlineInputBorder(),
@@ -513,7 +650,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: nationalIdController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.nationalId)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.nationalId,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.credit_card),
                   border: const OutlineInputBorder(),
@@ -524,7 +663,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.email)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.email,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.email),
                   border: const OutlineInputBorder(),
@@ -535,18 +676,24 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.phoneNumber)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.phoneNumber,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.phone),
                   border: const OutlineInputBorder(),
-                  hintText: AdminTranslations.split(AdminTranslations.phonePlaceholder)[0],
+                  hintText: AdminTranslations.split(
+                    AdminTranslations.phonePlaceholder,
+                  )[0],
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: stcPayController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.stcPayId)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.stcPayId,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.payment),
                   border: const OutlineInputBorder(),
@@ -557,7 +704,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: addressController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.addressEnglish)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.addressEnglish,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
@@ -569,7 +718,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 maxLines: 2,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.addressArabic)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.addressArabic,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.location_on_outlined),
                   border: const OutlineInputBorder(),
@@ -580,12 +731,18 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: initialCreditController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.initialCredit)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.initialCredit,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.account_balance_wallet),
                   border: const OutlineInputBorder(),
-                  hintText: AdminTranslations.split(AdminTranslations.defaultCredit)[0],
-                  helperText: AdminTranslations.split(AdminTranslations.initialCreditHelper)[0],
+                  hintText: AdminTranslations.split(
+                    AdminTranslations.defaultCredit,
+                  )[0],
+                  helperText: AdminTranslations.split(
+                    AdminTranslations.initialCreditHelper,
+                  )[0],
                 ),
               ),
             ],
@@ -623,10 +780,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   SnackBar(
                     content: Row(
                       children: [
-                        Text(AdminTranslations.split(AdminTranslations.fillAllFields)[0]),
+                        Text(
+                          AdminTranslations.split(
+                            AdminTranslations.fillAllFields,
+                          )[0],
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          AdminTranslations.split(AdminTranslations.fillAllFields)[1],
+                          AdminTranslations.split(
+                            AdminTranslations.fillAllFields,
+                          )[1],
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -637,16 +800,24 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 return;
               }
 
-              final initialCredit = double.tryParse(initialCreditController.text.trim());
+              final initialCredit = double.tryParse(
+                initialCreditController.text.trim(),
+              );
               if (initialCredit == null || initialCredit < 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Row(
                       children: [
-                        Text(AdminTranslations.split(AdminTranslations.validCreditAmount)[0]),
+                        Text(
+                          AdminTranslations.split(
+                            AdminTranslations.validCreditAmount,
+                          )[0],
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          AdminTranslations.split(AdminTranslations.validCreditAmount)[1],
+                          AdminTranslations.split(
+                            AdminTranslations.validCreditAmount,
+                          )[1],
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -658,7 +829,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               }
 
               // Create worker data
-              final newWorkerId = 'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+              final newWorkerId =
+                  'W${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
               final newWorker = WorkerData(
                 id: newWorkerId,
                 name: nameController.text.trim(),
@@ -679,8 +851,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
               // ✅ CRITICAL: Initialize credit in AppStateProvider for new worker
               if (success) {
-                Provider.of<AppStateProvider>(context, listen: false)
-                    .syncWorkerCredit(newWorkerId, initialCredit);
+                Provider.of<AppStateProvider>(
+                  context,
+                  listen: false,
+                ).syncWorkerCredit(newWorkerId, initialCredit);
               }
 
               Navigator.of(dialogContext).pop();
@@ -694,17 +868,30 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       children: [
                         Row(
                           children: [
-                            Text(AdminTranslations.split(AdminTranslations.workerAdded)[0]),
+                            Text(
+                              AdminTranslations.split(
+                                AdminTranslations.workerAdded,
+                              )[0],
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              AdminTranslations.split(AdminTranslations.workerAdded)[1],
+                              AdminTranslations.split(
+                                AdminTranslations.workerAdded,
+                              )[1],
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],
                         ),
-                        Text('${nameController.text.trim()} | ${nameArabicController.text.trim()}', textDirection: TextDirection.rtl),
-                        Text('${AdminTranslations.split(AdminTranslations.phoneLabel)[0]} ${phoneController.text.trim()}'),
-                        Text('${AdminTranslations.split(AdminTranslations.initialCreditLabel)[0]} SAR ${initialCredit.toStringAsFixed(2)}'),
+                        Text(
+                          '${nameController.text.trim()} | ${nameArabicController.text.trim()}',
+                          textDirection: TextDirection.rtl,
+                        ),
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.phoneLabel)[0]} ${phoneController.text.trim()}',
+                        ),
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.initialCreditLabel)[0]} SAR ${initialCredit.toStringAsFixed(2)}',
+                        ),
                       ],
                     ),
                     backgroundColor: Colors.green,
@@ -716,10 +903,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   SnackBar(
                     content: Row(
                       children: [
-                        Text(AdminTranslations.split(AdminTranslations.workerExists)[0]),
+                        Text(
+                          AdminTranslations.split(
+                            AdminTranslations.workerExists,
+                          )[0],
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          AdminTranslations.split(AdminTranslations.workerExists)[1],
+                          AdminTranslations.split(
+                            AdminTranslations.workerExists,
+                          )[1],
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -782,10 +975,17 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: const Color(0xFF6B5B9A).withOpacity(0.1),
+                      backgroundColor: const Color(
+                        0xFF6B5B9A,
+                      ).withValues(alpha: 0.1),
                       child: Text(
-                        (worker['name']?.toString().substring(0, 1) ?? 'W').toUpperCase(),
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF6B5B9A)),
+                        (worker['name']?.toString().substring(0, 1) ?? 'W')
+                            .toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6B5B9A),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -793,15 +993,33 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(worker['name']?.toString() ?? 'Unknown', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text(
+                            worker['name']?.toString() ?? 'Unknown',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
-                            worker['nameArabic']?.toString() ?? worker['name']?.toString() ?? '',
-                            style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
+                            worker['nameArabic']?.toString() ??
+                                worker['name']?.toString() ??
+                                '',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                             textDirection: TextDirection.rtl,
                           ),
                           const SizedBox(height: 4),
-                          Text(worker['id']?.toString() ?? '', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                          Text(
+                            worker['id']?.toString() ?? '',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -811,48 +1029,60 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 Row(
                   children: [
                     Text(
-                      AdminTranslations.split(AdminTranslations.personalInformation)[0],
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      AdminTranslations.split(
+                        AdminTranslations.personalInformation,
+                      )[0],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      AdminTranslations.split(AdminTranslations.personalInformation)[1],
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      AdminTranslations.split(
+                        AdminTranslations.personalInformation,
+                      )[1],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textDirection: TextDirection.rtl,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
-                    Icons.credit_card,
-                    AdminTranslations.split(AdminTranslations.nationalIdLabel)[0],
-                    AdminTranslations.split(AdminTranslations.nationalIdLabel)[1],
-                    worker['nationalId']?.toString() ?? ''
+                  Icons.credit_card,
+                  AdminTranslations.split(AdminTranslations.nationalIdLabel)[0],
+                  AdminTranslations.split(AdminTranslations.nationalIdLabel)[1],
+                  worker['nationalId']?.toString() ?? '',
                 ),
                 _buildDetailRow(
-                    Icons.email,
-                    AdminTranslations.split(AdminTranslations.emailLabel)[0],
-                    AdminTranslations.split(AdminTranslations.emailLabel)[1],
-                    worker['email']?.toString() ?? ''
+                  Icons.email,
+                  AdminTranslations.split(AdminTranslations.emailLabel)[0],
+                  AdminTranslations.split(AdminTranslations.emailLabel)[1],
+                  worker['email']?.toString() ?? '',
                 ),
                 _buildDetailRow(
-                    Icons.phone,
-                    AdminTranslations.split(AdminTranslations.phoneLabel2)[0],
-                    AdminTranslations.split(AdminTranslations.phoneLabel2)[1],
-                    worker['phone']?.toString() ?? ''
+                  Icons.phone,
+                  AdminTranslations.split(AdminTranslations.phoneLabel2)[0],
+                  AdminTranslations.split(AdminTranslations.phoneLabel2)[1],
+                  worker['phone']?.toString() ?? '',
                 ),
                 _buildDetailRow(
-                    Icons.payment,
-                    AdminTranslations.split(AdminTranslations.stcPayLabel)[0],
-                    AdminTranslations.split(AdminTranslations.stcPayLabel)[1],
-                    worker['stcPayId']?.toString() ?? ''
+                  Icons.payment,
+                  AdminTranslations.split(AdminTranslations.stcPayLabel)[0],
+                  AdminTranslations.split(AdminTranslations.stcPayLabel)[1],
+                  worker['stcPayId']?.toString() ?? '',
                 ),
                 _buildBilingualDetailRow(
                   Icons.location_on,
                   AdminTranslations.split(AdminTranslations.addressLabel)[0],
                   AdminTranslations.split(AdminTranslations.addressLabel)[1],
                   worker['address']?.toString() ?? '',
-                  worker['addressArabic']?.toString() ?? worker['address']?.toString() ?? '',
+                  worker['addressArabic']?.toString() ??
+                      worker['address']?.toString() ??
+                      '',
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -867,10 +1097,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(AdminTranslations.split(AdminTranslations.edit)[0]),
+                            Text(
+                              AdminTranslations.split(
+                                AdminTranslations.edit,
+                              )[0],
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              AdminTranslations.split(AdminTranslations.edit)[1],
+                              AdminTranslations.split(
+                                AdminTranslations.edit,
+                              )[1],
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],
@@ -888,24 +1124,53 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                           Navigator.pop(context);
                           _toggleWorkerStatus(worker);
                         },
-                        icon: Icon(worker['status'] == AdminTranslations.split(AdminTranslations.active)[0] ? Icons.block : Icons.check_circle),
+                        icon: Icon(
+                          worker['status'] ==
+                                  AdminTranslations.split(
+                                    AdminTranslations.active,
+                                  )[0]
+                              ? Icons.block
+                              : Icons.check_circle,
+                        ),
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(worker['status'] == AdminTranslations.split(AdminTranslations.active)[0]
-                                ? AdminTranslations.split(AdminTranslations.blockBtn)[0]
-                                : AdminTranslations.split(AdminTranslations.unblockBtn)[0]),
+                            Text(
+                              worker['status'] ==
+                                      AdminTranslations.split(
+                                        AdminTranslations.active,
+                                      )[0]
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.blockBtn,
+                                    )[0]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.unblockBtn,
+                                    )[0],
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              worker['status'] == AdminTranslations.split(AdminTranslations.active)[0]
-                                  ? AdminTranslations.split(AdminTranslations.blockBtn)[1]
-                                  : AdminTranslations.split(AdminTranslations.unblockBtn)[1],
+                              worker['status'] ==
+                                      AdminTranslations.split(
+                                        AdminTranslations.active,
+                                      )[0]
+                                  ? AdminTranslations.split(
+                                      AdminTranslations.blockBtn,
+                                    )[1]
+                                  : AdminTranslations.split(
+                                      AdminTranslations.unblockBtn,
+                                    )[1],
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: worker['status'] == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.red : Colors.green,
+                          backgroundColor:
+                              worker['status'] ==
+                                  AdminTranslations.split(
+                                    AdminTranslations.active,
+                                  )[0]
+                              ? Colors.red
+                              : Colors.green,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -927,10 +1192,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       children: [
                         Text('Add Credit'),
                         SizedBox(width: 4),
-                        Text(
-                          'إضافة رصيد',
-                          style: TextStyle(fontSize: 12),
-                        ),
+                        Text('إضافة رصيد', style: TextStyle(fontSize: 12)),
                       ],
                     ),
                     style: ElevatedButton.styleFrom(
@@ -967,10 +1229,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     children: [
                       Text('Add Credit'),
                       SizedBox(width: 4),
-                      Text(
-                        'إضافة رصيد',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                      Text('إضافة رصيد', style: TextStyle(fontSize: 12)),
                     ],
                   ),
                   Text(
@@ -990,7 +1249,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6B5B9A).withOpacity(0.1),
+                  color: const Color(0xFF6B5B9A).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1000,10 +1259,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       children: [
                         Text('Current Credit:'),
                         SizedBox(width: 4),
-                        Text(
-                          'الرصيد الحالي:',
-                          style: TextStyle(fontSize: 12),
-                        ),
+                        Text('الرصيد الحالي:', style: TextStyle(fontSize: 12)),
                       ],
                     ),
                     Text(
@@ -1021,7 +1277,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                decoration:  InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Amount to Add | المبلغ المضاف',
                   hintText: 'Enter amount in SAR',
                   prefixIcon: Icon(Icons.attach_money),
@@ -1034,7 +1290,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: notesController,
                 maxLines: 3,
-                decoration:  InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Notes (Optional) | ملاحظات',
                   hintText: 'Reason for adding credit',
                   prefixIcon: Icon(Icons.note),
@@ -1086,12 +1342,17 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               }
 
               final newBalance = (worker['creditBalance'] as double) + amount;
-              final success = _authService.updateWorkerCredit(worker['phone'], newBalance);
+              final success = _authService.updateWorkerCredit(
+                worker['phone'],
+                newBalance,
+              );
 
               // ✅ CRITICAL: Sync credit to AppStateProvider so worker sees updated balance
               if (success) {
-                Provider.of<AppStateProvider>(context, listen: false)
-                    .syncWorkerCredit(worker['id'], newBalance);
+                Provider.of<AppStateProvider>(
+                  context,
+                  listen: false,
+                ).syncWorkerCredit(worker['id'], newBalance);
               }
 
               Navigator.pop(context);
@@ -1104,7 +1365,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       children: [
                         Row(
                           children: [
-                            Text('Added SAR ${amount.toStringAsFixed(2)} to ${worker['name']}\'s credit'),
+                            Text(
+                              'Added SAR ${amount.toStringAsFixed(2)} to ${worker['name']}\'s credit',
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'تم إضافة ${amount.toStringAsFixed(2)} ريال لرصيد ${worker['name']}',
@@ -1142,10 +1405,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               children: [
                 Text('Add Credit'),
                 SizedBox(width: 4),
-                Text(
-                  'إضافة',
-                  style: TextStyle(fontSize: 12),
-                ),
+                Text('إضافة', style: TextStyle(fontSize: 12)),
               ],
             ),
             style: ElevatedButton.styleFrom(
@@ -1158,7 +1418,13 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     );
   }
 
-  Widget _buildBilingualDetailRow(IconData icon, String labelEn, String labelAr, String valueEnglish, String valueArabic) {
+  Widget _buildBilingualDetailRow(
+    IconData icon,
+    String labelEn,
+    String labelAr,
+    String valueEnglish,
+    String valueArabic,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -1172,7 +1438,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               children: [
                 Row(
                   children: [
-                    Text(labelEn, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      labelEn,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       labelAr,
@@ -1182,11 +1451,21 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(valueEnglish, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  valueEnglish,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   valueArabic,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
                   textDirection: TextDirection.rtl,
                 ),
               ],
@@ -1197,7 +1476,12 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String labelEn, String labelAr, String value) {
+  Widget _buildDetailRow(
+    IconData icon,
+    String labelEn,
+    String labelAr,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -1211,7 +1495,10 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               children: [
                 Row(
                   children: [
-                    Text(labelEn, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      labelEn,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       labelAr,
@@ -1221,7 +1508,13 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1231,15 +1524,33 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
   }
 
   void _showEditWorkerDialog(Map<String, dynamic> worker) {
-    final nameController = TextEditingController(text: worker['name']?.toString() ?? '');
-    final nameArabicController = TextEditingController(text: worker['nameArabic']?.toString() ?? '');
-    final nationalIdController = TextEditingController(text: worker['nationalId']?.toString() ?? '');
-    final emailController = TextEditingController(text: worker['email']?.toString() ?? '');
-    final phoneController = TextEditingController(text: worker['phone']?.toString() ?? '');
-    final stcPayController = TextEditingController(text: worker['stcPayId']?.toString() ?? '');
-    final addressController = TextEditingController(text: worker['address']?.toString() ?? '');
-    final addressArabicController = TextEditingController(text: worker['addressArabic']?.toString() ?? '');
-    final creditController = TextEditingController(text: (worker['creditBalance'] as double).toStringAsFixed(2));
+    final nameController = TextEditingController(
+      text: worker['name']?.toString() ?? '',
+    );
+    final nameArabicController = TextEditingController(
+      text: worker['nameArabic']?.toString() ?? '',
+    );
+    final nationalIdController = TextEditingController(
+      text: worker['nationalId']?.toString() ?? '',
+    );
+    final emailController = TextEditingController(
+      text: worker['email']?.toString() ?? '',
+    );
+    final phoneController = TextEditingController(
+      text: worker['phone']?.toString() ?? '',
+    );
+    final stcPayController = TextEditingController(
+      text: worker['stcPayId']?.toString() ?? '',
+    );
+    final addressController = TextEditingController(
+      text: worker['address']?.toString() ?? '',
+    );
+    final addressArabicController = TextEditingController(
+      text: worker['addressArabic']?.toString() ?? '',
+    );
+    final creditController = TextEditingController(
+      text: (worker['creditBalance'] as double).toStringAsFixed(2),
+    );
 
     showDialog(
       context: context,
@@ -1262,7 +1573,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.fullNameEnglish)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.fullNameEnglish,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.person),
                   border: const OutlineInputBorder(),
@@ -1273,7 +1586,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: nameArabicController,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.fullNameArabic)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.fullNameArabic,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.person_outline),
                   border: const OutlineInputBorder(),
@@ -1283,7 +1598,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: nationalIdController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.nationalId)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.nationalId,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.credit_card),
                   border: const OutlineInputBorder(),
@@ -1294,7 +1611,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.email)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.email,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.email),
                   border: const OutlineInputBorder(),
@@ -1306,7 +1625,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 keyboardType: TextInputType.phone,
                 readOnly: true,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.phoneNumber)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.phoneNumber,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.phone),
                   border: const OutlineInputBorder(),
@@ -1316,7 +1637,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               TextField(
                 controller: stcPayController,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.stcPayId)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.stcPayId,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.payment),
                   border: const OutlineInputBorder(),
@@ -1327,7 +1650,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: addressController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.addressEnglish)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.addressEnglish,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
@@ -1339,7 +1664,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 maxLines: 2,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.addressArabic)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.addressArabic,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.location_on_outlined),
                   border: const OutlineInputBorder(),
@@ -1350,7 +1677,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 controller: creditController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: AdminTranslations.split(AdminTranslations.creditBalance)[0],
+                  labelText: AdminTranslations.split(
+                    AdminTranslations.creditBalance,
+                  )[0],
                   labelStyle: const TextStyle(fontSize: 14),
                   prefixIcon: const Icon(Icons.account_balance_wallet),
                   border: const OutlineInputBorder(),
@@ -1387,10 +1716,16 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   SnackBar(
                     content: Row(
                       children: [
-                        Text(AdminTranslations.split(AdminTranslations.fillAllFields)[0]),
+                        Text(
+                          AdminTranslations.split(
+                            AdminTranslations.fillAllFields,
+                          )[0],
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          AdminTranslations.split(AdminTranslations.fillAllFields)[1],
+                          AdminTranslations.split(
+                            AdminTranslations.fillAllFields,
+                          )[1],
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -1401,7 +1736,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 return;
               }
 
-              final credit = double.tryParse(creditController.text) ?? worker['creditBalance'];
+              final credit =
+                  double.tryParse(creditController.text) ??
+                  worker['creditBalance'];
 
               final updatedWorker = WorkerData(
                 id: worker['id'],
@@ -1421,12 +1758,17 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
 
               Navigator.of(dialogContext).pop();
 
-              final success = _authService.updateWorker(worker['phone'], updatedWorker);
+              final success = _authService.updateWorker(
+                worker['phone'],
+                updatedWorker,
+              );
 
               // ✅ CRITICAL: Sync credit to AppStateProvider when worker details are updated
               if (success) {
-                Provider.of<AppStateProvider>(context, listen: false)
-                    .syncWorkerCredit(worker['id'], credit);
+                Provider.of<AppStateProvider>(
+                  context,
+                  listen: false,
+                ).syncWorkerCredit(worker['id'], credit);
               }
 
               if (success) {
@@ -1434,7 +1776,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   SnackBar(
                     content: Row(
                       children: [
-                        Text('${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${AdminTranslations.split(AdminTranslations.successfullyUpdated)[0]}'),
+                        Text(
+                          '${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${AdminTranslations.split(AdminTranslations.successfullyUpdated)[0]}',
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${AdminTranslations.split(AdminTranslations.successfullyUpdated)[1]}',
@@ -1485,7 +1829,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
   }
 
   void _toggleWorkerStatus(Map<String, dynamic> worker) {
-    final newStatus = worker['status'] == AdminTranslations.split(AdminTranslations.active)[0]
+    final newStatus =
+        worker['status'] == AdminTranslations.split(AdminTranslations.active)[0]
         ? AdminTranslations.split(AdminTranslations.blocked)[0]
         : AdminTranslations.split(AdminTranslations.active)[0];
 
@@ -1495,9 +1840,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
         title: Row(
           children: [
             Text(
-                newStatus == AdminTranslations.split(AdminTranslations.active)[0]
-                    ? AdminTranslations.split(AdminTranslations.unblockWorker)[0]
-                    : AdminTranslations.split(AdminTranslations.blockWorker)[0]
+              newStatus == AdminTranslations.split(AdminTranslations.active)[0]
+                  ? AdminTranslations.split(AdminTranslations.unblockWorker)[0]
+                  : AdminTranslations.split(AdminTranslations.blockWorker)[0],
             ),
             const SizedBox(width: 4),
             Text(
@@ -1512,17 +1857,13 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
           children: [
             Expanded(
               child: Text(
-                  '${newStatus == AdminTranslations.split(AdminTranslations.active)[0]
-                      ? AdminTranslations.split(AdminTranslations.unblockConfirmMessage)[0]
-                      : AdminTranslations.split(AdminTranslations.blockConfirmMessage)[0]} ${worker['name']}?'
+                '${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.unblockConfirmMessage)[0] : AdminTranslations.split(AdminTranslations.blockConfirmMessage)[0]} ${worker['name']}?',
               ),
             ),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                '${newStatus == AdminTranslations.split(AdminTranslations.active)[0]
-                    ? AdminTranslations.split(AdminTranslations.unblockConfirmMessage)[1]
-                    : AdminTranslations.split(AdminTranslations.blockConfirmMessage)[1]} ${worker['name']}؟',
+                '${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.unblockConfirmMessage)[1] : AdminTranslations.split(AdminTranslations.blockConfirmMessage)[1]} ${worker['name']}؟',
                 textDirection: TextDirection.rtl,
                 style: const TextStyle(fontSize: 12),
               ),
@@ -1559,7 +1900,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       children: [
                         Row(
                           children: [
-                            Text('${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[0] : AdminTranslations.split(AdminTranslations.workerBlocked)[0]}'),
+                            Text(
+                              '${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[0] : AdminTranslations.split(AdminTranslations.workerBlocked)[0]}',
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[1] : AdminTranslations.split(AdminTranslations.workerBlocked)[1]}',
@@ -1567,27 +1910,43 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                             ),
                           ],
                         ),
-                        Text(worker['nameArabic']?.toString() ?? '', textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 12)),
+                        Text(
+                          worker['nameArabic']?.toString() ?? '',
+                          textDirection: TextDirection.rtl,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
-                    backgroundColor: newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red,
+                    backgroundColor:
+                        newStatus ==
+                            AdminTranslations.split(AdminTranslations.active)[0]
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? Colors.green : Colors.red,
+              backgroundColor:
+                  newStatus ==
+                      AdminTranslations.split(AdminTranslations.active)[0]
+                  ? Colors.green
+                  : Colors.red,
               foregroundColor: Colors.white,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(newStatus == AdminTranslations.split(AdminTranslations.active)[0]
-                    ? AdminTranslations.split(AdminTranslations.unblockBtn)[0]
-                    : AdminTranslations.split(AdminTranslations.blockBtn)[0]),
+                Text(
+                  newStatus ==
+                          AdminTranslations.split(AdminTranslations.active)[0]
+                      ? AdminTranslations.split(AdminTranslations.unblockBtn)[0]
+                      : AdminTranslations.split(AdminTranslations.blockBtn)[0],
+                ),
                 const SizedBox(width: 4),
                 Text(
-                  newStatus == AdminTranslations.split(AdminTranslations.active)[0]
+                  newStatus ==
+                          AdminTranslations.split(AdminTranslations.active)[0]
                       ? AdminTranslations.split(AdminTranslations.unblockBtn)[1]
                       : AdminTranslations.split(AdminTranslations.blockBtn)[1],
                   style: const TextStyle(fontSize: 12),

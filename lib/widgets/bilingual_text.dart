@@ -38,10 +38,14 @@ class BilingualText extends StatelessWidget {
         ),
         Text(
           arabic,
-          style: arabicStyle ?? englishStyle?.copyWith(
-            fontSize: (englishStyle?.fontSize ?? 14) * 0.85,
-            color: (englishStyle?.color ?? Colors.black).withOpacity(0.7),
-          ),
+          style:
+              arabicStyle ??
+              englishStyle?.copyWith(
+                fontSize: (englishStyle?.fontSize ?? 14) * 0.85,
+                color: (englishStyle?.color ?? Colors.black).withValues(
+                  alpha: 0.7,
+                ),
+              ),
           textAlign: textAlign,
           textDirection: TextDirection.rtl,
           maxLines: maxLines,
@@ -67,9 +71,6 @@ class CompactBilingualText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '$english  •  $arabic',
-      style: style,
-    );
+    return Text('$english  •  $arabic', style: style);
   }
 }

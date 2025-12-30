@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 // Top-level function for background handling
@@ -13,7 +14,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // Show local notification for background messages if they are data-only
   if (message.notification == null) {
-    print('Message is data-only. Showing local notification.');
+    debugPrint('Message is data-only. Showing local notification.');
     final FlutterLocalNotificationsPlugin localNotifications =
         FlutterLocalNotificationsPlugin();
 
@@ -80,7 +81,7 @@ class NotificationService {
 
     // 5. Get and Save Token
     String? token = await _firebaseMessaging.getToken();
-    print("FCM Token: $token");
+    debugPrint("FCM Token: $token");
     // Token is saved when user logs in via updateUserToken
   }
 
@@ -90,7 +91,7 @@ class NotificationService {
     if (token != null) {
       // Direct write to avoid circular dependency with FirestoreService if it exists
       await _saveTokenToFirestore(userId, token, role);
-      print("FCM Token updated for $userId ($role)");
+      debugPrint("FCM Token updated for $userId ($role)");
     }
   }
 
@@ -115,7 +116,7 @@ class NotificationService {
         });
       }
     } catch (e) {
-      print("Error saving token: $e");
+      debugPrint("Error saving token: $e");
     }
   }
 
@@ -129,7 +130,7 @@ class NotificationService {
       provisional: false,
       sound: true,
     );
-    print('User granted permission: ${settings.authorizationStatus}');
+    debugPrint('User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<void> _initLocalNotifications() async {
@@ -152,7 +153,7 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        print("Local Notification Tapped: ${response.payload}");
+        debugPrint("Local Notification Tapped: ${response.payload}");
         // Navigate to specific screen based on payload
       },
     );
@@ -178,7 +179,7 @@ class NotificationService {
   void _setupMessageHandlers() {
     // Foreground Message
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
+      debugPrint('Got a message whilst in the foreground!');
 
       if (message.notification != null) {
         _showLocalNotification(message);
@@ -190,13 +191,13 @@ class NotificationService {
 
     // Background/Terminated Tap
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
+      debugPrint('A new onMessageOpenedApp event was published!');
     });
 
     // App opened from terminated state
     _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
-        print('App opened from terminated state by notification');
+        debugPrint('App opened from terminated state by notification');
       }
     });
   }
@@ -205,7 +206,7 @@ class NotificationService {
   void startListeningToNotifications(String userId) {
     if (_notificationSubscription != null) return;
 
-    print("Started listening to notifications for $userId");
+    debugPrint("Started listening to notifications for $userId");
 
     // Helper to ignore initial load
     bool isFirstSnapshot = true;
@@ -220,7 +221,7 @@ class NotificationService {
             // 1. Ignore the very first snapshot (it contains existing history)
             if (isFirstSnapshot) {
               isFirstSnapshot = false;
-              print(
+              debugPrint(
                 "📥 Notification Listener Initialized. Ignoring ${snapshot.docs.length} existing notifications.",
               );
               return;
@@ -230,7 +231,7 @@ class NotificationService {
             for (var change in snapshot.docChanges) {
               if (change.type == DocumentChangeType.added) {
                 final data = change.doc.data();
-                print("🔔 LIVE NOTIFICATION RECEIVED: ${data!['title']}");
+                debugPrint("🔔 LIVE NOTIFICATION RECEIVED: ${data!['title']}");
 
                 _showLocalNotificationPayload(
                   data['title'] ?? 'New Notification',
@@ -241,7 +242,7 @@ class NotificationService {
             }
           },
           onError: (e) {
-            print("❌ Notification Listener Error: $e");
+            debugPrint("❌ Notification Listener Error: $e");
           },
         );
   }
@@ -311,7 +312,7 @@ class NotificationService {
         'data': message.data,
       });
     } catch (e) {
-      print("Error saving notification to Firestore: $e");
+      debugPrint("Error saving notification to Firestore: $e");
     }
   }
 
@@ -353,15 +354,15 @@ class NotificationService {
         'relatedId': relatedId,
       });
 
-      print("Notification sent: $title to $targetUserIds");
+      debugPrint("Notification sent: $title to $targetUserIds");
     } catch (e) {
-      print("Error creating notification: $e");
+      debugPrint("Error creating notification: $e");
     }
   }
 
   // 🔥 TEST METHOD
   Future<void> showTestNotification() async {
-    print("Showing test notification...");
+    debugPrint("Showing test notification...");
     await _showLocalNotificationPayload(
       'Test Notification',
       'This is a test notification to verify system tray display.',

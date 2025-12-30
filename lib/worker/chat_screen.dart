@@ -75,7 +75,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     return Center(
                       child: Text(
                         'No messages yet',
-                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
                       ),
                     );
                   }
@@ -110,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildServiceInfoBanner() {
     return Container(
       padding: const EdgeInsets.all(12),
-      color: const Color(0xFF005DFF).withOpacity(0.1),
+      color: const Color(0xFF005DFF).withValues(alpha: 0.1),
       child: Row(
         children: [
           const Icon(Icons.info_outline, size: 20, color: Color(0xFF005DFF)),
@@ -202,7 +204,7 @@ class _ChatScreenState extends State<ChatScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

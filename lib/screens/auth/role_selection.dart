@@ -153,7 +153,7 @@ class RoleSelectionScreen extends StatelessWidget {
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.white,
             borderRadius: BorderRadius.circular(20),
           ),
           child: ClipRRect(
@@ -187,8 +187,8 @@ class RoleSelectionScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 0),
-        // Logo text below
 
+        // Logo text below
       ],
     );
   }
@@ -212,13 +212,10 @@ class RoleSelectionScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: color.withAlpha((0.3 * 255).round()),
-            width: 2,
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha((0.2 * 255).round()),
+              color: color.withValues(alpha: 0.2),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -230,7 +227,7 @@ class RoleSelectionScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withAlpha((0.7 * 255).round())],
+                  colors: [color, color.withValues(alpha: 0.7)],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -296,7 +293,7 @@ class RoleSelectionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withAlpha((0.1 * 255).round()),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(Icons.arrow_forward_ios, color: color, size: 16),

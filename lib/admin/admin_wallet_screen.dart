@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/financial_service.dart';
 import '../models/admin_wallet_transaction.dart';
-import '../models/financial_report_summary_model.dart';
 import '../widgets/bilingual_text.dart';
 import '/utils/admin_translations.dart';
 
@@ -43,10 +42,14 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
     switch (_currentFilter) {
       case 'income':
-        _filteredTransactions = transactions.where((t) => t.type == 'credit').toList();
+        _filteredTransactions = transactions
+            .where((t) => t.type == 'credit')
+            .toList();
         break;
       case 'expenses':
-        _filteredTransactions = transactions.where((t) => t.type == 'debit').toList();
+        _filteredTransactions = transactions
+            .where((t) => t.type == 'debit')
+            .toList();
         break;
       default:
         _filteredTransactions = transactions;
@@ -81,7 +84,9 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             ListTile(
               leading: Icon(
                 Icons.all_inclusive,
-                color: _currentFilter == 'all' ? const Color(0xFF6B5B9A) : Colors.grey,
+                color: _currentFilter == 'all'
+                    ? const Color(0xFF6B5B9A)
+                    : Colors.grey,
               ),
               title: const BilingualText(
                 english: 'All Transactions',
@@ -138,7 +143,6 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final balance = _financialService.getCurrentBalance();
-    final transactions = _financialService.getWalletTransactions();
 
     return Scaffold(
       appBar: AppBar(
@@ -146,7 +150,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           english: 'Wallet',
           arabic: 'المحفظة',
           englishStyle: TextStyle(color: Colors.white, fontSize: 16),
-          arabicStyle:  TextStyle(color: Colors.white, fontSize: 14),
+          arabicStyle: TextStyle(color: Colors.white, fontSize: 14),
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
@@ -188,12 +192,14 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 children: [
                   Chip(
                     label: Text(
-                      _currentFilter == 'income' ? 'Income Only' : 'Expenses Only',
+                      _currentFilter == 'income'
+                          ? 'Income Only'
+                          : 'Expenses Only',
                       style: const TextStyle(fontSize: 12),
                     ),
                     backgroundColor: _currentFilter == 'income'
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     deleteIcon: const Icon(Icons.close, size: 16),
                     onDeleted: () {
                       setState(() {
@@ -233,7 +239,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.3),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -260,14 +266,21 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       AdminTranslations.active,
@@ -292,11 +305,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildWalletInfo('Auto Updated • محدث تلقائياً', Icons.sync),
-              Container(
-                height: 40,
-                width: 1,
-                color: Colors.white24,
-              ),
+              Container(height: 40, width: 1, color: Colors.white24),
               _buildWalletInfo('Real Time • حقيقي', Icons.flash_on),
             ],
           ),
@@ -312,15 +321,11 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ],
     );
   }
-
 
   Widget _buildTransactionsList(List<WalletTransaction> transactions) {
     final sortedTransactions = transactions.reversed.toList();
@@ -345,8 +350,8 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isCredit
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -357,10 +362,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             ),
             title: Text(
               transaction.description,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,18 +370,12 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _formatDate(transaction.date),
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   "Balance • الرصيد: SAR ${transaction.balanceAfter.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                 ),
               ],
             ),
@@ -397,15 +393,20 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: isCredit
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isCredit ? AdminTranslations.credit : AdminTranslations.debit,
+                    isCredit
+                        ? AdminTranslations.credit
+                        : AdminTranslations.debit,
                     style: TextStyle(
                       color: isCredit ? Colors.green : Colors.red,
                       fontSize: 10,
@@ -454,10 +455,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
             english: 'You don\'t have any wallet transactions yet',
             arabic: 'ليس لديك معاملات محفظة حتى الآن',
             textAlign: TextAlign.center,
-            englishStyle: TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
-            ),
+            englishStyle: TextStyle(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),

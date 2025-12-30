@@ -229,18 +229,18 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: isUnread
-                ? notification['color'].withOpacity(0.05)
+                ? notification['color'].withValues(alpha: 0.05)
                 : cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isUnread
-                  ? notification['color'].withOpacity(0.3)
+                  ? notification['color'].withValues(alpha: 0.3)
                   : Colors.transparent,
               width: isUnread ? 2 : 0,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -255,7 +255,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: notification['color'].withOpacity(0.1),
+                    color: notification['color'].withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -300,7 +300,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                         notification['message'] ?? '',
                         style: TextStyle(
                           fontSize: 14,
-                          color: textColor.withOpacity(0.7),
+                          color: textColor.withValues(alpha: 0.7),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -310,7 +310,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                         _formatTimestamp(notification['timestamp']),
                         style: TextStyle(
                           fontSize: 12,
-                          color: textColor.withOpacity(0.5),
+                          color: textColor.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -332,7 +332,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
           Icon(
             Icons.notifications_off_outlined,
             size: 80,
-            color: textColor.withOpacity(0.3),
+            color: textColor.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -340,7 +340,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: textColor.withOpacity(0.5),
+              color: textColor.withValues(alpha: 0.5),
             ),
           ),
         ],

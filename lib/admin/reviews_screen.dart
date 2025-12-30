@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/firestore_service.dart';
 import '../models/review_model.dart';
+import '../models/transaction_model.dart';
 import '../services/worker_auth_service.dart';
 
 class ReviewsScreen extends StatefulWidget {
@@ -70,10 +71,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           }
 
           final allReviews = snapshot.data ?? [];
-          debugPrint('Reviews fetched: ${allReviews.length}');
-          if (allReviews.isNotEmpty) {
-            debugPrint('First review: ${allReviews.first.toMap()}');
-          }
           final filteredReviews = _filterReviews(allReviews);
 
           return Column(
@@ -156,10 +153,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -233,7 +230,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: isPoorRating
-              ? Colors.red.withOpacity(0.3)
+              ? Colors.white.withValues(alpha: 0.2)
               : Colors.transparent,
           width: 2,
         ),
@@ -246,7 +243,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _getRatingColor(rating).withOpacity(0.1),
+              color: _getRatingColor(0xFF8B5CF6).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -294,8 +291,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: status == 'Published'
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -347,12 +344,30 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     children: [
                       CircleAvatar(
                         radius: 8,
-                        backgroundColor: Colors.grey.withOpacity(0.1),
-                        backgroundImage: review.workerId.isNotEmpty && WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl != null
-                            ? NetworkImage(WorkerAuthService().getWorkerById(review.workerId)!.profilePhotoUrl!)
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                        backgroundImage:
+                            review.workerId.isNotEmpty &&
+                                WorkerAuthService()
+                                        .getWorkerById(review.workerId)
+                                        ?.profilePhotoUrl !=
+                                    null
+                            ? NetworkImage(
+                                WorkerAuthService()
+                                    .getWorkerById(review.workerId)!
+                                    .profilePhotoUrl!,
+                              )
                             : null,
-                        child: review.workerId.isEmpty || WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl == null
-                            ? const Icon(Icons.person, size: 8, color: Colors.grey)
+                        child:
+                            review.workerId.isEmpty ||
+                                WorkerAuthService()
+                                        .getWorkerById(review.workerId)
+                                        ?.profilePhotoUrl ==
+                                    null
+                            ? const Icon(
+                                Icons.person,
+                                size: 8,
+                                color: Colors.grey,
+                              )
                             : null,
                       ),
                       const SizedBox(width: 8),
@@ -417,7 +432,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
@@ -448,10 +463,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _getRatingColor(rating).withOpacity(0.15),
+        color: _getRatingColor(rating).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _getRatingColor(rating).withOpacity(0.5),
+          color: _getRatingColor(rating).withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -506,20 +521,24 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   void _markAsResolved(Review review) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Mark as Resolved'),
         content: Text(
           'Mark this review from ${review.customerName} as resolved?\n\nThis will publish the review without any penalty.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement update status in FirestoreService
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+
+              final updatedReview = review.copyWith(status: 'Resolved');
+              await _firestoreService.updateReview(updatedReview);
+
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -546,7 +565,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.warning, color: Colors.red),
@@ -562,19 +581,37 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.red.withOpacity(0.1),
-                      backgroundImage: review.workerId.isNotEmpty && WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl != null
-                          ? NetworkImage(WorkerAuthService().getWorkerById(review.workerId)!.profilePhotoUrl!)
+                      backgroundColor: Colors.red.withValues(alpha: 0.1),
+                      backgroundImage:
+                          review.workerId.isNotEmpty &&
+                              WorkerAuthService()
+                                      .getWorkerById(review.workerId)
+                                      ?.profilePhotoUrl !=
+                                  null
+                          ? NetworkImage(
+                              WorkerAuthService()
+                                  .getWorkerById(review.workerId)!
+                                  .profilePhotoUrl!,
+                            )
                           : null,
-                      child: review.workerId.isEmpty || WorkerAuthService().getWorkerById(review.workerId)?.profilePhotoUrl == null
-                          ? const Icon(Icons.person, size: 24, color: Colors.red)
+                      child:
+                          review.workerId.isEmpty ||
+                              WorkerAuthService()
+                                      .getWorkerById(review.workerId)
+                                      ?.profilePhotoUrl ==
+                                  null
+                          ? const Icon(
+                              Icons.person,
+                              size: 24,
+                              color: Colors.red,
+                            )
                           : null,
                     ),
                     const SizedBox(width: 12),
@@ -621,7 +658,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
@@ -645,12 +682,12 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             onPressed: () {
               amountController.dispose();
               reasonController.dispose();
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final amount = double.tryParse(amountController.text) ?? 0;
               final reason = reasonController.text.trim();
 
@@ -674,23 +711,75 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 return;
               }
 
-              Navigator.pop(context);
-              // TODO: Logic for credit deduction
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('✅ Credit deducted from ${review.workerName}'),
-                      Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
-                      Text('Reason: $reason'),
-                    ],
+              Navigator.pop(dialogContext);
+
+              final worker = WorkerAuthService().getWorkerById(review.workerId);
+              if (worker == null) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Worker not found'),
+                    backgroundColor: Colors.red,
                   ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 4),
-                ),
+                );
+                return;
+              }
+
+              final newBalance = worker.creditBalance - amount;
+
+              final success = WorkerAuthService().updateWorkerCredit(
+                worker.phone,
+                newBalance,
               );
+
+              if (success) {
+                try {
+                  final transaction = Transaction(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    workerId: review.workerId,
+                    workerName: review.workerName,
+                    type: TransactionType.creditDeduction,
+                    amount: amount,
+                    balanceBefore: worker.creditBalance,
+                    balanceAfter: newBalance,
+                    serviceRequestId: review.serviceId,
+                    description: 'Penalty for ${review.serviceName}: $reason',
+                    createdAt: DateTime.now(),
+                  );
+
+                  await _firestoreService.addTransaction(transaction);
+                } catch (e) {
+                  debugPrint('❌ Failed to log transaction: $e');
+                }
+
+                final updatedReview = review.copyWith(status: 'Resolved');
+                await _firestoreService.updateReview(updatedReview);
+
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('✅ Credit deducted from ${review.workerName}'),
+                        Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
+                        Text('Reason: $reason'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
+              } else {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Failed to update worker credit'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
 
               amountController.dispose();
               reasonController.dispose();

@@ -50,10 +50,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
         final workerEarnings = totalPrice - requiredCredit;
         final hasEnoughCredit = appState.hasEnoughCredit(service);
 
-        return WillPopScope(
-          onWillPop: () async {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
             Navigator.pop(context, true);
-            return false;
           },
           child: Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
@@ -136,7 +137,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                             color: const Color(0xFFF8F9FA),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, -2),
                               ),
@@ -241,7 +242,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.2),
+                    color: Colors.blue.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -289,7 +290,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -510,7 +511,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatDateTime(service.requestedDate, service.requestedTime),
+                        _formatDateTime(
+                          service.requestedDate,
+                          service.requestedTime,
+                        ),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black,
@@ -594,53 +598,51 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              ...extraItems
-                  .map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(left: 12, bottom: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Icon(
-                                  item.type == 'Service'
-                                      ? Icons.build
-                                      : Icons.inventory,
-                                  size: 14,
-                                  color: item.type == 'Service'
-                                      ? Colors.blue
-                                      : Colors.orange,
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    '${item.name} (${item.type})',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black87,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
+              ...extraItems.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(left: 12, bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              item.type == 'Service'
+                                  ? Icons.build
+                                  : Icons.inventory,
+                              size: 14,
+                              color: item.type == 'Service'
+                                  ? Colors.blue
+                                  : Colors.orange,
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'SAR ${item.price.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.orange,
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${item.name} (${item.type})',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                      const SizedBox(width: 6),
+                      Text(
+                        'SAR ${item.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -701,9 +703,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.15),
+                color: Colors.red.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.4)),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
               ),
               child: Column(
                 children: [
@@ -787,7 +789,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.15),
+                color: Colors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1018,7 +1020,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.3),
+                  color: Colors.orange.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1426,7 +1428,8 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                if (!mounted) return;
+                Navigator.pop(context); // Close dialog
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CreditScreen()),
@@ -1466,14 +1469,18 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    WorkerTranslations.getEnglish(WorkerTranslations.completeService),
+                    WorkerTranslations.getEnglish(
+                      WorkerTranslations.completeService,
+                    ),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    WorkerTranslations.getArabic(WorkerTranslations.completeService),
+                    WorkerTranslations.getArabic(
+                      WorkerTranslations.completeService,
+                    ),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
@@ -1502,7 +1509,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -1515,11 +1522,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish(WorkerTranslations.invoice),
+                            WorkerTranslations.getEnglish(
+                              WorkerTranslations.invoice,
+                            ),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic(WorkerTranslations.invoice),
+                            WorkerTranslations.getArabic(
+                              WorkerTranslations.invoice,
+                            ),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1541,11 +1552,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish(WorkerTranslations.payment),
+                            WorkerTranslations.getEnglish(
+                              WorkerTranslations.payment,
+                            ),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic(WorkerTranslations.payment),
+                            WorkerTranslations.getArabic(
+                              WorkerTranslations.payment,
+                            ),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1567,11 +1582,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish(WorkerTranslations.totalAmount),
+                            WorkerTranslations.getEnglish(
+                              WorkerTranslations.totalAmount,
+                            ),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic(WorkerTranslations.totalAmount),
+                            WorkerTranslations.getArabic(
+                              WorkerTranslations.totalAmount,
+                            ),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1593,7 +1612,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -1606,11 +1625,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            WorkerTranslations.getEnglish(WorkerTranslations.creditDeducted),
+                            WorkerTranslations.getEnglish(
+                              WorkerTranslations.creditDeducted,
+                            ),
                             style: const TextStyle(fontSize: 11),
                           ),
                           Text(
-                            WorkerTranslations.getArabic(WorkerTranslations.creditDeducted),
+                            WorkerTranslations.getArabic(
+                              WorkerTranslations.creditDeducted,
+                            ),
                             style: const TextStyle(fontSize: 10),
                           ),
                         ],
@@ -1656,53 +1679,53 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                   paymentMethod: invoice.paymentMethod,
                 );
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            WorkerTranslations.getBilingual(
-                              '✅ Service completed!',
-                              '✅ اكتملت الخدمة!',
-                            ),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          WorkerTranslations.getBilingual(
+                            '✅ Service completed!',
+                            '✅ اكتملت الخدمة!',
                           ),
-                          Text(
-                            WorkerTranslations.getBilingual(
-                              'Invoice: ${invoice.invoiceNumber}',
-                              'الفاتورة: ${invoice.invoiceNumber}',
-                            ),
-                            style: const TextStyle(fontSize: 11),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
-                          Text(
-                            WorkerTranslations.getBilingual(
-                              'Total: SAR ${service.totalPrice.toStringAsFixed(2)}',
-                              'الإجمالي: ${service.totalPrice.toStringAsFixed(2)} ريال',
-                            ),
-                            style: const TextStyle(fontSize: 11),
+                        ),
+                        Text(
+                          WorkerTranslations.getBilingual(
+                            'Invoice: ${invoice.invoiceNumber}',
+                            'الفاتورة: ${invoice.invoiceNumber}',
                           ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(seconds: 3),
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        Text(
+                          WorkerTranslations.getBilingual(
+                            'Total: SAR ${service.totalPrice.toStringAsFixed(2)}',
+                            'الإجمالي: ${service.totalPrice.toStringAsFixed(2)} ريال',
+                          ),
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ],
                     ),
-                  );
-                  Navigator.pop(context);
-                }
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+                if (!mounted) return;
+                Navigator.pop(context);
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
                         WorkerTranslations.getBilingual(
-                          '❌ Error: $e',
-                          '❌ خطأ: $e',
+                          '❌ Error completing service: $e',
+                          '❌ خطأ في إكمال الخدمة: $e',
                         ),
                       ),
                       backgroundColor: Colors.red,
@@ -1716,10 +1739,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Confirm'),
-                Text(
-                  'تأكيد',
-                  style: const TextStyle(fontSize: 10),
-                ),
+                Text('تأكيد', style: const TextStyle(fontSize: 10)),
               ],
             ),
           ),

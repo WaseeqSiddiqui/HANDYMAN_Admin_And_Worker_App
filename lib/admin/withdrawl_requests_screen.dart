@@ -11,7 +11,8 @@ class WithdrawalRequestsScreen extends StatefulWidget {
   const WithdrawalRequestsScreen({super.key});
 
   @override
-  State<WithdrawalRequestsScreen> createState() => _WithdrawalRequestsScreenState();
+  State<WithdrawalRequestsScreen> createState() =>
+      _WithdrawalRequestsScreenState();
 }
 
 class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
@@ -43,7 +44,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text(AdminTranslations.split(AdminTranslations.withdrawalRequests)[0]),
+        title: Text(
+          AdminTranslations.split(AdminTranslations.withdrawalRequests)[0],
+        ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -59,9 +62,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
         children: [
           _buildFilterTabs(),
           _buildStatsSummary(cardColor),
-          Expanded(
-            child: _buildRequestsList(cardColor),
-          ),
+          Expanded(child: _buildRequestsList(cardColor)),
         ],
       ),
     );
@@ -110,7 +111,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : Colors.white,
+          color: isSelected ? color.withValues(alpha: 0.15) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? color : Colors.grey.shade300,
@@ -157,7 +158,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     );
     final totalPendingAmount = pendingRequests.fold<double>(
       0.0,
-          (sum, req) => sum + req.amount,
+      (sum, req) => sum + req.amount,
     );
 
     return Container(
@@ -168,7 +169,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -198,14 +199,19 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -233,7 +239,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
   }
 
   Widget _buildRequestsList(Color cardColor) {
-    final requests = _financialService.getWithdrawalRequests(status: _selectedFilter);
+    final requests = _financialService.getWithdrawalRequests(
+      status: _selectedFilter,
+    );
 
     if (requests.isEmpty) {
       return _buildEmptyState();
@@ -252,7 +260,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
   Widget _buildRequestCard(WithdrawalRequest request, Color cardColor) {
     final workerAuthService = WorkerAuthService();
     final workerData = workerAuthService.getAllWorkers().firstWhere(
-          (w) => w.id == request.workerId,
+      (w) => w.id == request.workerId,
       orElse: () => WorkerData(
         id: request.workerId,
         name: request.workerName,
@@ -302,7 +310,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(statusIcon, color: statusColor, size: 24),
@@ -330,11 +338,16 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
                     request.status.toUpperCase(),
@@ -374,19 +387,25 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: Colors.blue.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.account_balance_wallet, color: Colors.blue, size: 20),
+                      const Icon(
+                        Icons.account_balance_wallet,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
-                        AdminTranslations.split(AdminTranslations.withdrawalAmount)[0],
+                        AdminTranslations.split(
+                          AdminTranslations.withdrawalAmount,
+                        )[0],
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -421,12 +440,13 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               ),
 
             // Admin Notes (if rejected)
-            if (request.adminNotes != null && request.adminNotes!.isNotEmpty) ...[
+            if (request.adminNotes != null &&
+                request.adminNotes!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.05),
+                  color: Colors.red.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -463,7 +483,8 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             ],
 
             // Action Buttons (only for pending)
-            if (request.status == AdminTranslations.split(AdminTranslations.pending)[0]) ...[
+            if (request.status ==
+                AdminTranslations.split(AdminTranslations.pending)[0]) ...[
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -471,7 +492,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(request),
                       icon: const Icon(Icons.cancel, size: 18),
-                      label: Text(AdminTranslations.split(AdminTranslations.reject)[0]),
+                      label: Text(
+                        AdminTranslations.split(AdminTranslations.reject)[0],
+                      ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
@@ -485,7 +508,11 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                     child: ElevatedButton.icon(
                       onPressed: () => _showApproveDialog(request, workerData),
                       icon: const Icon(Icons.check_circle, size: 18),
-                      label: Text(AdminTranslations.split(AdminTranslations.approveAndProcess)[0]),
+                      label: Text(
+                        AdminTranslations.split(
+                          AdminTranslations.approveAndProcess,
+                        )[0],
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -511,18 +538,12 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           const SizedBox(width: 8),
           Text(
             '$label: ',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -540,13 +561,19 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
     IconData icon;
 
     if (_selectedFilter == approvedEn) {
-      message = AdminTranslations.split(AdminTranslations.noApprovedWithdrawals)[0];
+      message = AdminTranslations.split(
+        AdminTranslations.noApprovedWithdrawals,
+      )[0];
       icon = Icons.check_circle_outline;
     } else if (_selectedFilter == rejectedEn) {
-      message = AdminTranslations.split(AdminTranslations.noRejectedWithdrawals)[0];
+      message = AdminTranslations.split(
+        AdminTranslations.noRejectedWithdrawals,
+      )[0];
       icon = Icons.cancel_outlined;
     } else {
-      message = AdminTranslations.split(AdminTranslations.noWithdrawalRequests)[0];
+      message = AdminTranslations.split(
+        AdminTranslations.noWithdrawalRequests,
+      )[0];
       icon = Icons.pending_actions_outlined;
     }
 
@@ -558,10 +585,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           const SizedBox(height: 16),
           Text(
             message,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -576,7 +600,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           children: [
             const Icon(Icons.check_circle, color: Colors.green),
             const SizedBox(width: 8),
-            Text(AdminTranslations.split(AdminTranslations.approveWithdrawal)[0]),
+            Text(
+              AdminTranslations.split(AdminTranslations.approveWithdrawal)[0],
+            ),
           ],
         ),
         content: SingleChildScrollView(
@@ -585,7 +611,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AdminTranslations.split(AdminTranslations.approveConfirmTitle)[0],
+                AdminTranslations.split(
+                  AdminTranslations.approveConfirmTitle,
+                )[0],
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -614,7 +642,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -622,7 +650,11 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning, color: Colors.orange, size: 20),
+                        const Icon(
+                          Icons.warning,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           '${AdminTranslations.split(AdminTranslations.thisActionWill)[0]}',
@@ -659,17 +691,19 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _approveWithdrawal(request);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.approveAndProcess)[0],
             ),
-            child: Text(AdminTranslations.split(AdminTranslations.approveAndProcess)[0]),
           ),
         ],
       ),
@@ -686,7 +720,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
           children: [
             const Icon(Icons.cancel, color: Colors.red),
             const SizedBox(width: 8),
-            Text(AdminTranslations.split(AdminTranslations.rejectWithdrawal)[0]),
+            Text(
+              AdminTranslations.split(AdminTranslations.rejectWithdrawal)[0],
+            ),
           ],
         ),
         content: Column(
@@ -700,8 +736,12 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             TextField(
               controller: reasonController,
               decoration: InputDecoration(
-                labelText: AdminTranslations.split(AdminTranslations.rejectionReason)[0],
-                hintText: AdminTranslations.split(AdminTranslations.enterRejectionReason)[0],
+                labelText: AdminTranslations.split(
+                  AdminTranslations.rejectionReason,
+                )[0],
+                hintText: AdminTranslations.split(
+                  AdminTranslations.enterRejectionReason,
+                )[0],
                 border: const OutlineInputBorder(),
               ),
               maxLines: 3,
@@ -710,7 +750,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -719,7 +759,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      AdminTranslations.split(AdminTranslations.workerNotified)[0],
+                      AdminTranslations.split(
+                        AdminTranslations.workerNotified,
+                      )[0],
                       style: const TextStyle(fontSize: 11, color: Colors.red),
                     ),
                   ),
@@ -734,14 +776,20 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               reasonController.dispose();
               Navigator.pop(context);
             },
-            child: Text(AdminTranslations.split(AdminTranslations.cancelBtn)[0]),
+            child: Text(
+              AdminTranslations.split(AdminTranslations.cancelBtn)[0],
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(AdminTranslations.split(AdminTranslations.provideRejectionReason)[0]),
+                    content: Text(
+                      AdminTranslations.split(
+                        AdminTranslations.provideRejectionReason,
+                      )[0],
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -752,9 +800,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
               _rejectWithdrawal(request, reasonController.text.trim());
               reasonController.dispose();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text(AdminTranslations.split(AdminTranslations.reject)[0]),
           ),
         ],
@@ -768,10 +814,7 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.grey),
-          ),
+          Text(label, style: const TextStyle(color: Colors.grey)),
           Text(
             value,
             style: TextStyle(
@@ -803,10 +846,14 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AdminTranslations.split(AdminTranslations.withdrawalApprovedSuccess)[0],
+                    AdminTranslations.split(
+                      AdminTranslations.withdrawalApprovedSuccess,
+                    )[0],
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('SAR ${request.amount.toStringAsFixed(2)} ${AdminTranslations.split(AdminTranslations.processedSuccessfully)[0]}'),
+                  Text(
+                    'SAR ${request.amount.toStringAsFixed(2)} ${AdminTranslations.split(AdminTranslations.processedSuccessfully)[0]}',
+                  ),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -828,7 +875,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AdminTranslations.split(AdminTranslations.error)[0]}: $e'),
+            content: Text(
+              '${AdminTranslations.split(AdminTranslations.error)[0]}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -848,7 +897,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (result.success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AdminTranslations.split(AdminTranslations.withdrawalRequestRejected)[0]} $reason'),
+            content: Text(
+              '${AdminTranslations.split(AdminTranslations.withdrawalRequestRejected)[0]} $reason',
+            ),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 3),
           ),
@@ -858,7 +909,9 @@ class _WithdrawalRequestsScreenState extends State<WithdrawalRequestsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AdminTranslations.split(AdminTranslations.error)[0]}: $e'),
+            content: Text(
+              '${AdminTranslations.split(AdminTranslations.error)[0]}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );

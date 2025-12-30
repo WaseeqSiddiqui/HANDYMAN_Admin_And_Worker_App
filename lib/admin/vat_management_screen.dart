@@ -124,7 +124,7 @@ class VATManagementScreenState extends State<VATManagementScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -162,7 +162,7 @@ class VATManagementScreenState extends State<VATManagementScreen> {
           // Divider
           Container(
             height: 1,
-            color: Colors.white.withOpacity(0.3), // ✅ White divider
+            color: Colors.white.withValues(alpha: 0.3), // ✅ White divider
           ),
           const SizedBox(height: 16),
 
@@ -377,7 +377,7 @@ class VATManagementScreenState extends State<VATManagementScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
