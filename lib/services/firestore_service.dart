@@ -792,6 +792,51 @@ class FirestoreService {
           .set(message.toMap());
 
       debugPrint('Message sent successfully!');
+
+      debugPrint('Message sent successfully!');
+
+      // ✅ Notification Logic: Notify the recipient(s)
+      try {
+        final serviceDoc = await _servicesCollection
+            .doc(serviceRequestId)
+            .get();
+
+        if (serviceDoc.exists) {
+          final data = serviceDoc.data() as Map<String, dynamic>;
+          final workerId = data['workerId'];
+          final customerId = data['customerId'];
+
+          // 1. Notify Worker (if sender is NOT worker)
+          if (message.role != 'worker' && workerId != null) {
+            await _notificationsCollection.add({
+              'title': 'New Message • رسالة جديدة',
+              'message': '${message.senderName}: ${message.message}',
+              'type': 'chat',
+              'timestamp': FieldValue.serverTimestamp(),
+              'isRead': false,
+              'targetUserIds': [workerId],
+              'relatedId': serviceRequestId,
+            });
+            debugPrint('✅ Chat notification sent to worker: $workerId');
+          }
+
+          // 2. Notify Customer (if sender is NOT customer)
+          if (message.role != 'customer' && customerId != null) {
+            await _notificationsCollection.add({
+              'title': 'New Message • رسالة جديدة',
+              'message': '${message.senderName}: ${message.message}',
+              'type': 'chat',
+              'timestamp': FieldValue.serverTimestamp(),
+              'isRead': false,
+              'targetUserIds': [customerId],
+              'relatedId': serviceRequestId,
+            });
+            debugPrint('✅ Chat notification sent to customer: $customerId');
+          }
+        }
+      } catch (nError) {
+        debugPrint('⚠️ Error sending chat notification: $nError');
+      }
     } catch (e) {
       debugPrint('Error sending message: $e');
       rethrow;

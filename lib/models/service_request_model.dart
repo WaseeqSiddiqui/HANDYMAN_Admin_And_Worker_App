@@ -32,6 +32,7 @@ class ServiceRequest {
   final double vat;
   final List<ExtraItem> extraItems;
   final String? postponeReason;
+  final String? cancellationReason; // ✅ Added
   final DateTime? completedDate;
   final PaymentMethod? paymentMethod;
   final DateTime createdAt;
@@ -58,6 +59,7 @@ class ServiceRequest {
     required this.vat,
     this.extraItems = const [],
     this.postponeReason,
+    this.cancellationReason, // ✅ Added
     this.completedDate,
     this.paymentMethod,
     required this.createdAt,
@@ -113,6 +115,7 @@ class ServiceRequest {
     double? vat,
     List<ExtraItem>? extraItems,
     String? postponeReason,
+    String? cancellationReason, // ✅ Added
     DateTime? completedDate,
     PaymentMethod? paymentMethod,
     DateTime? createdAt,
@@ -138,6 +141,8 @@ class ServiceRequest {
       vat: vat ?? this.vat,
       extraItems: extraItems ?? this.extraItems,
       postponeReason: postponeReason ?? this.postponeReason,
+      cancellationReason:
+          cancellationReason ?? this.cancellationReason, // ✅ Added
       completedDate: completedDate ?? this.completedDate,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
@@ -176,6 +181,7 @@ class ServiceRequest {
               .toList() ??
           [],
       postponeReason: json['postponeReason'],
+      cancellationReason: json['cancellationReason'], // ✅ Added
       completedDate: json['completedDate'] != null
           ? DateTime.tryParse(json['completedDate'])
           : null,
@@ -212,6 +218,7 @@ class ServiceRequest {
       'vat': vat,
       'extraItems': extraItems.map((e) => e.toJson()).toList(),
       'postponeReason': postponeReason,
+      'cancellationReason': cancellationReason, // ✅ Added
       'completedDate': completedDate?.toIso8601String(),
       'paymentMethod': paymentMethod?.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),

@@ -199,6 +199,8 @@ class FinancialService {
     required double extraCharges,
     required DateTime completionDate,
     required String paymentMethod,
+    double? commissionAmount, // ✅ Added optional param
+    double? vatAmount, // ✅ Added optional param
   }) async {
     try {
       // ✅ FIXED: Calculate correctly
@@ -206,8 +208,9 @@ class FinancialService {
       final total = basePrice + extraCharges;
 
       // Commission and VAT are INCLUDED in total, not added
-      final commission = total * 0.20; // 20% of total
-      final vat = total * 0.15; // 15% of total
+      // Use passed amounts if available, otherwise fallback to defaults (but defaults might be wrong if rates changed)
+      final commission = commissionAmount ?? (total * 0.20);
+      final vat = vatAmount ?? (total * 0.15);
       final workerDeduction = commission + vat;
       final workerEarnings = total - workerDeduction;
 
@@ -487,8 +490,39 @@ class FinancialService {
   }) {
     final now = DateTime.now();
     final start = startDate ?? DateTime(now.year, now.month, 1);
-    final end = endDate ?? DateTime(now.year, now.month + 1, 0);
+    // ✅ FIXED: End date should be start of NEXT month to include the full last day of current month
+    // DateTime(year, month + 1, 0) gives last day at 00:00:00, missing that entire day's data
+    final end = endDate ?? DateTime(now.year, now.month + 1, 1);
 
+    // ✅ FIXED: Use _commissionRecords and _vatRecords for totals
+    // This ensures consistency with Commission/VAT Management screens
+
+    final filteredCommission = _commissionRecords
+        .where((r) => r.date.isAfter(start) && r.date.isBefore(end))
+        .toList();
+
+    final filteredVAT = _vatRecords
+        .where((r) => r.date.isAfter(start) && r.date.isBefore(end))
+        .toList();
+
+    // Use commission records to calculate revenue (safe assumption: every completed service has a commission record)
+    final totalRevenue = filteredCommission.fold(
+      0.0,
+      (sum, r) => sum + r.serviceAmount,
+    );
+
+    final totalCommission = filteredCommission.fold(
+      0.0,
+      (sum, r) => sum + r.commissionAmount,
+    );
+
+    final totalVAT = filteredVAT.fold(0.0, (sum, r) => sum + r.vatAmount);
+
+    final workersShare = totalRevenue - totalCommission - totalVAT;
+
+    // We still keep transactions list for reference, though it might be slightly different in count
+    // if a record exists but service status isn't updated.
+    // Synchronizing filtering logic:
     final filteredTransactions = _completedServices
         .where(
           (txn) =>
@@ -497,20 +531,6 @@ class FinancialService {
         )
         .toList();
 
-    final totalRevenue = filteredTransactions.fold(
-      0.0,
-      (sum, txn) => sum + txn.totalAmount,
-    );
-    final totalCommission = filteredTransactions.fold(
-      0.0,
-      (sum, txn) => sum + txn.commission,
-    );
-    final totalVAT = filteredTransactions.fold(
-      0.0,
-      (sum, txn) => sum + txn.vat,
-    );
-    final workersShare = totalRevenue - totalCommission - totalVAT;
-
     return FinancialReportSummary(
       startDate: start,
       endDate: end,
@@ -518,10 +538,11 @@ class FinancialService {
       totalCommission: totalCommission,
       totalVAT: totalVAT,
       workersShare: workersShare,
-      totalServices: filteredTransactions.length,
-      averageServiceValue: filteredTransactions.isEmpty
+      totalServices:
+          filteredCommission.length, // Use record count for consistency
+      averageServiceValue: filteredCommission.isEmpty
           ? 0.0
-          : totalRevenue / filteredTransactions.length,
+          : totalRevenue / filteredCommission.length,
       transactions: filteredTransactions,
     );
   }

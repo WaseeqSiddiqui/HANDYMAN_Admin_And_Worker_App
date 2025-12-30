@@ -48,6 +48,11 @@ class ServiceCompletionHandler {
       final extraCharges = (serviceData['extraCharges'] ?? 0.0).toDouble();
       final paymentMethod = serviceData['paymentMethod'] ?? 'Cash';
 
+      // ✅ Check for specific amounts (nullable)
+      final double? commissionAmount = serviceData['commissionAmount']
+          ?.toDouble();
+      final double? vatAmount = serviceData['vatAmount']?.toDouble();
+
       // Process through Financial Service
       // Ye automatically update karega:
       // - Admin Wallet
@@ -64,6 +69,8 @@ class ServiceCompletionHandler {
         extraCharges: extraCharges,
         completionDate: DateTime.now(),
         paymentMethod: paymentMethod,
+        commissionAmount: commissionAmount,
+        vatAmount: vatAmount,
       );
 
       // Close loading dialog

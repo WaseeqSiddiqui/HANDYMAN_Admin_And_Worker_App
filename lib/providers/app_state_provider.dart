@@ -150,10 +150,6 @@ class AppStateProvider with ChangeNotifier {
     // Initialization complete
   }
 
-  void loadMockData() {
-    // Mock data removed
-  }
-
   // ✅ ADD: Get customer by ID
   Customer? getCustomerById(String customerId) {
     // 1. Try to find in Firestore data first (Real data)
@@ -308,6 +304,13 @@ class AppStateProvider with ChangeNotifier {
   List<ServiceRequest> get adminPostponedServices {
     return _serviceRequests
         .where((s) => s.status == ServiceRequestStatus.postponed)
+        .toList();
+  }
+
+  // ✅ ADDED: Cancelled Services Filter
+  List<ServiceRequest> get adminCancelledServices {
+    return _serviceRequests
+        .where((s) => s.status == ServiceRequestStatus.cancelled)
         .toList();
   }
 
@@ -818,6 +821,9 @@ class AppStateProvider with ChangeNotifier {
           extraCharges: service.totalExtraPrice,
           completionDate: DateTime.now(),
           paymentMethod: paymentMethod,
+          commissionAmount:
+              service.totalCommission, // ✅ Pass correct commission
+          vatAmount: service.totalVAT, // ✅ Pass correct VAT
         );
         debugPrint('✅ Financial records created successfully');
       } catch (e) {

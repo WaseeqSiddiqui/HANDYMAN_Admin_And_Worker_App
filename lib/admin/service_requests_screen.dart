@@ -11,7 +11,9 @@ import '/models/service_request_model.dart';
 import '../../worker/service_detail_screen.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
-  const ServiceRequestsScreen({super.key});
+  final int initialIndex;
+
+  const ServiceRequestsScreen({super.key, this.initialIndex = 0});
 
   @override
   State<ServiceRequestsScreen> createState() =>
@@ -26,7 +28,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: widget.initialIndex,
+    );
   }
 
   @override
@@ -49,6 +55,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
         final inProgressServices = appState.adminInProgressServices;
         final postponedServices = appState.adminPostponedServices;
         final completedServices = appState.adminCompletedServices;
+        final cancelledServices = appState.adminCancelledServices;
 
         return Scaffold(
           backgroundColor: Colors.white, // White background
@@ -154,6 +161,25 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ],
                   ),
                 ),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      BilingualText(
+                        english: AdminTranslations.split(
+                          AdminTranslations.cancelled,
+                        )[0],
+                        arabic: AdminTranslations.split(
+                          AdminTranslations.cancelled,
+                        )[1],
+                        englishStyle: const TextStyle(fontSize: 12),
+                        arabicStyle: const TextStyle(fontSize: 10),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildTabCount(cancelledServices.length, Colors.red),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -166,6 +192,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 _buildInProgressServicesTab(inProgressServices),
                 _buildPostponedServicesTab(postponedServices),
                 _buildCompletedServicesTab(completedServices),
+                _buildCancelledServicesTab(cancelledServices),
               ],
             ),
           ),
@@ -240,7 +267,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white, // White card
+      color: Colors.grey[200], // Grey card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -574,7 +601,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white, // White card
+      color: Colors.grey[200], // Grey card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -877,7 +904,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white, // White card
+      color: Colors.grey[200], // Grey card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1115,7 +1142,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white, // White card
+      color: Colors.grey[200], // Grey card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1378,6 +1405,172 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= Cancelled Tab =================
+  Widget _buildCancelledServicesTab(List<ServiceRequest> services) {
+    if (services.isEmpty) {
+      return _buildEmptyState(
+        AdminTranslations
+            .noRecordsFound, // You might want a specific 'noCancelledServices' key
+        Icons.cancel_outlined,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: Container(
+        color: Colors.white,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: services.length,
+          itemBuilder: (context, index) {
+            return _buildCancelledServiceCard(services[index]);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCancelledServiceCard(ServiceRequest service) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.grey[200],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildIdBadge(service.id, Colors.red),
+                _buildStatusBadge(
+                  AdminTranslations.cancelled,
+                  Colors.red,
+                  Icons.cancel,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            BilingualText(
+              english: AdminTranslations.split(service.serviceName)[0],
+              arabic:
+                  AdminTranslations.split(service.serviceName)[0] ==
+                      AdminTranslations.split(service.serviceName)[1]
+                  ? ''
+                  : AdminTranslations.split(service.serviceName)[1],
+              englishStyle: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              arabicStyle: TextStyle(
+                fontSize:
+                    AdminTranslations.split(service.serviceName)[0] ==
+                        AdminTranslations.split(service.serviceName)[1]
+                    ? 0
+                    : 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            _buildInfoRow(Icons.person, service.customerName, isArabic: false),
+            _buildInfoRow(
+              Icons.location_on,
+              service.address,
+              isArabic: service.customerPrefersArabic,
+            ),
+            _buildInfoRow(
+              Icons.calendar_today,
+              _formatDateTime(service.requestedDate, service.requestedTime),
+              isArabic: false,
+            ),
+
+            // Cancellation Reason
+            if (service.cancellationReason != null &&
+                service.cancellationReason!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cancellation Reason • سبب الإلغاء',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[800],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      service.cancellationReason!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _viewServiceDetails(service),
+                    icon: const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Color(0xFF3B82F6),
+                    ),
+                    label: BilingualText(
+                      english: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[0],
+                      arabic: AdminTranslations.split(
+                        AdminTranslations.detailsBtn,
+                      )[1],
+                      englishStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF3B82F6),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF3B82F6),
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

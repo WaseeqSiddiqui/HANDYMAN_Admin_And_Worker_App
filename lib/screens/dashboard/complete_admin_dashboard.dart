@@ -1037,7 +1037,9 @@ class AdminDashboardState extends State<AdminDashboard> {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FinancialReportsScreen(),
+                  builder: (context) => const ServiceRequestsScreen(
+                    initialIndex: 3, // ✅ Open 'Completed' tab
+                  ),
                 ),
               ),
               child: BilingualText(

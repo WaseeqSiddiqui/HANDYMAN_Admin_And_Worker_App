@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/worker_translations.dart';
+import 'transactions_screen.dart';
 
 class CreditScreen extends StatefulWidget {
   const CreditScreen({super.key});
@@ -543,7 +544,12 @@ class _CreditScreenState extends State<CreditScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  // Navigate to full transaction history
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WorkerTransactionsScreen(),
+                    ),
+                  );
                 },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(

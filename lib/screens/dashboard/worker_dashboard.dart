@@ -22,6 +22,8 @@ import '../../worker/completed_services_screen.dart';
 import '../../worker/service_detail_screen.dart';
 import '../../worker/notifications_screen.dart';
 import '../../worker/worker_profile_screen.dart';
+import '../../services/notification_service.dart';
+import '../../services/chat_monitor_service.dart';
 
 class WorkerDashboardScreen extends StatefulWidget {
   final String phoneNumber;
@@ -63,6 +65,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             context,
             listen: false,
           ).setCurrentWorker(_workerId);
+
+          // ✅ Start listening to notifications
+          NotificationService().startListeningToNotifications(_workerId);
+
+          // ✅ Start monitoring chats for Customer messages
+          ChatMonitorService().startMonitoring(_workerId);
         }
       });
     } else {

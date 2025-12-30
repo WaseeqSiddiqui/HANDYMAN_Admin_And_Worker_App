@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../providers/app_state_provider.dart';
 
 class WorkerNotificationsScreen extends StatefulWidget {
   const WorkerNotificationsScreen({super.key});
@@ -28,6 +30,11 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
         return {'icon': Icons.system_update, 'color': const Color(0xFF005DFF)};
       case 'review':
         return {'icon': Icons.star, 'color': Colors.amber};
+      case 'chat':
+        return {
+          'icon': Icons.chat,
+          'color': Colors.purple,
+        }; // Added chat type support
       default:
         return {'icon': Icons.notifications, 'color': Colors.grey};
     }
@@ -39,6 +46,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final workerId = Provider.of<AppStateProvider>(context).workerId;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -76,6 +84,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('notifications')
+                  .where('targetUserIds', arrayContains: workerId)
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {

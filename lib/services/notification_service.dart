@@ -206,7 +206,9 @@ class NotificationService {
   void startListeningToNotifications(String userId) {
     if (_notificationSubscription != null) return;
 
-    debugPrint("Started listening to notifications for $userId");
+    debugPrint(
+      "🔥 [NotificationService] STARTING LISTENER for userId: $userId",
+    );
 
     // Helper to ignore initial load
     bool isFirstSnapshot = true;
@@ -218,6 +220,10 @@ class NotificationService {
         .snapshots()
         .listen(
           (snapshot) {
+            debugPrint(
+              "🔥 [NotificationService] Snapshot received! Docs: ${snapshot.docs.length}",
+            );
+
             // 1. Ignore the very first snapshot (it contains existing history)
             if (isFirstSnapshot) {
               isFirstSnapshot = false;
@@ -231,7 +237,9 @@ class NotificationService {
             for (var change in snapshot.docChanges) {
               if (change.type == DocumentChangeType.added) {
                 final data = change.doc.data();
-                debugPrint("🔔 LIVE NOTIFICATION RECEIVED: ${data!['title']}");
+                debugPrint(
+                  "🔔 [NotificationService] LIVE NOTIFICATION: ${data!['title']}",
+                );
 
                 _showLocalNotificationPayload(
                   data['title'] ?? 'New Notification',
@@ -242,7 +250,7 @@ class NotificationService {
             }
           },
           onError: (e) {
-            debugPrint("❌ Notification Listener Error: $e");
+            debugPrint("❌ [NotificationService] LISTENER ERROR: $e");
           },
         );
   }

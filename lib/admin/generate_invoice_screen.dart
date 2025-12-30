@@ -464,7 +464,10 @@ class _GenerateInvoiceScreenState extends State<GenerateInvoiceScreen> {
     setState(() => _isGenerating = true);
 
     try {
-      await appState.completeService(service.id);
+      await appState.completeService(
+        service.id,
+        paymentMethod: _paymentMethod, // ✅ Pass selected payment method
+      );
 
       if (!mounted) return;
 
