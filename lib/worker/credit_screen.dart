@@ -33,14 +33,18 @@ class _CreditScreenState extends State<CreditScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  WorkerTranslations.getEnglish(WorkerTranslations.creditManagement),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.creditManagement,
+                  ),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  WorkerTranslations.getArabic(WorkerTranslations.creditManagement),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.creditManagement,
+                  ),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.normal,
@@ -56,7 +60,10 @@ class _CreditScreenState extends State<CreditScreen> {
               children: [
                 // Balance Cards - Fixed height
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: _buildBalanceCards(cardColor, textColor, appState),
                 ),
 
@@ -71,7 +78,11 @@ class _CreditScreenState extends State<CreditScreen> {
                         const SizedBox(height: 8),
                         _buildTopupSection(cardColor, textColor, appState),
                         const SizedBox(height: 16),
-                        _buildTransactionHistory(cardColor, textColor, appState),
+                        _buildTransactionHistory(
+                          cardColor,
+                          textColor,
+                          appState,
+                        ),
                         const SizedBox(height: 20), // Bottom padding
                       ],
                     ),
@@ -85,7 +96,11 @@ class _CreditScreenState extends State<CreditScreen> {
     );
   }
 
-  Widget _buildBalanceCards(Color cardColor, Color textColor, AppStateProvider appState) {
+  Widget _buildBalanceCards(
+    Color cardColor,
+    Color textColor,
+    AppStateProvider appState,
+  ) {
     return SizedBox(
       height: 140, // Fixed height to prevent overflow
       child: Row(
@@ -116,14 +131,18 @@ class _CreditScreenState extends State<CreditScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        WorkerTranslations.getEnglish(WorkerTranslations.creditBalance),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.creditBalance,
+                        ),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
                         ),
                       ),
                       Text(
-                        WorkerTranslations.getArabic(WorkerTranslations.creditBalance),
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.creditBalance,
+                        ),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 10,
@@ -165,20 +184,28 @@ class _CreditScreenState extends State<CreditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                   const SizedBox(height: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        WorkerTranslations.getEnglish(WorkerTranslations.walletBalance),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.walletBalance,
+                        ),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
                         ),
                       ),
                       Text(
-                        WorkerTranslations.getArabic(WorkerTranslations.walletBalance),
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.walletBalance,
+                        ),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 10,
@@ -204,7 +231,11 @@ class _CreditScreenState extends State<CreditScreen> {
     );
   }
 
-  Widget _buildTopupSection(Color cardColor, Color textColor, AppStateProvider appState) {
+  Widget _buildTopupSection(
+    Color cardColor,
+    Color textColor,
+    AppStateProvider appState,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -227,7 +258,9 @@ class _CreditScreenState extends State<CreditScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                WorkerTranslations.getEnglish(WorkerTranslations.topupCreditFromWallet),
+                WorkerTranslations.getEnglish(
+                  WorkerTranslations.topupCreditFromWallet,
+                ),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -235,7 +268,9 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
               ),
               Text(
-                WorkerTranslations.getArabic(WorkerTranslations.topupCreditFromWallet),
+                WorkerTranslations.getArabic(
+                  WorkerTranslations.topupCreditFromWallet,
+                ),
                 style: TextStyle(
                   fontSize: 14,
                   color: textColor.withOpacity(0.8),
@@ -280,12 +315,15 @@ class _CreditScreenState extends State<CreditScreen> {
               fillColor: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF0F172A)
                   : Colors.grey[100],
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
-          // Transfer option
+          // Transfer from Wallet option
           _buildTopupOption(
             icon: Icons.account_balance_wallet,
             title: WorkerTranslations.transferFromWallet,
@@ -312,7 +350,9 @@ class _CreditScreenState extends State<CreditScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      WorkerTranslations.getEnglish(WorkerTranslations.importantInformation),
+                      WorkerTranslations.getEnglish(
+                        WorkerTranslations.importantInformation,
+                      ),
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.blue,
@@ -320,11 +360,10 @@ class _CreditScreenState extends State<CreditScreen> {
                       ),
                     ),
                     Text(
-                      WorkerTranslations.getArabic(WorkerTranslations.importantInformation),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue,
+                      WorkerTranslations.getArabic(
+                        WorkerTranslations.importantInformation,
                       ),
+                      style: const TextStyle(fontSize: 12, color: Colors.blue),
                     ),
                   ],
                 ),
@@ -332,16 +371,28 @@ class _CreditScreenState extends State<CreditScreen> {
 
                 // Information points
                 _buildInfoPoint(
-                  WorkerTranslations.getEnglish(WorkerTranslations.minTopupAmount),
-                  WorkerTranslations.getArabic(WorkerTranslations.minTopupAmount),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.minTopupAmount,
+                  ),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.minTopupAmount,
+                  ),
                 ),
                 _buildInfoPoint(
-                  WorkerTranslations.getEnglish(WorkerTranslations.creditForCommissions),
-                  WorkerTranslations.getArabic(WorkerTranslations.creditForCommissions),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.creditForCommissions,
+                  ),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.creditForCommissions,
+                  ),
                 ),
                 _buildInfoPoint(
-                  WorkerTranslations.getEnglish(WorkerTranslations.topupNonWithdrawable),
-                  WorkerTranslations.getArabic(WorkerTranslations.topupNonWithdrawable),
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.topupNonWithdrawable,
+                  ),
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.topupNonWithdrawable,
+                  ),
                 ),
               ],
             ),
@@ -412,31 +463,33 @@ class _CreditScreenState extends State<CreditScreen> {
                   ),
                   Text(
                     WorkerTranslations.getArabic(title),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 2),
                   // Available balance
                   Text(
                     'Available • المتاح: $subtitle',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.grey.shade400,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTransactionHistory(Color cardColor, Color textColor, AppStateProvider appState) {
+  Widget _buildTransactionHistory(
+    Color cardColor,
+    Color textColor,
+    AppStateProvider appState,
+  ) {
     final creditTransactions = appState.transactions
         .where((t) => t.type == TransactionType.creditTopup)
         .take(3) // Reduced to 3 items
@@ -468,7 +521,9 @@ class _CreditScreenState extends State<CreditScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      WorkerTranslations.getEnglish(WorkerTranslations.creditHistory),
+                      WorkerTranslations.getEnglish(
+                        WorkerTranslations.creditHistory,
+                      ),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -476,7 +531,9 @@ class _CreditScreenState extends State<CreditScreen> {
                       ),
                     ),
                     Text(
-                      WorkerTranslations.getArabic(WorkerTranslations.creditHistory),
+                      WorkerTranslations.getArabic(
+                        WorkerTranslations.creditHistory,
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         color: textColor.withOpacity(0.7),
@@ -490,7 +547,10 @@ class _CreditScreenState extends State<CreditScreen> {
                   // Navigate to full transaction history
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -535,12 +595,22 @@ class _CreditScreenState extends State<CreditScreen> {
                   Column(
                     children: [
                       Text(
-                        WorkerTranslations.getEnglish(WorkerTranslations.noCreditTransactions),
-                        style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                        WorkerTranslations.getEnglish(
+                          WorkerTranslations.noCreditTransactions,
+                        ),
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 12,
+                        ),
                       ),
                       Text(
-                        WorkerTranslations.getArabic(WorkerTranslations.noCreditTransactions),
-                        style: TextStyle(color: Colors.grey.shade700, fontSize: 10),
+                        WorkerTranslations.getArabic(
+                          WorkerTranslations.noCreditTransactions,
+                        ),
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 10,
+                        ),
                       ),
                     ],
                   ),
@@ -549,12 +619,14 @@ class _CreditScreenState extends State<CreditScreen> {
             )
           else
             Column(
-              children: creditTransactions.map((txn) =>
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildTransactionItem(txn, textColor),
+              children: creditTransactions
+                  .map(
+                    (txn) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildTransactionItem(txn, textColor),
+                    ),
                   )
-              ).toList(),
+                  .toList(),
             ),
         ],
       ),
@@ -615,10 +687,7 @@ class _CreditScreenState extends State<CreditScreen> {
                 // Description
                 Text(
                   'Credit top-up via STC Pay • شحن رصيد عبر STC Pay',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                 ),
                 const SizedBox(height: 4),
                 // Date
@@ -733,8 +802,16 @@ class _CreditScreenState extends State<CreditScreen> {
             Text('Amount: SAR ${amount.toStringAsFixed(2)}'),
             Text('المبلغ: ريال ${amount.toStringAsFixed(2)}'),
             const SizedBox(height: 8),
-            Text(WorkerTranslations.getEnglish(WorkerTranslations.transferWalletToCredit)),
-            Text(WorkerTranslations.getArabic(WorkerTranslations.transferWalletToCredit)),
+            Text(
+              WorkerTranslations.getEnglish(
+                WorkerTranslations.transferWalletToCredit,
+              ),
+            ),
+            Text(
+              WorkerTranslations.getArabic(
+                WorkerTranslations.transferWalletToCredit,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -743,7 +820,9 @@ class _CreditScreenState extends State<CreditScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn)),
+                Text(
+                  WorkerTranslations.getEnglish(WorkerTranslations.cancelBtn),
+                ),
                 Text(
                   WorkerTranslations.getArabic(WorkerTranslations.cancelBtn),
                   style: const TextStyle(fontSize: 10),
@@ -767,13 +846,13 @@ class _CreditScreenState extends State<CreditScreen> {
 
               _showSuccess(WorkerTranslations.creditToppedSuccessfully);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(WorkerTranslations.getEnglish(WorkerTranslations.confirmBtn)),
+                Text(
+                  WorkerTranslations.getEnglish(WorkerTranslations.confirmBtn),
+                ),
                 Text(
                   WorkerTranslations.getArabic(WorkerTranslations.confirmBtn),
                   style: const TextStyle(fontSize: 10),

@@ -203,16 +203,19 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
     // Sort: Unassigned first, then Assigned
     // Secondary Sort: Newest date first
-    final sortedServices = List<ServiceRequest>.from(services)..sort((a, b) {
-      final aAssigned = a.workerId != null && a.workerId!.isNotEmpty;
-      final bAssigned = b.workerId != null && b.workerId!.isNotEmpty;
+    final sortedServices = List<ServiceRequest>.from(services)
+      ..sort((a, b) {
+        final aAssigned = a.workerId != null && a.workerId!.isNotEmpty;
+        final bAssigned = b.workerId != null && b.workerId!.isNotEmpty;
 
-      if (aAssigned != bAssigned) {
-        return aAssigned ? 1 : -1; // Unassigned (false) comes before Assigned (true)
-      }
-      // If same status, sort by date descending (newest first)
-      return b.requestedDate.compareTo(a.requestedDate);
-    });
+        if (aAssigned != bAssigned) {
+          return aAssigned
+              ? 1
+              : -1; // Unassigned (false) comes before Assigned (true)
+        }
+        // If same status, sort by date descending (newest first)
+        return b.requestedDate.compareTo(a.requestedDate);
+      });
 
     return RefreshIndicator(
       onRefresh: _refreshData,
@@ -237,7 +240,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.white, // White card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -256,15 +259,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   ),
                   decoration: BoxDecoration(
                     color: isArabicCustomer
-                        ? Colors.blue.withOpacity(0.2)
-                        : Colors.purple.withOpacity(0.2),
+                        ? Colors.blue.shade50
+                        : Colors.purple.shade50,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     isArabicCustomer ? 'عربي • Arabic' : 'English • إنجليزي',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: Colors.white,
+                      color: isArabicCustomer ? Colors.blue : Colors.purple,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -291,14 +294,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   englishStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                   arabicStyle: isIdentical
                       ? const TextStyle(fontSize: 0) // Hide if identical
                       : const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                 );
               },
@@ -344,9 +347,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.withOpacity(0.4)),
+                  border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,12 +358,30 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       children: [
                         CircleAvatar(
                           radius: 12,
-                          backgroundColor: Colors.green[300]!.withOpacity(0.2),
-                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
-                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                          backgroundColor: Colors.green[100],
+                          backgroundImage:
+                              service.workerId != null &&
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl !=
+                                      null
+                              ? NetworkImage(
+                                  WorkerAuthService()
+                                      .getWorkerById(service.workerId!)!
+                                      .profilePhotoUrl!,
+                                )
                               : null,
-                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
-                              ? Icon(Icons.person, size: 12, color: Colors.green[300])
+                          child:
+                              service.workerId == null ||
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl ==
+                                      null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 12,
+                                  color: Colors.green[700],
+                                )
                               : null,
                         ),
                         const SizedBox(width: 8),
@@ -369,7 +390,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green[300],
+                            color: Colors.green[700],
                           ),
                         ),
                       ],
@@ -380,17 +401,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                     if (service.workerNameArabic != null &&
                         service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         textDirection: TextDirection.rtl,
                       ),
                   ],
@@ -403,7 +421,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -420,21 +438,21 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       englishStyle: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                       arabicStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                   ),
                   Text(
                     'SAR ${service.totalPrice.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: Colors.green[700],
                     ),
                   ),
                 ],
@@ -452,7 +470,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     icon: const Icon(
                       Icons.info_outline,
                       size: 18,
-                      color: Colors.white,
+                      color: Color(0xFF3B82F6),
                     ),
                     label: BilingualText(
                       english: AdminTranslations.split(
@@ -464,12 +482,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       englishStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Color(0xFF3B82F6),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white),
+                      foregroundColor: const Color(0xFF3B82F6),
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -556,7 +574,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.white, // White card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -582,9 +600,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: Colors.amber.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.amber.withOpacity(0.4)),
+                  border: Border.all(color: Colors.amber.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,12 +611,30 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       children: [
                         CircleAvatar(
                           radius: 12,
-                          backgroundColor: Colors.amber[300]!.withOpacity(0.2),
-                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
-                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                          backgroundColor: Colors.amber[100],
+                          backgroundImage:
+                              service.workerId != null &&
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl !=
+                                      null
+                              ? NetworkImage(
+                                  WorkerAuthService()
+                                      .getWorkerById(service.workerId!)!
+                                      .profilePhotoUrl!,
+                                )
                               : null,
-                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
-                              ? Icon(Icons.person, size: 12, color: Colors.amber[300])
+                          child:
+                              service.workerId == null ||
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl ==
+                                      null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 12,
+                                  color: Colors.amber[700],
+                                )
                               : null,
                         ),
                         const SizedBox(width: 8),
@@ -607,7 +643,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.amber[300],
+                            color: Colors.amber[700],
                           ),
                         ),
                       ],
@@ -618,17 +654,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                     if (service.workerNameArabic != null &&
                         service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         textDirection: TextDirection.rtl,
                       ),
                   ],
@@ -653,14 +686,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   englishStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                   arabicStyle: isIdentical
                       ? const TextStyle(fontSize: 0)
                       : const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                 );
               },
@@ -686,7 +719,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -736,7 +769,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       ),
                     ),
                   ],
-                  const Divider(color: Colors.white30),
+                  const Divider(color: Colors.grey),
                   _buildFinancialRow(
                     '${AdminTranslations.split(AdminTranslations.totalLabel)[0]} • ${AdminTranslations.split(AdminTranslations.totalLabel)[1]}',
                     service.totalPrice,
@@ -751,7 +784,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -765,10 +798,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   Expanded(
                     child: Text(
                       '${AdminTranslations.split(AdminTranslations.workerNeedsCredit)[0]} ${service.totalDeduction.toStringAsFixed(2)} ${AdminTranslations.split(AdminTranslations.creditToComplete)[0]}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.orange,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.orange[800]),
                     ),
                   ),
                 ],
@@ -785,7 +815,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     icon: const Icon(
                       Icons.info_outline,
                       size: 18,
-                      color: Colors.white,
+                      color: Color(0xFF3B82F6),
                     ),
                     label: BilingualText(
                       english: AdminTranslations.split(
@@ -797,12 +827,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       englishStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Color(0xFF3B82F6),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white),
+                      foregroundColor: const Color(0xFF3B82F6),
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -847,7 +877,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.white, // White card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -873,9 +903,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color: Colors.orange.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.4)),
+                  border: Border.all(color: Colors.orange.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -884,12 +914,30 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       children: [
                         CircleAvatar(
                           radius: 12,
-                          backgroundColor: Colors.orange[300]!.withOpacity(0.2),
-                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
-                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                          backgroundColor: Colors.orange[100],
+                          backgroundImage:
+                              service.workerId != null &&
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl !=
+                                      null
+                              ? NetworkImage(
+                                  WorkerAuthService()
+                                      .getWorkerById(service.workerId!)!
+                                      .profilePhotoUrl!,
+                                )
                               : null,
-                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
-                              ? Icon(Icons.person, size: 12, color: Colors.orange[300])
+                          child:
+                              service.workerId == null ||
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl ==
+                                      null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 12,
+                                  color: Colors.orange[700],
+                                )
                               : null,
                         ),
                         const SizedBox(width: 8),
@@ -898,7 +946,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.orange[300],
+                            color: Colors.orange[700],
                           ),
                         ),
                       ],
@@ -909,17 +957,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                     if (service.workerNameArabic != null &&
                         service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         textDirection: TextDirection.rtl,
                       ),
                   ],
@@ -938,7 +983,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               englishStyle: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               ),
               arabicStyle: TextStyle(
                 fontSize:
@@ -947,7 +992,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ? 0
                     : 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               ),
             ),
 
@@ -976,7 +1021,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     icon: const Icon(
                       Icons.info_outline,
                       size: 18,
-                      color: Colors.white,
+                      color: Color(0xFF3B82F6),
                     ),
                     label: BilingualText(
                       english: AdminTranslations.split(
@@ -988,12 +1033,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       englishStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Color(0xFF3B82F6),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white),
+                      foregroundColor: const Color(0xFF3B82F6),
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1070,7 +1115,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.black, // Black card
+      color: Colors.white, // White card
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1096,9 +1141,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.withOpacity(0.4)),
+                  border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1107,12 +1152,30 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       children: [
                         CircleAvatar(
                           radius: 12,
-                          backgroundColor: Colors.green[300]!.withOpacity(0.2),
-                          backgroundImage: service.workerId != null && WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl != null
-                              ? NetworkImage(WorkerAuthService().getWorkerById(service.workerId!)!.profilePhotoUrl!)
+                          backgroundColor: Colors.green[100],
+                          backgroundImage:
+                              service.workerId != null &&
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl !=
+                                      null
+                              ? NetworkImage(
+                                  WorkerAuthService()
+                                      .getWorkerById(service.workerId!)!
+                                      .profilePhotoUrl!,
+                                )
                               : null,
-                          child: service.workerId == null || WorkerAuthService().getWorkerById(service.workerId!)?.profilePhotoUrl == null
-                              ? Icon(Icons.person, size: 12, color: Colors.green[300])
+                          child:
+                              service.workerId == null ||
+                                  WorkerAuthService()
+                                          .getWorkerById(service.workerId!)
+                                          ?.profilePhotoUrl ==
+                                      null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 12,
+                                  color: Colors.green[700],
+                                )
                               : null,
                         ),
                         const SizedBox(width: 8),
@@ -1121,7 +1184,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green[300],
+                            color: Colors.green[700],
                           ),
                         ),
                       ],
@@ -1132,17 +1195,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                     if (service.workerNameArabic != null &&
                         service.workerNameArabic!.isNotEmpty)
                       Text(
                         service.workerNameArabic!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         textDirection: TextDirection.rtl,
                       ),
                   ],
@@ -1161,7 +1221,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               englishStyle: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               ),
               arabicStyle: TextStyle(
                 fontSize:
@@ -1170,7 +1230,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ? 0
                     : 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black,
               ),
             ),
 
@@ -1190,7 +1250,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -1248,7 +1308,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     '${AdminTranslations.split(AdminTranslations.commissionLabel)[0]} • ${AdminTranslations.split(AdminTranslations.commissionLabel)[1]}',
                     service.totalCommission,
                   ),
-                  const Divider(color: Colors.white30),
+                  const Divider(color: Colors.grey),
                   _buildFinancialRow(
                     '${AdminTranslations.split(AdminTranslations.totalLabel)[0]} • ${AdminTranslations.split(AdminTranslations.totalLabel)[1]}',
                     service.totalPrice,
@@ -1268,7 +1328,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     icon: const Icon(
                       Icons.info_outline,
                       size: 18,
-                      color: Colors.white,
+                      color: Color(0xFF3B82F6),
                     ),
                     label: BilingualText(
                       english: AdminTranslations.split(
@@ -1280,12 +1340,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       englishStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Color(0xFF3B82F6),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white),
+                      foregroundColor: const Color(0xFF3B82F6),
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1338,13 +1398,13 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         id,
         style: TextStyle(
-          color: Colors.white,
+          color: color,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
@@ -1356,7 +1416,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1369,7 +1429,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               english: AdminTranslations.split(text)[0],
               arabic: AdminTranslations.split(text)[1],
               englishStyle: TextStyle(
-                color: Colors.white,
+                color: color,
                 fontWeight: FontWeight.bold,
                 fontSize: 11,
               ),
@@ -1386,12 +1446,12 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Colors.white70),
+          Icon(icon, size: 16, color: Colors.grey[600]),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14, color: Colors.white),
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
               textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
             ),
           ),
@@ -1416,7 +1476,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               style: TextStyle(
                 fontSize: isBold ? 15 : 14,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: Colors.white,
+                color: Colors.black87,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -1426,7 +1486,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             style: TextStyle(
               fontSize: isBold ? 15 : 14,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isBold ? Colors.green[300] : Colors.white,
+              color: isBold ? Colors.black : Colors.black87,
             ),
           ),
         ],
@@ -1807,7 +1867,9 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(_formatDateTime(selectedDate, service.requestedTime)),
+                        Text(
+                          _formatDateTime(selectedDate, service.requestedTime),
+                        ),
                         const Icon(Icons.calendar_today, size: 20),
                       ],
                     ),

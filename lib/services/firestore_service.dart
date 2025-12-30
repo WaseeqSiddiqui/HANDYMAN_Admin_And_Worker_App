@@ -617,6 +617,18 @@ class FirestoreService {
   Future<void> addOfferedService(Service service) async {
     try {
       await _offeredServicesCollection.doc(service.id).set(service.toMap());
+
+      // ✅ NOTIFICATION: Notify Admin of New Offered Service Addition
+      await _notificationsCollection.add({
+        'title': 'New Service Added to Catalog',
+        'message':
+            'New service "${service.name}" has been added to the offered services.',
+        'type': 'system',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': ['admin'],
+        'relatedId': service.id,
+      });
     } catch (e) {
       debugPrint('Error adding offered service: $e');
       throw e;

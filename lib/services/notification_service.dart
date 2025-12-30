@@ -251,6 +251,14 @@ class NotificationService {
     _notificationSubscription = null;
   }
 
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _showLocalNotificationPayload(title, body, payload ?? '');
+  }
+
   Future<void> _showLocalNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     String title =
