@@ -1488,11 +1488,19 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
     }
 
     WorkerData? selectedWorker;
+    String? selectedCategory;
+    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setState) {
+          // Filter workers based on selected category
+          final filteredWorkers = selectedCategory == null
+              ? workers
+              : workers.where((w) => w.expertise == selectedCategory).toList();
+
+          return AlertDialog(
           title: Row(
             children: [
               const Icon(Icons.person_add, color: Color(0xFF005DFF)),
@@ -1521,6 +1529,47 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                 '${AdminTranslations.split(AdminTranslations.date)[0]}: ${_formatDateTime(service.requestedDate, service.requestedTime)}',
               ),
               const SizedBox(height: 16),
+              
+              // Filter by Category
+              Text(
+                'Filter by Expertise / تصفية حسب التخصص',
+                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                 decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text('All Categories / كل الفئات'),
+                    value: selectedCategory,
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text('All Categories / كل الفئات'),
+                      ),
+                      ...categories.map((cat) {
+                        return DropdownMenuItem<String>(
+                          value: cat.nameEnglish,
+                          child: Text('${cat.nameEnglish} - ${cat.nameArabic}'),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                         selectedCategory = val;
+                         selectedWorker = null; // Reset worker when category changes
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
               Text(
                 AdminTranslations.split(AdminTranslations.selectWorker)[0],
                 style: const TextStyle(fontWeight: FontWeight.w600),
@@ -1544,7 +1593,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                       )[0],
                     ),
                     value: selectedWorker,
-                    items: workers.map((worker) {
+                    items: filteredWorkers.map((worker) {
                       return DropdownMenuItem<WorkerData>(
                         value: worker,
                         child: Column(
@@ -1559,7 +1608,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                               ),
                             ),
                             Text(
-                              worker.nameArabic,
+                              '${worker.expertise} • ${worker.nameArabic}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -1575,6 +1624,14 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   ),
                 ),
               ),
+              if (filteredWorkers.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'No workers found for this category',
+                    style: TextStyle(color: Colors.red[300], fontSize: 12),
+                  ),
+                ),
             ],
           ),
           actions: [
@@ -1624,7 +1681,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               ),
             ),
           ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1660,11 +1718,18 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
 
     WorkerData? selectedWorker;
     DateTime selectedDate = service.requestedDate;
+    String? selectedCategory;
+    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setState) {
+           final filteredWorkers = selectedCategory == null
+              ? availableWorkers
+              : availableWorkers.where((w) => w.expertise == selectedCategory).toList();
+              
+          return AlertDialog(
           title: Row(
             children: [
               const Icon(Icons.calendar_today, color: Colors.blue),
@@ -1726,6 +1791,47 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
+                
+                 // Filter by Category
+                Text(
+                  'Filter by Expertise / تصفية حسب التخصص',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      hint: const Text('All Categories / كل الفئات'),
+                      value: selectedCategory,
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('All Categories / كل الفئات'),
+                        ),
+                        ...categories.map((cat) {
+                          return DropdownMenuItem<String>(
+                            value: cat.nameEnglish,
+                            child: Text('${cat.nameEnglish} - ${cat.nameArabic}'),
+                          );
+                        }),
+                      ],
+                      onChanged: (val) {
+                        setState(() {
+                          selectedCategory = val;
+                          selectedWorker = null;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
                 Text(
                   AdminTranslations.split(AdminTranslations.selectNewWorker)[0],
                   style: const TextStyle(fontWeight: FontWeight.w600),
@@ -1749,7 +1855,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                         )[0],
                       ),
                       value: selectedWorker,
-                      items: availableWorkers.map((worker) {
+                      items: filteredWorkers.map((worker) {
                         return DropdownMenuItem<WorkerData>(
                           value: worker,
                           child: Column(
@@ -1764,7 +1870,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                                 ),
                               ),
                               Text(
-                                worker.nameArabic,
+                                '${worker.expertise} • ${worker.nameArabic}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -1780,6 +1886,15 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
                     ),
                   ),
                 ),
+                if (filteredWorkers.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'No workers found for this category',
+                      style: TextStyle(color: Colors.red[300], fontSize: 12),
+                    ),
+                  ),
+                  
                 const SizedBox(height: 16),
                 Text(
                   AdminTranslations.split(AdminTranslations.selectNewDate)[0],
@@ -1868,7 +1983,8 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               ),
             ),
           ],
-        ),
+          );
+        },
       ),
     );
   }

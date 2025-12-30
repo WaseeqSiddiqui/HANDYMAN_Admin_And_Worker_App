@@ -141,6 +141,8 @@ class AdminTranslations {
   static const String initialCreditHelper = 'Set initial credit balance for worker • تعيين رصيد ائتماني أولي للعامل';
   static const String initialCreditInfo = 'Initial credit is used for service commissions & VAT • يستخدم الرصيد الأولي لعمولات الخدمة وضريبة القيمة المضافة';
   static const String phonePlaceholder = '+966501234567';
+  static const String expertise = 'Expertise • التخصص'; // Added expertise
+
 
   // Worker Messages
   static const String fillAllFields = 'Please fill all required fields • يرجى ملء جميع الحقول المطلوبة';

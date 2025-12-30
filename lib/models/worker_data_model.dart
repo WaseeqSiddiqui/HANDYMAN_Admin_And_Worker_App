@@ -12,9 +12,10 @@ class WorkerData {
   final DateTime joinedDate;
   final int completedServices;
   final double creditBalance;
-  final double reservedCredit; // Added reservedCredit
-  final double walletBalance; // Added walletBalance
+  final double reservedCredit;
+  final double walletBalance;
   final String? profilePhotoUrl;
+  final String expertise; // Added expertise
 
   WorkerData({
     required this.id,
@@ -30,9 +31,10 @@ class WorkerData {
     required this.joinedDate,
     this.completedServices = 0,
     this.creditBalance = 100.0,
-    this.reservedCredit = 0.0, // Default to 0.0
-    this.walletBalance = 0.0, // Default to 0.0
+    this.reservedCredit = 0.0,
+    this.walletBalance = 0.0,
     this.profilePhotoUrl,
+    this.expertise = 'General', // Default to General
   });
 
   WorkerData copyWith({
@@ -52,6 +54,7 @@ class WorkerData {
     double? reservedCredit,
     double? walletBalance,
     String? profilePhotoUrl,
+    String? expertise,
   }) {
     return WorkerData(
       id: id ?? this.id,
@@ -70,6 +73,7 @@ class WorkerData {
       reservedCredit: reservedCredit ?? this.reservedCredit,
       walletBalance: walletBalance ?? this.walletBalance,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      expertise: expertise ?? this.expertise,
     );
   }
 
@@ -91,6 +95,7 @@ class WorkerData {
       'reservedCredit': reservedCredit,
       'walletBalance': walletBalance,
       'profilePhotoUrl': profilePhotoUrl,
+      'expertise': expertise,
     };
   }
 
@@ -116,6 +121,7 @@ class WorkerData {
       reservedCredit: (map['reservedCredit'] ?? 0.0).toDouble(),
       walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
       profilePhotoUrl: map['profilePhotoUrl'],
+      expertise: map['expertise'] ?? 'General',
     );
   }
 }

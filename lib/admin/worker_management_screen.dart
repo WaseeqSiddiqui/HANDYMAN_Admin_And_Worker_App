@@ -66,6 +66,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
               'joinDate': worker.joinedDate,
               'totalServices': worker.completedServices,
               'creditBalance': worker.creditBalance,
+              'expertise': worker.expertise,
               'profilePhotoUrl': worker.profilePhotoUrl,
             };
           }).toList(),
@@ -562,7 +563,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${worker['id']} • ${worker['phone']}',
+                          '${worker['expertise'] ?? 'General'} • ${worker['id']} • ${worker['phone']}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -723,11 +724,15 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     final addressController = TextEditingController();
     final addressArabicController = TextEditingController();
     final initialCreditController = TextEditingController(text: '100');
+    String? selectedExpertise;
+    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
         title: Row(
           children: [
             Text(AdminTranslations.split(AdminTranslations.addWorker)[0]),
@@ -810,6 +815,29 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   helperText: 'Format: 5XXXXXXXX ',
                   helperStyle: const TextStyle(fontSize: 10),
                 ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedExpertise,
+                isExpanded: true, // 🔥 Allow dropdown to expand and handle overflow
+                decoration: InputDecoration(
+                  labelText: AdminTranslations.split(AdminTranslations.expertise)[0],
+                  labelStyle: const TextStyle(fontSize: 14),
+                  prefixIcon: const Icon(Icons.work),
+                  border: const OutlineInputBorder(),
+                ),
+                items: categories.map((cat) {
+                  return DropdownMenuItem(
+                    value: cat.nameEnglish,
+                    child: Text(
+                      '${cat.nameEnglish} - ${cat.nameArabic}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() => selectedExpertise = val);
+                },
               ),
               const SizedBox(height: 12),
               TextField(
@@ -983,10 +1011,11 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 stcPayId: formattedStcPay, // 🔥 USE FORMATTED STC PAY
                 address: addressController.text.trim(),
                 addressArabic: addressArabicController.text.trim(),
-                status: 'Pending', // 🔥 SET AS PENDING (not Active!)
+                status: 'Active', // 🔥 Set as Active by default
                 joinedDate: DateTime.now(),
                 completedServices: 0,
                 creditBalance: initialCredit,
+                expertise: selectedExpertise ?? 'General',
               );
 
               final success = _authService.addWorker(newWorker);
@@ -1038,8 +1067,9 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ));
   }
 
   void _showWorkerDetailsDialog(Map<String, dynamic> worker) {
@@ -1119,6 +1149,23 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                             ),
                             textDirection: TextDirection.rtl,
                           ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              worker['expertise'] ?? 'General',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             worker['id']?.toString() ?? '',
@@ -1158,6 +1205,12 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                _buildDetailRow(
+                  Icons.work,
+                  AdminTranslations.split(AdminTranslations.expertise)[0],
+                  AdminTranslations.split(AdminTranslations.expertise)[1],
+                  worker['expertise'] ?? 'General',
+                ),
                 _buildDetailRow(
                   Icons.credit_card,
                   AdminTranslations.split(AdminTranslations.nationalIdLabel)[0],
@@ -1713,6 +1766,8 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
     final creditController = TextEditingController(
       text: (worker['creditBalance'] as double).toStringAsFixed(2),
     );
+    String? selectedExpertise = worker['expertise'];
+    final categories = Provider.of<AppStateProvider>(context, listen: false).serviceCategories;
 
     showDialog(
       context: context,
@@ -1794,6 +1849,36 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                   prefixIcon: const Icon(Icons.phone),
                   border: const OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 12),
+              StatefulBuilder(
+                builder: (context, setDropdownState) {
+                  return DropdownButtonFormField<String>(
+                    value: (selectedExpertise != null && categories.any((c) => c.nameEnglish == selectedExpertise)) 
+                        ? selectedExpertise 
+                        : null,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: AdminTranslations.split(AdminTranslations.expertise)[0],
+                      labelStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.work),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: categories.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat.nameEnglish,
+                        child: Text(
+                          '${cat.nameEnglish} - ${cat.nameArabic}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setDropdownState(() => selectedExpertise = val);
+                    },
+                    hint: Text(selectedExpertise ?? 'Select Expertise / اختر التخصص'),
+                  );
+                },
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1928,6 +2013,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                 joinedDate: worker['joinDate'],
                 completedServices: worker['totalServices'],
                 creditBalance: newCredit,
+                expertise: selectedExpertise ?? 'General',
               );
 
               Navigator.of(dialogContext).pop();
@@ -2157,12 +2243,12 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               '${AdminTranslations.split(AdminTranslations.worker)[0]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[0] : AdminTranslations.split(AdminTranslations.workerBlocked)[0]}',
                             ),
-                            const SizedBox(width: 4),
                             Text(
                               '${AdminTranslations.split(AdminTranslations.worker)[1]} ${worker['name']} ${newStatus == AdminTranslations.split(AdminTranslations.active)[0] ? AdminTranslations.split(AdminTranslations.workerUnblocked)[1] : AdminTranslations.split(AdminTranslations.workerBlocked)[1]}',
                               style: const TextStyle(fontSize: 12),
