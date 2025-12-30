@@ -12,6 +12,7 @@ import '../models/service_request_model.dart';
 import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
+
 import '/utils/admin_translations.dart';
 import '/services/notification_service.dart';
 
@@ -33,6 +34,11 @@ class AppStateProvider with ChangeNotifier {
 
   // ✅ ADDED: Real Firestore customers list
   List<Customer> _firestoreCustomers = [];
+
+  // ✅ WATCHDOG STATE
+  Set<String> _previousServiceIds = {};
+  Map<String, ServiceRequestStatus> _previousServiceStatuses = {};
+  bool _firstLoad = true;
 
   // ✅ Getters for worker info
   String get workerId => currentWorkerId ?? 'UNKNOWN';
@@ -80,6 +86,41 @@ class AppStateProvider with ChangeNotifier {
 
     // Listen to Service Requests
     _firestoreService.getServiceRequestsStream().listen((services) {
+      // LISTEN TO SERVICE REQUESTS
+      // Identify changes for notifications
+      if (_firstLoad) {
+        _firstLoad = false;
+        _previousServiceIds = services.map((s) => s.id).toSet();
+        _previousServiceStatuses = {for (var s in services) s.id: s.status};
+      } else {
+        for (var service in services) {
+          // 1. Check for NEW Service
+          if (!_previousServiceIds.contains(service.id)) {
+            NotificationService().showLocalNotification(
+              title: 'New Service Request',
+              body:
+                  'New request from ${service.customerName}: ${service.serviceName}',
+            );
+          }
+          // 2. Check for STATUS Change (Cancellation)
+          else if (_previousServiceStatuses.containsKey(service.id)) {
+            final oldStatus = _previousServiceStatuses[service.id];
+            if (oldStatus != ServiceRequestStatus.cancelled &&
+                service.status == ServiceRequestStatus.cancelled) {
+              NotificationService().showLocalNotification(
+                title: 'Service Cancelled',
+                body:
+                    '${service.customerName} cancelled ${service.serviceName}',
+              );
+            }
+          }
+        }
+
+        // Update state
+        _previousServiceIds = services.map((s) => s.id).toSet();
+        _previousServiceStatuses = {for (var s in services) s.id: s.status};
+      }
+
       _serviceRequests = services;
       notifyListeners();
       debugPrint(
@@ -166,7 +207,6 @@ class AppStateProvider with ChangeNotifier {
 
   double get availableForWithdrawal =>
       _currentWorkerData.availableForWithdrawal;
-  double get pendingClearance => _currentWorkerData.pendingClearance;
 
   int get totalServicesCompleted => _currentWorkerData.totalServicesCompleted;
   double get totalEarnings => _currentWorkerData.totalEarnings;
