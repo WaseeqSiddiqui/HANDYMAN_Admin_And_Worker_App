@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'providers/app_state_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/no_internet_screen.dart';
+import 'services/network_service.dart';
 
 import 'services/notification_service.dart';
 
@@ -11,6 +13,9 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Initialize NetworkService
+  NetworkService().initialize();
 
   // Initialize Notifications
   await NotificationService().initialize();
@@ -25,24 +30,34 @@ class AdminWorkerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppStateProvider(),
-      child: MaterialApp(
-        title: 'Handyman Admin & Worker Panel',
-        debugShowCheckedModeBanner: false,
-
-        // ✅ Localization removed - simple and clean
-        // No localizationsDelegates
-        // No supportedLocales
-        // No locale settings
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF3B82F6),
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-        ),
-        themeMode: ThemeMode.light,
-        home: const SplashScreen(), // ✅ Changed to SplashScreen
+      child: StreamBuilder<bool>(
+        initialData: true, // Assume online initially to avoid flash
+        stream: NetworkService().connectionStream,
+        builder: (context, snapshot) {
+          final isOnline = snapshot.data ?? true;
+          return MaterialApp(
+            title: 'Handyman Admin & Worker Panel',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF3B82F6),
+                brightness: Brightness.light,
+              ),
+              useMaterial3: true,
+              scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+            ),
+            themeMode: ThemeMode.light,
+            // If offline, show NoInternetScreen, otherwise show SplashScreen
+            home: isOnline ? const SplashScreen() : const NoInternetScreen(),
+            builder: (context, child) {
+              // Also handle cases where connection drops while using the app
+              if (!isOnline) {
+                return const NoInternetScreen();
+              }
+              return child!;
+            },
+          );
+        },
       ),
     );
   }

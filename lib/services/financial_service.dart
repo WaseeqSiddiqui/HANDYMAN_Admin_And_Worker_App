@@ -225,7 +225,7 @@ class FinancialService {
 
       // Create transaction record
       final transaction = FinancialTransaction(
-        id: 'TXN_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'TXN_$serviceId', // ✅ Deterministic ID (Re-applied)
         serviceId: serviceId,
         serviceName: serviceName,
         workerId: workerId,
@@ -243,9 +243,9 @@ class FinancialService {
         status: 'completed',
       );
 
-      // Add to records
-      _allTransactions.add(transaction);
-      _completedServices.add(transaction);
+      // Remove manual local list updates to avoid duplication with stream listeners
+      // The stream listener 'listenToCompletedServices' will automatically pick up
+      // the new 'completed' status and add it to the list with the correct ID structure.
 
       // ✅ FIXED: Update admin wallet based on payment method
       await _updateAdminWallet(transaction, paymentMethod);
@@ -259,7 +259,7 @@ class FinancialService {
       // ✅ FIXED: Generate and Save Invoice
       try {
         final invoice = ServiceInvoice(
-          invoiceNumber: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+          invoiceNumber: 'INV-$serviceId', // ✅ Deterministic ID (Re-applied)
           serviceRequestId: serviceId,
           serviceId: serviceId,
           serviceName: serviceName,
@@ -287,21 +287,9 @@ class FinancialService {
           status: 'Paid',
         );
 
-        // Check if invoice already exists to prevent duplicates
-        final existingInvoice = InvoiceService().getInvoiceByServiceId(
-          serviceId,
-        );
-        if (existingInvoice != null) {
-          debugPrint(
-            '⚠️ Invoice already exists for service $serviceId: ${existingInvoice.invoiceNumber}',
-          );
-        } else {
-          // We need InvoiceService instance.
-          // Since we cannot easily inject it here without changing constructor steps,
-          // and it is a singleton, we can use the factory.
-          await InvoiceService().saveInvoice(invoice);
-          debugPrint('✅ Invoice generated: ${invoice.invoiceNumber}');
-        }
+        // Check/Save uses set() internally so duplicate save works fine
+        await InvoiceService().saveInvoice(invoice);
+        debugPrint('✅ Invoice generated: ${invoice.invoiceNumber}');
       } catch (e) {
         debugPrint('❌ Error generating invoice: $e');
         // Don't fail the whole transaction if invoice fails, but log it.
@@ -368,7 +356,7 @@ class FinancialService {
       final deductionAmount = transaction.commission + transaction.vat;
 
       final deductionTxn = WalletTransaction(
-        id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'WLT_COMM_VAT_${transaction.serviceId}', // ✅ Deterministic ID
         type: 'credit',
         amount: deductionAmount,
         description:
@@ -379,7 +367,7 @@ class FinancialService {
       );
 
       await _firestoreService.addAdminWalletTransaction(deductionTxn);
-      _currentBalance += deductionAmount; // Optimistic update
+      // _currentBalance += deductionAmount; // Optimistic update - removed, stream listener handles it
 
       debugPrint(
         '✅ Admin Wallet (CASH): +SAR ${deductionAmount.toStringAsFixed(2)} (VAT+Commission only)',
@@ -387,7 +375,7 @@ class FinancialService {
     } else {
       // ONLINE: Admin receives FULL payment from customer
       final paymentTxn = WalletTransaction(
-        id: 'WLT_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'WLT_FULL_${transaction.serviceId}', // ✅ Deterministic ID
         type: 'credit',
         amount: transaction.totalAmount,
         description:
@@ -398,7 +386,7 @@ class FinancialService {
       );
 
       await _firestoreService.addAdminWalletTransaction(paymentTxn);
-      _currentBalance += transaction.totalAmount; // Optimistic update
+      // _currentBalance += transaction.totalAmount; // Optimistic update - removed, stream listener handles it
 
       debugPrint(
         '✅ Admin Wallet (ONLINE): +SAR ${transaction.totalAmount.toStringAsFixed(2)} (Full payment received)',
@@ -796,7 +784,7 @@ class FinancialService {
     _totalVATCollected = 0.0;
     _notifyListeners();
   }
-  // ============= CREDIT REQUESTS =============
+  // ============= CREDIT REQUESTS PROCESSING =============
 
   Future<CreditRequestResult> processCreditRequest({
     required CreditRequest request,
@@ -804,19 +792,30 @@ class FinancialService {
     String? adminNotes,
   }) async {
     try {
+      debugPrint(
+        '🔄 Processing Credit Request: ${request.id} (Approve: $approve)',
+      );
+
       if (approve) {
         // 1. Update Worker Credit Balance
         final workerData = await _firestoreService.getWorkerById(
           request.workerId,
         );
         if (workerData == null) {
+          debugPrint(
+            '❌ Worker not found for credit request: ${request.workerId}',
+          );
           return CreditRequestResult(
             success: false,
-            message: 'Worker not found',
+            message: 'Worker not found in database',
           );
         }
 
         final newCreditBalance = workerData.creditBalance + request.amount;
+        debugPrint(
+          '   Current Credit: ${workerData.creditBalance} -> New: $newCreditBalance',
+        );
+
         await _firestoreService.updateWorkerCredit(
           request.workerId,
           newCreditBalance,
@@ -864,6 +863,7 @@ class FinancialService {
           targetUserIds: [request.workerId],
           relatedId: request.id,
         );
+        _notifyListeners(); // Notify listeners after state change
 
         return CreditRequestResult(
           success: true,
@@ -885,6 +885,7 @@ class FinancialService {
           targetUserIds: [request.workerId],
           relatedId: request.id,
         );
+        _notifyListeners(); // Notify listeners after state change
 
         return CreditRequestResult(
           success: true,

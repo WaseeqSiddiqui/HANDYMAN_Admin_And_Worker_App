@@ -690,7 +690,7 @@ class InvoiceService {
     final commission = total * 0.20;
 
     final invoice = ServiceInvoice(
-      invoiceNumber: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+      invoiceNumber: 'INV-$serviceId',
       serviceRequestId: serviceId,
       serviceId: serviceId,
       serviceName: serviceName,

@@ -34,6 +34,9 @@ class AppStateProvider with ChangeNotifier {
   // ✅ ADDED: Real Firestore customers list
   List<Customer> _firestoreCustomers = [];
 
+  // ✅ Processing Lock
+  final Set<String> _processingServiceIds = {};
+
   // ✅ WATCHDOG STATE
   Set<String> _previousServiceIds = {};
   Map<String, ServiceRequestStatus> _previousServiceStatuses = {};
@@ -604,7 +607,8 @@ class AppStateProvider with ChangeNotifier {
     // ✅ NOTIFICATION: Notify Admin/Customer of Resumption
     await NotificationService().sendNotification(
       title: 'Service Resumed',
-      body: '$currentWorkerName has resumed the service: ${service.serviceName}',
+      body:
+          '$currentWorkerName has resumed the service: ${service.serviceName}',
       type: 'service',
       targetUserIds: [service.customerId, 'admin'], // Notify both
       relatedId: serviceId,
@@ -669,6 +673,14 @@ class AppStateProvider with ChangeNotifier {
   }) async {
     if (currentWorkerId == null) return;
 
+    // ✅ Prevent double execution
+    if (_processingServiceIds.contains(serviceId)) {
+      debugPrint('⚠️ Service $serviceId logic already in progress');
+      return;
+    }
+    _processingServiceIds.add(serviceId);
+    notifyListeners(); // Notify UI to disable button
+
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
     if (serviceIndex == -1) {
       debugPrint('❌ Service $serviceId not found');
@@ -718,9 +730,13 @@ class AppStateProvider with ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
+    // ✅ Deterministic ID Generation to prevent duplicates
+    final earnTxnId = 'TXN_EARN_${service.id}';
+    final deductTxnId = 'TXN_DEDUCT_${service.id}';
+
     // Create Transactions
     final transactionEarn = Transaction(
-      id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+      id: earnTxnId,
       workerId: currentWorkerId!,
       workerName: currentWorkerName!,
       type: TransactionType.walletEarning,
@@ -736,7 +752,7 @@ class AppStateProvider with ChangeNotifier {
     );
 
     final transactionDeduct = Transaction(
-      id: 'TXN${DateTime.now().millisecondsSinceEpoch + 1}',
+      id: deductTxnId,
       workerId: currentWorkerId!,
       workerName: currentWorkerName!,
       type: TransactionType.creditDeduction,
@@ -852,6 +868,11 @@ class AppStateProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('❌ Error completing service: $e');
       rethrow;
+    } finally {
+      // ✅ Release lock
+      _processingServiceIds.remove(serviceId);
+      // notifyListeners() is called below or automatically by finally?
+      // Safest to just ensure closure.
     }
 
     _currentWorkerData.calculatePendingAmount(activeServices);
@@ -926,7 +947,8 @@ class AppStateProvider with ChangeNotifier {
       // ✅ NOTIFICATION: Notify Customer of Rescheduling
       await NotificationService().sendNotification(
         title: 'Service Rescheduled',
-        body: 'Your service "${service.serviceName}" has been rescheduled with a new worker.',
+        body:
+            'Your service "${service.serviceName}" has been rescheduled with a new worker.',
         type: 'service',
         targetUserIds: [service.customerId],
         relatedId: serviceId,

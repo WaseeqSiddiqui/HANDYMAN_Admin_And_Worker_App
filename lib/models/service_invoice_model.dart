@@ -49,7 +49,7 @@ class ServiceInvoice {
         : 'UNKNOWN_CUSTOMER';
 
     return ServiceInvoice(
-      invoiceNumber: "INV-${DateTime.now().millisecondsSinceEpoch}",
+      invoiceNumber: "INV-${req.id}",
       serviceRequestId: req.id,
       serviceId: req.serviceId,
       serviceName: req.serviceName,
