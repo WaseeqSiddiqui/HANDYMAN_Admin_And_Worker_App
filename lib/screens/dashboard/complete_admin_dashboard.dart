@@ -16,6 +16,7 @@ import '/admin/vat_management_screen.dart';
 import '/admin/financial_reports_screen.dart';
 import '/admin/service_requests_screen.dart';
 import '/admin/withdrawl_requests_screen.dart';
+import '/admin/credit_requests_screen.dart';
 import '/admin/worker_management_screen.dart';
 import '/admin/customer_management_screen.dart';
 import '/admin/service_management_screen.dart';
@@ -328,6 +329,19 @@ class AdminDashboardState extends State<AdminDashboard> {
                         MaterialPageRoute(
                           builder: (context) =>
                               const WithdrawalRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.add_card,
+                    'Credit Requests • طلبات الرصيد',
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreditRequestsScreen(),
                         ),
                       );
                     },

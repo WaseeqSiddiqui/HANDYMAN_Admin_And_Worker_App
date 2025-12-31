@@ -304,7 +304,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ],
             ),
             trailing: Text(
-              '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.walletBalance.toStringAsFixed(0)}',
+              '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.walletBalance.toStringAsFixed(2)}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             onTap: () {
@@ -333,7 +333,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
               ],
             ),
             trailing: Text(
-              '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.creditBalance.toStringAsFixed(0)}',
+              '${WorkerTranslations.getEnglish(WorkerTranslations.sar)} ${appState.creditBalance.toStringAsFixed(2)}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             onTap: () {

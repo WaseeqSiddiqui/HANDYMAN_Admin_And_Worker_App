@@ -11,6 +11,7 @@ import '../models/service_request_model.dart';
 import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
+import '../models/credit_request_model.dart';
 
 import '/utils/admin_translations.dart';
 import '/services/notification_service.dart';
@@ -1227,6 +1228,32 @@ class AppStateProvider with ChangeNotifier {
       notifyListeners();
 
       debugPrint('✅ Invoice marked as generated for service: $serviceId');
+    }
+  }
+
+  // ✅ CREDIT REQUEST
+  Future<void> submitCreditRequest(
+    double amount,
+    String referenceNumber,
+  ) async {
+    if (currentWorkerId == null) return;
+
+    final request = CreditRequest(
+      id: 'CR_${DateTime.now().millisecondsSinceEpoch}',
+      workerId: currentWorkerId!,
+      workerName: currentWorkerName ?? 'Worker',
+      amount: amount,
+      referenceNumber: referenceNumber,
+      status: 'Pending',
+      requestDate: DateTime.now(),
+    );
+
+    try {
+      await _firestoreService.createCreditRequest(request);
+      debugPrint('✅ Credit Request Submitted: ${request.id}');
+    } catch (e) {
+      debugPrint('❌ Error submitting credit request: $e');
+      rethrow;
     }
   }
 }

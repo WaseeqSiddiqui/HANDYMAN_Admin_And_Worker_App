@@ -215,7 +215,15 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
     int count = 0;
     for (var customer in customers) {
       final customerServices = appState.getCustomerServices(customer.id);
-      count += customerServices.length;
+      // Filter for active statuses only
+      final activeCount = customerServices.where((s) {
+        final status = s.status.toLowerCase();
+        return status == 'pending' ||
+            status == 'assigned' ||
+            status == 'inprogress' ||
+            status == 'postponed'; // ✅ Include postponed as active
+      }).length;
+      count += activeCount;
     }
     return count;
   }
@@ -514,6 +522,7 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF005DFF),
+                    foregroundColor: Colors.white, // ✅ White text
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: Text(

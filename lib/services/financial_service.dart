@@ -12,6 +12,7 @@ import '/models/withdrawl_requests_model.dart';
 import '/models/transaction_model.dart';
 import '/providers/app_state_provider.dart';
 import '/services/firestore_service.dart';
+import '/models/credit_request_model.dart';
 import '/services/invoice_service.dart';
 import '/models/service_invoice_model.dart';
 import '/services/notification_service.dart';
@@ -79,6 +80,13 @@ class FinancialService {
       _vatRecords.clear();
       _vatRecords.addAll(records);
       _totalVATCollected = records.fold(0.0, (sum, r) => sum + r.vatAmount);
+      _notifyListeners();
+    });
+
+    // Credit Requests Stream
+    _firestoreService.getCreditRequestsStream().listen((requests) {
+      _creditRequests.clear();
+      _creditRequests.addAll(requests);
       _notifyListeners();
     });
 
@@ -183,6 +191,7 @@ class FinancialService {
   final List<CommissionRecord> _commissionRecords = [];
   final List<VATRecord> _vatRecords = [];
   final List<WithdrawalRequest> _withdrawalRequests = [];
+  final List<CreditRequest> _creditRequests = []; // Cached credit requests
 
   double _currentBalance = 0.0;
   double _totalCommissionCollected = 0.0;
@@ -787,6 +796,113 @@ class FinancialService {
     _totalVATCollected = 0.0;
     _notifyListeners();
   }
+  // ============= CREDIT REQUESTS =============
+
+  Future<CreditRequestResult> processCreditRequest({
+    required CreditRequest request,
+    required bool approve,
+    String? adminNotes,
+  }) async {
+    try {
+      if (approve) {
+        // 1. Update Worker Credit Balance
+        final workerData = await _firestoreService.getWorkerById(
+          request.workerId,
+        );
+        if (workerData == null) {
+          return CreditRequestResult(
+            success: false,
+            message: 'Worker not found',
+          );
+        }
+
+        final newCreditBalance = workerData.creditBalance + request.amount;
+        await _firestoreService.updateWorkerCredit(
+          request.workerId,
+          newCreditBalance,
+        );
+
+        // 2. Add Worker Transaction (Credit Top-up)
+        await _firestoreService.addTransaction(
+          Transaction(
+            id: 'CR_TXN_${DateTime.now().millisecondsSinceEpoch}',
+            workerId: request.workerId,
+            workerName: request.workerName,
+            type: TransactionType.creditTopup,
+            amount: request.amount,
+            balanceBefore: workerData.creditBalance,
+            balanceAfter: newCreditBalance,
+            reference: request.referenceNumber,
+            description: 'Manual Credit Top-up Approved',
+            createdAt: DateTime.now(),
+          ),
+        );
+
+        // 3. (REMOVED) Update Admin Wallet - User request: don't touch admin wallet for manual credit topups.
+        // The admin received money externally, but we don't want to pollute platform 'Revenue' stats.
+
+        /* 
+        // Previously:
+        _currentBalance += request.amount;
+        final walletTxn = WalletTransaction(...);
+        await _firestoreService.addAdminWalletTransaction(walletTxn);
+        */
+
+        // 4. Update Request Status
+        await _firestoreService.updateCreditRequestStatus(
+          request.id,
+          'Approved',
+          notes: adminNotes,
+        );
+
+        // 5. Notify Worker
+        await NotificationService().sendNotification(
+          title: 'Credit Request Approved',
+          body:
+              'Your credit top-up of SAR ${request.amount.toStringAsFixed(2)} has been approved.',
+          type: 'payment',
+          targetUserIds: [request.workerId],
+          relatedId: request.id,
+        );
+
+        return CreditRequestResult(
+          success: true,
+          message: 'Credit request approved successfully',
+        );
+      } else {
+        // Reject
+        await _firestoreService.updateCreditRequestStatus(
+          request.id,
+          'Rejected',
+          notes: adminNotes,
+        );
+
+        // Notify Worker
+        await NotificationService().sendNotification(
+          title: 'Credit Request Rejected',
+          body: 'Your credit request was rejected. Reason: $adminNotes',
+          type: 'warning',
+          targetUserIds: [request.workerId],
+          relatedId: request.id,
+        );
+
+        return CreditRequestResult(
+          success: true,
+          message: 'Credit request rejected',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error processing credit request: $e');
+      return CreditRequestResult(success: false, message: 'Error: $e');
+    }
+  }
+
+  List<CreditRequest> getCreditRequests({String? status}) {
+    if (status != null) {
+      return _creditRequests.where((req) => req.status == status).toList();
+    }
+    return List.unmodifiable(_creditRequests);
+  }
 }
 
 // ============= RESULT CLASSES =============
@@ -807,4 +923,11 @@ class WithdrawalResult {
   final String message;
 
   WithdrawalResult({required this.success, required this.message});
+}
+
+class CreditRequestResult {
+  final bool success;
+  final String message;
+
+  CreditRequestResult({required this.success, required this.message});
 }

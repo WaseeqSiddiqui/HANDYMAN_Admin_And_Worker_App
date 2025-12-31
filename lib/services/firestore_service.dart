@@ -13,6 +13,7 @@ import '../models/service_invoice_model.dart';
 import '../models/service_model.dart';
 import '../models/review_model.dart';
 import '../models/chat_message_model.dart';
+import '../models/credit_request_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -42,6 +43,8 @@ class FirestoreService {
       _firestore.collection('services_offered');
   CollectionReference get _reviewsCollection =>
       _firestore.collection('reviews');
+  CollectionReference get _creditRequestsCollection =>
+      _firestore.collection('credit_requests');
 
   // Singleton pattern
   static FirestoreService _instance = FirestoreService._internal();
@@ -534,6 +537,71 @@ class FirestoreService {
       await _withdrawalCollection.doc(request.id).update(request.toMap());
     } catch (e) {
       debugPrint('Error updating withdrawal request: $e');
+      rethrow;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // CREDIT REQUESTS (Top-up)
+  // ---------------------------------------------------------------------------
+
+  Stream<List<CreditRequest>> getCreditRequestsStream({String? status}) {
+    Query query = _creditRequestsCollection.orderBy(
+      'requestDate',
+      descending: true,
+    );
+    if (status != null) {
+      query = query.where('status', isEqualTo: status);
+    }
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        // Ensure ID is set
+        if (data['id'] == null || data['id'].isEmpty) {
+          data['id'] = doc.id;
+        }
+        return CreditRequest.fromJson(data);
+      }).toList();
+    });
+  }
+
+  Future<void> createCreditRequest(CreditRequest request) async {
+    try {
+      await _creditRequestsCollection.doc(request.id).set(request.toJson());
+
+      // Notify Admin
+      await _notificationsCollection.add({
+        'title': 'New Credit Request',
+        'message':
+            '${request.workerName} requested credit of SAR ${request.amount}',
+        'type': 'finance',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'targetUserIds': ['admin'],
+        'relatedId': request.id,
+      });
+    } catch (e) {
+      debugPrint('Error creating credit request: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateCreditRequestStatus(
+    String requestId,
+    String status, {
+    String? notes,
+  }) async {
+    try {
+      final updates = <String, dynamic>{
+        'status': status,
+        'processedDate': DateTime.now().toIso8601String(),
+      };
+      if (notes != null) {
+        updates['adminNotes'] = notes;
+      }
+      await _creditRequestsCollection.doc(requestId).update(updates);
+    } catch (e) {
+      debugPrint('Error updating credit request status: $e');
       rethrow;
     }
   }

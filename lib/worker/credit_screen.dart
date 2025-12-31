@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/worker_translations.dart';
+import '../services/firestore_service.dart';
+import '../models/credit_request_model.dart';
 import 'transactions_screen.dart';
 
 class CreditScreen extends StatefulWidget {
@@ -78,12 +80,13 @@ class _CreditScreenState extends State<CreditScreen> {
                         const SizedBox(height: 8),
                         _buildTopupSection(cardColor, textColor, appState),
                         const SizedBox(height: 16),
+                        _buildPendingRequests(cardColor, textColor, appState),
+                        const SizedBox(height: 16),
                         _buildTransactionHistory(
                           cardColor,
                           textColor,
                           appState,
                         ),
-                        const SizedBox(height: 20), // Bottom padding
                       ],
                     ),
                   ),
@@ -330,6 +333,15 @@ class _CreditScreenState extends State<CreditScreen> {
             subtitle: 'SAR ${appState.walletBalance.toStringAsFixed(2)}',
             color: Colors.green,
             onTap: () => _topupFromWallet(appState),
+          ),
+          const SizedBox(height: 12),
+          // Manual Transfer Option
+          _buildTopupOption(
+            icon: Icons.account_balance,
+            title: 'Bank Transfer / STC Pay',
+            subtitle: 'Manual Verification • التحقق اليدوي',
+            color: Colors.blue,
+            onTap: () => _showManualTopupDialog(context, appState),
           ),
           const SizedBox(height: 16),
 
@@ -865,6 +877,171 @@ class _CreditScreenState extends State<CreditScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ✅ Manual Top-up Dialog
+  void _showManualTopupDialog(BuildContext context, AppStateProvider appState) {
+    final TextEditingController amountController = TextEditingController();
+    final TextEditingController refController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Request Credit Top-up',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              'طلب رصيد إضافي',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Transfer amount to Admin STC Pay, then enter details below.',
+              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Amount (SAR)',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.attach_money),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: refController,
+              decoration: const InputDecoration(
+                labelText: 'Reference Number',
+                hintText: 'e.g. 1234567890',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.receipt),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            child: const Text('Submit Request'),
+            onPressed: () async {
+              final amount = double.tryParse(amountController.text) ?? 0;
+              final ref = refController.text.trim();
+
+              if (amount <= 0 || ref.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Please enter valid amount and reference number',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context); // Close Dialog
+
+              try {
+                await appState.submitCreditRequest(amount, ref);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Request submitted successfully!'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingRequests(
+    Color cardColor,
+    Color textColor,
+    AppStateProvider appState,
+  ) {
+    // if (appState.workerId == null) return const SizedBox.shrink();
+
+    return StreamBuilder<List<CreditRequest>>(
+      stream: FirestoreService().getCreditRequestsStream(status: 'Pending'),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        // Filter client-side by workerId
+        final requests = snapshot.data!
+            .where((r) => r.workerId == appState.workerId)
+            .toList();
+        if (requests.isEmpty) return const SizedBox.shrink();
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.orange.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Pending Requests • طلبات معلقة',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...requests
+                  .map(
+                    (r) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Ref: ${r.referenceNumber}',
+                            style: TextStyle(fontSize: 12, color: textColor),
+                          ),
+                          Text(
+                            'SAR ${r.amount}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ],
+          ),
+        );
+      },
     );
   }
 
