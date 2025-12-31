@@ -211,7 +211,8 @@ class NotificationService {
     );
 
     // Helper to ignore initial load
-    bool isFirstSnapshot = true;
+    bool isInitialSnapshot = true;
+    debugPrint("📥 [NotificationService] Listener initialized for $userId");
 
     _notificationSubscription = _firestore
         .collection('notifications')
@@ -224,21 +225,23 @@ class NotificationService {
               "🔥 [NotificationService] Snapshot received! Docs: ${snapshot.docs.length}",
             );
 
-            // 1. Ignore the very first snapshot (it contains existing history)
-            if (isFirstSnapshot) {
-              isFirstSnapshot = false;
+            // 1. Skip the first batch of documents (existing history)
+            if (isInitialSnapshot) {
+              isInitialSnapshot = false;
               debugPrint(
-                "📥 Notification Listener Initialized. Ignoring ${snapshot.docs.length} existing notifications.",
+                "📥 [NotificationService] Initial snapshot ignored for $userId (${snapshot.docs.length} docs)",
               );
               return;
             }
 
-            // 2. Process changes only
+            // 2. Process only new additions
             for (var change in snapshot.docChanges) {
               if (change.type == DocumentChangeType.added) {
                 final data = change.doc.data();
+                if (data == null) continue;
+
                 debugPrint(
-                  "🔔 [NotificationService] LIVE NOTIFICATION: ${data!['title']}",
+                  "🔔 [NotificationService] LIVE NOTIFICATION: ${data['title']} for $userId",
                 );
 
                 _showLocalNotificationPayload(
@@ -362,9 +365,9 @@ class NotificationService {
         'relatedId': relatedId,
       });
 
-      debugPrint("Notification sent: $title to $targetUserIds");
+      debugPrint("✅ Notification WRITTEN to Firestore: $title to $targetUserIds");
     } catch (e) {
-      debugPrint("Error creating notification: $e");
+      debugPrint("❌ Error creating notification in Firestore: $e");
     }
   }
 

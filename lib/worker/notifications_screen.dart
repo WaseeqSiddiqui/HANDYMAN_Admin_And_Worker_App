@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state_provider.dart';
+import 'chat_screen.dart'; // Added ChatScreen import
 
 class WorkerNotificationsScreen extends StatefulWidget {
   const WorkerNotificationsScreen({super.key});
@@ -170,6 +171,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             [
                   'All',
                   'Unread',
+                  'Chat', // Added Chat filter
                   'Service',
                   'Payment',
                   'Reminder',
@@ -380,6 +382,28 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
       'isRead': true,
     });
 
+    final String type = (notification['type'] ?? '').toString().toLowerCase();
+    final String relatedId = (notification['relatedId'] ?? '').toString();
+
+    // Direct navigation for Chat notifications
+    if (type == 'chat' && relatedId.isNotEmpty) {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      final service = appState.getServiceById(relatedId);
+
+      if (service != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(
+              serviceRequest: service,
+              workerName: appState.workerName,
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -438,9 +462,14 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     );
 
     if (confirm == true) {
+      final workerId =
+          Provider.of<AppStateProvider>(context, listen: false).workerId;
+
       var snapshot = await FirebaseFirestore.instance
           .collection('notifications')
+          .where('targetUserIds', arrayContains: workerId) // Safety: Only clear YOURS
           .get();
+
       for (var doc in snapshot.docs) {
         await doc.reference.delete();
       }

@@ -92,12 +92,6 @@ class ChatMonitorService {
                       debugPrint(
                         "🔔 [ChatMonitor] New Message from Customer: ${message.message}",
                       );
-                      NotificationService().showLocalNotification(
-                        title: 'New Message • رسالة جديدة',
-                        body: '${message.senderName}: ${message.message}',
-                        payload:
-                            'chat_$serviceRequestId', // Potential Payload for navigation
-                      );
                     }
                   }
                 }
