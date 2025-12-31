@@ -68,9 +68,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
 
           // ✅ Start listening to notifications
           NotificationService().startListeningToNotifications(_workerId);
-
-          // ✅ Start monitoring chats for Customer messages
-          ChatMonitorService().startMonitoring(_workerId);
         }
       });
     } else {

@@ -14,6 +14,7 @@ import '../models/service_model.dart';
 import '../models/review_model.dart';
 import '../models/chat_message_model.dart';
 import '../models/credit_request_model.dart';
+import 'notification_service.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -45,6 +46,8 @@ class FirestoreService {
       _firestore.collection('reviews');
   CollectionReference get _creditRequestsCollection =>
       _firestore.collection('credit_requests');
+  CollectionReference get _notificationsCollection =>
+      _firestore.collection('notifications');
 
   // Singleton pattern
   static FirestoreService _instance = FirestoreService._internal();
@@ -263,45 +266,37 @@ class FirestoreService {
       if (oldStatus != service.status.name) {
         // SERVICE COMPLETED -> Notify Admin
         if (service.status == ServiceRequestStatus.completed) {
-          await _notificationsCollection.add({
-            'title': 'Service Completed',
-            'message': 'Service ${service.serviceName} marked as completed.',
-            'type': 'service',
-            'timestamp': FieldValue.serverTimestamp(),
-            'isRead': false,
-            'targetUserIds': ['admin'], // Admin always needs to know
-            'relatedId': service.id,
-          });
+          await NotificationService().sendNotification(
+            title: 'Service Completed • تم الانتهاء من الخدمة',
+            body: 'Service ${service.serviceName} marked as completed.',
+            type: 'service',
+            targetUserIds: ['admin'],
+            relatedId: service.id,
+          );
         }
-        // SERVICE POSTPONED -> Notify Admin (User requirement: Worker does it, so only Admin needs to know)
-        else if (service.status.name == 'postponed') {
-          await _notificationsCollection.add({
-            'title': 'Service Postponed',
-            'message':
+        // SERVICE POSTPONED -> Notify Admin
+        else if (service.status == ServiceRequestStatus.postponed) {
+          await NotificationService().sendNotification(
+            title: 'Service Postponed • تأجيل الخدمة',
+            body:
                 'Service ${service.serviceName} has been postponed. Reason: ${service.postponeReason ?? "No reason provided"}',
-            'type': 'warning',
-            'timestamp': FieldValue.serverTimestamp(),
-            'isRead': false,
-            'targetUserIds': ['admin'],
-            'relatedId': service.id,
-          });
+            type: 'warning',
+            targetUserIds: ['admin'],
+            relatedId: service.id,
+          );
         }
       }
 
       // ✅ NOTIFICATION: Worker Re-assignment
-      // Check if workerId changed
       final oldWorkerId = oldData?['workerId'];
       if (service.workerId != null && service.workerId != oldWorkerId) {
-        await _notificationsCollection.add({
-          'title': 'New Assignment',
-          'message':
-              'You have been assigned to service: ${service.serviceName}',
-          'type': 'service',
-          'timestamp': FieldValue.serverTimestamp(),
-          'isRead': false,
-          'targetUserIds': [service.workerId!],
-          'relatedId': service.id,
-        });
+        await NotificationService().sendNotification(
+          title: 'New Assignment • تعيين جديد',
+          body: 'You have been assigned to service: ${service.serviceName}',
+          type: 'service',
+          targetUserIds: [service.workerId!],
+          relatedId: service.id,
+        );
       }
     } catch (e) {
       debugPrint('Error updating service request: $e');
@@ -806,10 +801,6 @@ class FirestoreService {
     }
   }
 
-  // Need to expose notifications collection getter if not exists
-  CollectionReference get _notificationsCollection =>
-      _firestore.collection('notifications');
-
   // ---------------------------------------------------------------------------
   // CHAT
   // ---------------------------------------------------------------------------
@@ -860,51 +851,6 @@ class FirestoreService {
           .set(message.toMap());
 
       debugPrint('Message sent successfully!');
-
-      debugPrint('Message sent successfully!');
-
-      // ✅ Notification Logic: Notify the recipient(s)
-      try {
-        final serviceDoc = await _servicesCollection
-            .doc(serviceRequestId)
-            .get();
-
-        if (serviceDoc.exists) {
-          final data = serviceDoc.data() as Map<String, dynamic>;
-          final workerId = data['workerId'];
-          final customerId = data['customerId'];
-
-          // 1. Notify Worker (if sender is NOT worker)
-          if (message.role != 'worker' && workerId != null) {
-            await _notificationsCollection.add({
-              'title': 'New Message • رسالة جديدة',
-              'message': '${message.senderName}: ${message.message}',
-              'type': 'chat',
-              'timestamp': FieldValue.serverTimestamp(),
-              'isRead': false,
-              'targetUserIds': [workerId],
-              'relatedId': serviceRequestId,
-            });
-            debugPrint('✅ Chat notification sent to worker: $workerId');
-          }
-
-          // 2. Notify Customer (if sender is NOT customer)
-          if (message.role != 'customer' && customerId != null) {
-            await _notificationsCollection.add({
-              'title': 'New Message • رسالة جديدة',
-              'message': '${message.senderName}: ${message.message}',
-              'type': 'chat',
-              'timestamp': FieldValue.serverTimestamp(),
-              'isRead': false,
-              'targetUserIds': [customerId],
-              'relatedId': serviceRequestId,
-            });
-            debugPrint('✅ Chat notification sent to customer: $customerId');
-          }
-        }
-      } catch (nError) {
-        debugPrint('⚠️ Error sending chat notification: $nError');
-      }
     } catch (e) {
       debugPrint('Error sending message: $e');
       rethrow;

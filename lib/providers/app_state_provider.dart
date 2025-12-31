@@ -565,15 +565,13 @@ class AppStateProvider with ChangeNotifier {
       '✅ Service $serviceId accepted (Reserved Credit: $requiredCredit)',
     );
 
-    // ✅ NOTIFICATION: Notify Customer
-    // Since we don't have direct customer push token logic yet,
-    // we assume the customer app listens to their user ID notifications or topics.
+    // ✅ NOTIFICATION: Notify Customer & Admin
     await NotificationService().sendNotification(
       title: 'Service Accepted',
       body:
           '$currentWorkerName has accepted your request for ${service.serviceName}',
       type: 'service',
-      targetUserIds: [service.customerId],
+      targetUserIds: [service.customerId, 'admin'], // ✅ Notify both
       relatedId: serviceId,
     );
   }
@@ -603,17 +601,14 @@ class AppStateProvider with ChangeNotifier {
 
     await _firestoreService.updateServiceRequest(updatedService);
 
-    // Check credit again logic for resume?
-    // User requirement: "credit reserve ho jaye" (credit be reserved).
-    // If postponed, credit should ALREADY be reserved if we treat postponed as "active".
-    // Let's check logic:
-    // If postponed service releases reservation? NO, we didn't implement release on postpone.
-    // So "resume" just needs to verify we still have reservation? or just proceed.
-    // If we assume reservation is KEPT during postponement, then no need to reserve again.
-    // BUT, if postponed allowed someone to use credit elsewhere?
-    // Let's assume Postpone keeps reservation.
-    // Wait, earlier logic: cancelService releases credit. PostponeService logic below just updates status.
-    // So logic holds: Postpone keeps credit reserved.
+    // ✅ NOTIFICATION: Notify Admin/Customer of Resumption
+    await NotificationService().sendNotification(
+      title: 'Service Resumed',
+      body: '$currentWorkerName has resumed the service: ${service.serviceName}',
+      type: 'service',
+      targetUserIds: [service.customerId, 'admin'], // Notify both
+      relatedId: serviceId,
+    );
 
     debugPrint('✅ Service $serviceId resumed');
   }
@@ -867,12 +862,12 @@ class AppStateProvider with ChangeNotifier {
   }
   // ✅ FIXED: Add validation for postponeService
 
-  void reschedulePostponedService({
+  Future<void> reschedulePostponedService({
     required String serviceId,
     required String newWorkerId,
     required String newWorkerName,
     required DateTime newScheduledDate,
-  }) {
+  }) async {
     final serviceIndex = _serviceRequests.indexWhere((s) => s.id == serviceId);
 
     if (serviceIndex != -1) {
@@ -899,7 +894,7 @@ class AppStateProvider with ChangeNotifier {
         ),
       );
 
-      _serviceRequests[serviceIndex] = ServiceRequest(
+      final updatedService = ServiceRequest(
         id: service.id,
         customerId: service.customerId,
         customerName:
@@ -925,10 +920,22 @@ class AppStateProvider with ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
+      // ✅ Persist to Firestore
+      await _firestoreService.updateServiceRequest(updatedService);
+
+      // ✅ NOTIFICATION: Notify Customer of Rescheduling
+      await NotificationService().sendNotification(
+        title: 'Service Rescheduled',
+        body: 'Your service "${service.serviceName}" has been rescheduled with a new worker.',
+        type: 'service',
+        targetUserIds: [service.customerId],
+        relatedId: serviceId,
+      );
+
       debugPrint(
         '✅ Service $serviceId rescheduled to $newWorkerName (${worker.nameArabic})',
       );
-      notifyListeners();
+      // Local state is updated by Firestore stream
     }
   }
 

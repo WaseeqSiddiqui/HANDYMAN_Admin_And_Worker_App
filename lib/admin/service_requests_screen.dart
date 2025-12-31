@@ -2228,20 +2228,20 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               ElevatedButton(
                 onPressed: selectedWorker == null
                     ? null
-                    : () {
+                    : () async {
                         final appState = Provider.of<AppStateProvider>(
                           context,
                           listen: false,
                         );
 
-                        appState.reschedulePostponedService(
+                        await appState.reschedulePostponedService(
                           serviceId: service.id,
                           newWorkerId: selectedWorker!.id,
                           newWorkerName: selectedWorker!.name,
                           newScheduledDate: selectedDate,
                         );
 
-                        Navigator.pop(dialogContext);
+                        if (context.mounted) Navigator.pop(dialogContext);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
