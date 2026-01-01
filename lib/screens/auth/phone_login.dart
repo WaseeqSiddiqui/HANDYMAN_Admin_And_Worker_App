@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
 import '/services/firebase_auth_service.dart';
+import '/services/worker_auth_service.dart';
 import '/utils/auth_translations.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
@@ -81,6 +82,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       final digest = sha256.convert(bytes);
       if (digest.toString() != adminPhoneHash) {
         _showError('Unauthorized Access', 'دخول غير مصرح به');
+        return;
+      }
+    }
+
+    // WORKER CHECK: If role is Worker, verify worker is registered
+    if (widget.role == 'Worker') {
+      final workerAuthService = WorkerAuthService();
+      if (!workerAuthService.isWorkerRegistered(formattedPhone)) {
+        _showError(
+          'Your account is not registered. Please contact administrator.',
+          'حسابك غير مسجل. يرجى الاتصال بالمسؤول.',
+        );
         return;
       }
     }
