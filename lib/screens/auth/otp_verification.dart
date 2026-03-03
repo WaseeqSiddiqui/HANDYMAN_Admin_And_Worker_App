@@ -144,26 +144,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         if (result['success']) {
           // 🔥 NEW: Handle Worker Login & Activation
           if (widget.role == 'Worker') {
-            // Check if worker exists in local database
-            final workerExists = _checkWorkerExists(widget.phoneNumber);
-
-            if (!workerExists) {
-              // Worker not added by admin yet
-              _showError(
-                'Your account is not registered. Please contact administrator.',
-                'حسابك غير مسجل. يرجى الاتصال بالمسؤول.',
-              );
-
-              // Sign out from Firebase and go back
-              await _authService.signOut();
-              if (mounted) {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              }
-              return;
-            }
-
-            // Worker exists, activate account
+            // Worker exists (already validated before OTP was sent)
+            // Now activate the account
             final activationSuccess = await _activateWorker(widget.phoneNumber);
 
             if (!activationSuccess) {

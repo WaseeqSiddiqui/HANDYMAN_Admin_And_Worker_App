@@ -366,6 +366,7 @@ class NotificationService {
         return;
       }
 
+      // 1. Write to Firestore for in-app notification history
       await _firestore.collection('notifications').add({
         'title': title,
         'message': body,
@@ -379,8 +380,13 @@ class NotificationService {
       debugPrint(
         "✅ Notification WRITTEN to Firestore: $title to $targetUserIds",
       );
+
+      // 2. Show local notification immediately for system tray
+      await showLocalNotification(title: title, body: body, payload: relatedId);
+
+      debugPrint("✅ Local notification SHOWN in system tray: $title");
     } catch (e) {
-      debugPrint("❌ Error creating notification in Firestore: $e");
+      debugPrint("❌ Error creating notification: $e");
     }
   }
 
