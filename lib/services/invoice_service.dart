@@ -37,6 +37,7 @@ class InvoiceService {
 
   static const String ADMIN_STC_ACCOUNT = '0535616095';
   static const String ADMIN_BANK_NAME = 'STC Pay / Bank Transfer';
+  static const String VAT_REGISTRATION_NUMBER = '312875789500003';
 
   // ✅ Extract English text only from bilingual strings
   String _getEnglishOnly(String text) {
@@ -88,8 +89,8 @@ class InvoiceService {
         debugPrint('⚠️ Warning: Saving invoice with empty Customer ID!');
       }
 
-      // Sanitize address (remove phone number)
-      final cleanAddress = _cleanAddress(invoice.customerAddress);
+      // Sanitize address (remove phone number) - DISABLED per user request
+      // final cleanAddress = _cleanAddress(invoice.customerAddress);
 
       final cleanInvoice = ServiceInvoice(
         invoiceNumber: invoice.invoiceNumber,
@@ -98,7 +99,7 @@ class InvoiceService {
         serviceName: invoice.serviceName,
         customerId: invoice.customerId,
         customerName: invoice.customerName,
-        customerAddress: cleanAddress, // CLEANED
+        customerAddress: invoice.customerAddress, // RAW ADDRESS
         workerId: invoice.workerId,
         workerName: invoice.workerName,
         basePrice: invoice.basePrice,
@@ -124,6 +125,9 @@ class InvoiceService {
   }
 
   List<ServiceInvoice> getAllInvoices() => List.unmodifiable(_invoices);
+
+  Stream<List<ServiceInvoice>> getInvoicesStream() =>
+      _firestoreService.getInvoicesStream();
 
   ServiceInvoice? getInvoiceByServiceId(String serviceId) {
     try {
@@ -219,6 +223,13 @@ class InvoiceService {
                             color: PdfColors.grey200,
                           ),
                         ),
+                        pw.Text(
+                          'VAT: $VAT_REGISTRATION_NUMBER',
+                          style: const pw.TextStyle(
+                            fontSize: 12,
+                            color: PdfColors.grey200,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -261,7 +272,7 @@ class InvoiceService {
                               ),
                               pw.SizedBox(height: 4),
                               pw.Text(
-                                _cleanAddress(invoice.customerAddress),
+                                invoice.customerAddress,
                                 textDirection: pw.TextDirection.rtl,
                                 style: pw.TextStyle(
                                   fontSize: 12,
@@ -338,9 +349,23 @@ class InvoiceService {
                           ],
                         ),
                         // Rows
+
+                        // Calculate: Base - (Base * 0.15)
                         _buildTableRow(
-                          _getEnglishOnly(invoice.serviceName),
-                          'Base Service',
+                          'Base Service (Excl. VAT)',
+                          'Service',
+                          invoice.basePrice - (invoice.basePrice * 0.15),
+                          isOdd: true,
+                        ),
+                        _buildTableRow(
+                          'VAT (15%)',
+                          'Tax',
+                          invoice.basePrice * 0.15,
+                          isOdd: false,
+                        ),
+                        _buildTableRow(
+                          'Base Service (Inc. VAT)',
+                          'Total',
                           invoice.basePrice,
                           isOdd: true,
                         ),
@@ -351,7 +376,7 @@ class InvoiceService {
                             _getEnglishOnly(item.name),
                             item.type,
                             item.price,
-                            isOdd: (index + 2) % 2 != 0,
+                            isOdd: (index) % 2 == 0,
                           );
                         }),
                       ],

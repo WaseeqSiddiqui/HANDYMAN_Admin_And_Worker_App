@@ -214,9 +214,20 @@ class NotificationService {
     bool isInitialSnapshot = true;
     debugPrint("📥 [NotificationService] Listener initialized for $userId");
 
+    // ✅ Listen for Specific User, All users, or Role-based groups
     _notificationSubscription = _firestore
         .collection('notifications')
-        .where('targetUserIds', arrayContains: userId)
+        .where(
+          'targetUserIds',
+          arrayContainsAny: [
+            userId,
+            'All',
+            'Workers',
+            'workers',
+            'Customers', // In case we reuse for customers
+            'customers',
+          ],
+        )
         // ✅ REMOVED orderBy/limit to avoid "Missing Index" errors
         .snapshots()
         .listen(
@@ -365,7 +376,9 @@ class NotificationService {
         'relatedId': relatedId,
       });
 
-      debugPrint("✅ Notification WRITTEN to Firestore: $title to $targetUserIds");
+      debugPrint(
+        "✅ Notification WRITTEN to Firestore: $title to $targetUserIds",
+      );
     } catch (e) {
       debugPrint("❌ Error creating notification in Firestore: $e");
     }

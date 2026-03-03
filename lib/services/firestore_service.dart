@@ -536,6 +536,20 @@ class FirestoreService {
     }
   }
 
+  Future<List<WithdrawalRequest>> getWithdrawalRequests(String workerId) async {
+    try {
+      final snapshot = await _withdrawalCollection
+          .where('workerId', isEqualTo: workerId)
+          .get();
+      return snapshot.docs.map((doc) {
+        return WithdrawalRequest.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      debugPrint('Error fetching withdrawal requests for worker: $e');
+      rethrow;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // CREDIT REQUESTS (Top-up)
   // ---------------------------------------------------------------------------
@@ -597,6 +611,20 @@ class FirestoreService {
       await _creditRequestsCollection.doc(requestId).update(updates);
     } catch (e) {
       debugPrint('Error updating credit request status: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<CreditRequest>> getCreditRequests(String workerId) async {
+    try {
+      final snapshot = await _creditRequestsCollection
+          .where('workerId', isEqualTo: workerId)
+          .get();
+      return snapshot.docs.map((doc) {
+        return CreditRequest.fromJson(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      debugPrint('Error fetching credit requests for worker: $e');
       rethrow;
     }
   }

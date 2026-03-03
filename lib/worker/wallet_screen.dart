@@ -29,6 +29,9 @@ class _WalletScreenState extends State<WalletScreen> {
       builder: (context, appState, child) {
         final canWithdraw = appState.canWithdraw();
         final daysRemaining = appState.getDaysUntilWithdrawal();
+        final hasPendingRequest = _financialService
+            .getWithdrawalRequests(status: 'Pending')
+            .any((req) => req.workerId == appState.workerId);
 
         return Scaffold(
           backgroundColor: bgColor,
@@ -72,8 +75,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   cardColor,
                   textColor,
                   appState,
-                  canWithdraw,
+                  canWithdraw && !hasPendingRequest,
                   daysRemaining,
+                  hasPendingRequest,
                 ),
                 const SizedBox(height: 24),
 
@@ -400,6 +404,7 @@ class _WalletScreenState extends State<WalletScreen> {
     AppStateProvider appState,
     bool canWithdraw,
     int daysRemaining,
+    bool hasPendingRequest,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -472,7 +477,12 @@ class _WalletScreenState extends State<WalletScreen> {
               LengthLimitingTextInputFormatter(4),
             ],
             decoration: InputDecoration(
-              hintText: canWithdraw
+              hintText: hasPendingRequest
+                  ? WorkerTranslations.getBilingual(
+                      'You have a pending request',
+                      'لديك طلب معلق',
+                    )
+                  : canWithdraw
                   ? WorkerTranslations.getBilingual(
                       'Enter amount (min: SAR 50.00)',
                       'أدخل المبلغ (الحد الأدنى: 50 ريال)',
@@ -572,7 +582,12 @@ class _WalletScreenState extends State<WalletScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          canWithdraw
+                          hasPendingRequest
+                              ? WorkerTranslations.getBilingual(
+                                  'Request Pending',
+                                  'الطلب معلق',
+                                )
+                              : canWithdraw
                               ? WorkerTranslations.getEnglish(
                                   WorkerTranslations.submitRequest,
                                 )
@@ -585,7 +600,9 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                         ),
                         Text(
-                          canWithdraw
+                          hasPendingRequest
+                              ? 'طلبك قيد المعالجة'
+                              : canWithdraw
                               ? 'إرسال الطلب' // Fixed Arabic translation
                               : 'متاح خلال $daysRemaining ${daysRemaining > 1 ? 'أيام' : 'يوم'}', // Fixed Arabic translation
                           style: const TextStyle(
@@ -1002,6 +1019,20 @@ class _WalletScreenState extends State<WalletScreen> {
         WorkerTranslations.getBilingual(
           'You can withdraw in $days day${days > 1 ? 's' : ''}',
           'يمكنك السحب خلال $days ${days > 1 ? 'أيام' : 'يوم'}',
+        ),
+      );
+      return;
+    }
+
+    final hasPending = _financialService
+        .getWithdrawalRequests(status: 'Pending')
+        .any((req) => req.workerId == appState.workerId);
+
+    if (hasPending || appState.isSubmitting) {
+      _showError(
+        WorkerTranslations.getBilingual(
+          'You already have a pending withdrawal request or a request is in progress.',
+          'لديك بالفعل طلب سحب معلق أو يوجد طلب قيد التنفيذ.',
         ),
       );
       return;

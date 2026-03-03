@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/services/auth_persistence_service.dart';
+import '/services/notification_service.dart';
 import '/screens/auth/role_selection.dart';
 import 'package:provider/provider.dart';
 import '/providers/app_state_provider.dart';
@@ -61,6 +62,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (isLoggedIn && role != null) {
       if (role == 'admin') {
+        // ✅ Update Admin FCM Token
+        await NotificationService().updateUserToken('admin', 'admin');
+
         // Navigate to Admin Dashboard
         Navigator.pushReplacement(
           context,
@@ -81,6 +85,9 @@ class _SplashScreenState extends State<SplashScreen>
             context,
             listen: false,
           ).setCurrentWorker(workerId);
+
+          // ✅ Update Worker FCM Token
+          await NotificationService().updateUserToken(workerId, 'worker');
 
           Navigator.pushReplacement(
             context,

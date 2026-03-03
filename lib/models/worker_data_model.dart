@@ -16,6 +16,7 @@ class WorkerData {
   final double walletBalance;
   final String? profilePhotoUrl;
   final String expertise; // Added expertise
+  final String? fcmToken;
 
   WorkerData({
     required this.id,
@@ -35,6 +36,7 @@ class WorkerData {
     this.walletBalance = 0.0,
     this.profilePhotoUrl,
     this.expertise = 'General', // Default to General
+    this.fcmToken,
   });
 
   WorkerData copyWith({
@@ -55,6 +57,7 @@ class WorkerData {
     double? walletBalance,
     String? profilePhotoUrl,
     String? expertise,
+    String? fcmToken,
   }) {
     return WorkerData(
       id: id ?? this.id,
@@ -74,6 +77,7 @@ class WorkerData {
       walletBalance: walletBalance ?? this.walletBalance,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       expertise: expertise ?? this.expertise,
+      fcmToken: fcmToken ?? this.fcmToken,
     );
   }
 
@@ -96,6 +100,7 @@ class WorkerData {
       'walletBalance': walletBalance,
       'profilePhotoUrl': profilePhotoUrl,
       'expertise': expertise,
+      'fcmToken': fcmToken,
     };
   }
 
@@ -122,6 +127,7 @@ class WorkerData {
       walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
       profilePhotoUrl: map['profilePhotoUrl'],
       expertise: map['expertise'] ?? 'General',
+      fcmToken: map['fcmToken'],
     );
   }
 }

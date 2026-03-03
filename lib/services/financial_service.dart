@@ -1,6 +1,7 @@
 // services/financial_service.dart - FIXED VERSION
 // ✅ Admin wallet now receives service payments correctly
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '/models/financial_transaction_model.dart';
 import '/models/admin_wallet_transaction.dart';
@@ -196,6 +197,8 @@ class FinancialService {
   double _currentBalance = 0.0;
   double _totalCommissionCollected = 0.0;
   double _totalVATCollected = 0.0;
+  bool _isProcessingWithdrawal = false;
+  bool _isProcessingCredit = false;
 
   // ============= SERVICE COMPLETION =============
   Future<ServiceCompletionResult> processCompletedService({
@@ -595,23 +598,53 @@ class FinancialService {
     required String workerName,
     required double amount,
   }) async {
-    final requestId = 'WR${DateTime.now().millisecondsSinceEpoch}';
+    // ✅ Real-time check against Firestore to prevent race conditions
+    if (_isProcessingWithdrawal)
+      throw Exception('Processing another request...');
+    _isProcessingWithdrawal = true;
 
-    final request = WithdrawalRequest(
-      id: requestId,
-      workerId: workerId,
-      workerName: workerName,
-      amount: amount,
-      requestDate: DateTime.now(),
-      status: 'Pending',
-    );
+    String? requestId;
+    try {
+      final existingRequests = await _firestoreService
+          .getWithdrawalRequests(workerId)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw TimeoutException(
+                'Request timed out. Please check your internet connection.',
+              );
+            },
+          );
+      final hasPendingFirestore = existingRequests.any(
+        (req) => req.status == 'Pending',
+      );
 
-    await _firestoreService.addWithdrawalRequest(request);
+      if (hasPendingFirestore) {
+        throw Exception(
+          'You already have a pending withdrawal request. Please wait for it to be processed.',
+        );
+      }
 
-    debugPrint(
-      '✅ Withdrawal request created: $requestId for SAR ${amount.toStringAsFixed(2)}',
-    );
-    return requestId;
+      requestId = 'WR${DateTime.now().millisecondsSinceEpoch}';
+
+      final request = WithdrawalRequest(
+        id: requestId,
+        workerId: workerId,
+        workerName: workerName,
+        amount: amount,
+        requestDate: DateTime.now(),
+        status: 'Pending',
+      );
+
+      await _firestoreService.addWithdrawalRequest(request);
+
+      debugPrint(
+        '✅ Withdrawal request created: $requestId for SAR ${amount.toStringAsFixed(2)}',
+      );
+    } finally {
+      _isProcessingWithdrawal = false;
+    }
+    return requestId ?? 'WR_ERROR';
   }
 
   List<WithdrawalRequest> getWithdrawalRequests({String? status}) {
@@ -643,32 +676,52 @@ class FinancialService {
       }
 
       if (approve) {
-        if (appState.walletBalance < request.amount) {
+        // 1. Fetch current worker data from Firestore to get latest balance
+        final workerData = await _firestoreService.getWorkerById(
+          request.workerId,
+        );
+        if (workerData == null) {
           return WithdrawalResult(
             success: false,
-            message: 'Worker has insufficient wallet balance',
+            message: 'Worker data not found',
           );
         }
 
-        appState.updateWalletBalance(-request.amount);
+        // 2. Validate Balance
+        if (workerData.walletBalance < request.amount) {
+          return WithdrawalResult(
+            success: false,
+            message:
+                'Worker has insufficient wallet balance (Current: ${workerData.walletBalance}, Requested: ${request.amount})',
+          );
+        }
 
-        appState.addTransaction(
-          Transaction(
-            id: 'WD${DateTime.now().millisecondsSinceEpoch}',
-            workerId: appState.workerId,
-            workerName: appState.workerName,
-            type: TransactionType.walletWithdrawal,
-            amount: -request.amount,
-            balanceBefore: appState.walletBalance + request.amount,
-            balanceAfter: appState.walletBalance,
-            reference: request.id,
-            description: 'Withdrawal to STC Pay - Request ${request.id}',
-            createdAt: DateTime.now(),
-          ),
+        // 3. Calculate New Balance
+        final newBalance = workerData.walletBalance - request.amount;
+
+        // 4. Update Wallet in Firestore
+        await _firestoreService.updateWorkerWallet(
+          request.workerId,
+          newBalance,
         );
 
-        // ✅ Admin wallet pays out withdrawal
-        // ✅ Admin wallet pays out withdrawal
+        // 5. Create Transaction Record
+        final transaction = Transaction(
+          id: 'WD${DateTime.now().millisecondsSinceEpoch}',
+          workerId: request.workerId,
+          workerName: workerData.name, // Use name from DB/Request
+          type: TransactionType.walletWithdrawal,
+          amount: -request.amount,
+          balanceBefore: workerData.walletBalance,
+          balanceAfter: newBalance,
+          reference: request.id,
+          description: 'Withdrawal to STC Pay - Request ${request.id}',
+          createdAt: DateTime.now(),
+        );
+
+        await _firestoreService.addTransaction(transaction);
+
+        // 6. Update Admin Wallet (Admin Payout)
         _currentBalance -= request.amount;
 
         final walletTxn = WalletTransaction(
@@ -683,7 +736,7 @@ class FinancialService {
 
         await _firestoreService.addAdminWalletTransaction(walletTxn);
 
-        // Update withdrawal status in Firestore
+        // 7. Update Withdrawal Request Status
         final updatedRequest = request.copyWith(
           status: 'Approved',
           processedDate: DateTime.now(),
@@ -694,6 +747,23 @@ class FinancialService {
         debugPrint(
           '✅ Withdrawal approved: ${request.id} - SAR ${request.amount.toStringAsFixed(2)}',
         );
+        debugPrint(
+          '   Worker Balance updated: ${workerData.walletBalance} -> $newBalance',
+        );
+
+        // 8. Sync Local State (Only if the processed worker is the current one in appState/Admin View)
+        // Note: Admin panel might be viewing this worker, creating a sync issue if we don't update.
+        // However, appState usually holds the 'logged in' user state. In Admin Panel, appState might hold Admin info?
+        // Actually, looking at AppStateProvider, 'currentWorkerId' seems to be used for "Acting as worker" or viewing worker details.
+        if (appState.currentWorkerId == request.workerId) {
+          appState.syncWorkerCredit(
+            request.workerId,
+            workerData.creditBalance,
+          ); // Just syncing credit/wallet if needed
+          // AppState doesn't have a direct 'syncWallet' for specific worker exposed simply,
+          // but we can try to trigger a refresh or let the streams handle it.
+          // Since we updated Firestore, the streams in AppStateProvider (if active for this worker) should pick it up.
+        }
 
         // ✅ NOTIFICATION: Notify Worker of Withdrawal Approval
         await NotificationService().sendNotification(
@@ -734,6 +804,7 @@ class FinancialService {
         return WithdrawalResult(success: true, message: 'Withdrawal rejected');
       }
     } catch (e) {
+      debugPrint('❌ Error processing withdrawal: $e');
       return WithdrawalResult(
         success: false,
         message: 'Error processing withdrawal: $e',
@@ -784,6 +855,60 @@ class FinancialService {
     _totalVATCollected = 0.0;
     _notifyListeners();
   }
+  // ============= CREDIT REQUESTS =============
+
+  /// Submit a new credit top-up request.
+  /// Throws an [Exception] if the worker already has a 'Pending' request.
+  Future<void> submitCreditRequest({
+    required String workerId,
+    required String workerName,
+    required double amount,
+    required String referenceNumber,
+  }) async {
+    // ✅ Real-time check against Firestore to prevent race conditions
+    if (_isProcessingCredit) throw Exception('Processing another request...');
+    _isProcessingCredit = true;
+
+    try {
+      final existingRequests = await _firestoreService
+          .getCreditRequests(workerId)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw TimeoutException(
+                'Request timed out. Please check your internet connection.',
+              );
+            },
+          );
+      final hasPendingFirestore = existingRequests.any(
+        (req) => req.status == 'Pending',
+      );
+
+      if (hasPendingFirestore) {
+        throw Exception(
+          'You already have a pending credit request. Please wait for it to be processed.',
+        );
+      }
+
+      final request = CreditRequest(
+        id: 'CR_${DateTime.now().millisecondsSinceEpoch}',
+        workerId: workerId,
+        workerName: workerName,
+        amount: amount,
+        referenceNumber: referenceNumber,
+        status: 'Pending',
+        requestDate: DateTime.now(),
+      );
+
+      await _firestoreService.createCreditRequest(request);
+      debugPrint(
+        '✅ Credit request submitted: ${request.id} for SAR ${amount.toStringAsFixed(2)}',
+      );
+    } finally {
+      _isProcessingCredit = false;
+    }
+  }
+
   // ============= CREDIT REQUESTS PROCESSING =============
 
   Future<CreditRequestResult> processCreditRequest({

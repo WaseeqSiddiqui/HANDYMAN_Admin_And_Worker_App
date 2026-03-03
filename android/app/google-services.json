@@ -42,6 +42,44 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842549323174:android:b75876510e8c1fd2235b67",
+        "android_client_info": {
+          "package_name": "com.hadyman.customer_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAj54vPr_ZuOmpXeIhqt1PcqK8vjoYuhs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842549323174:android:7aa77ce9435c4c87235b67",
+        "android_client_info": {
+          "package_name": "com.handyman.admin_worker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAj54vPr_ZuOmpXeIhqt1PcqK8vjoYuhs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

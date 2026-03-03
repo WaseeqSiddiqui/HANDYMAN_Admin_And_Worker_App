@@ -46,3 +46,16 @@ app.*.map.json
 *.apk
 *.aab
 /android/app/build/
+
+# Exclude text files (analysis, build logs, errors)
+*.txt
+# But keep CMakeLists.txt for platform builds
+!**/CMakeLists.txt
+
+# Exclude YAML files (analysis_options, etc.)
+*.yaml
+# But keep pubspec.yaml as it's essential for Flutter
+!pubspec.yaml
+
+# Exclude APK files
+*.apk

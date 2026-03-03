@@ -11,7 +11,6 @@ import '../models/service_request_model.dart';
 import '../models/service_category_model.dart';
 
 import '../models/transaction_model.dart';
-import '../models/credit_request_model.dart';
 
 import '/utils/admin_translations.dart';
 import '/services/notification_service.dart';
@@ -41,6 +40,8 @@ class AppStateProvider with ChangeNotifier {
   Set<String> _previousServiceIds = {};
   Map<String, ServiceRequestStatus> _previousServiceStatuses = {};
   bool _firstLoad = true;
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
 
   // ✅ Getters for worker info
   String get workerId => currentWorkerId ?? 'UNKNOWN';
@@ -954,6 +955,16 @@ class AppStateProvider with ChangeNotifier {
         relatedId: serviceId,
       );
 
+      // ✅ NOTIFICATION: Notify New Worker of Assignment
+      await NotificationService().sendNotification(
+        title: 'New Service Assigned (Rescheduled)',
+        body:
+            'You have been assigned to a rescheduled service: ${service.serviceName}',
+        type: 'service',
+        targetUserIds: [newWorkerId],
+        relatedId: serviceId,
+      );
+
       debugPrint(
         '✅ Service $serviceId rescheduled to $newWorkerName (${worker.nameArabic})',
       );
@@ -1081,30 +1092,54 @@ class AppStateProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void transferWalletToCredit(double amount) {
-    if (currentWorkerId == null) return;
+  void transferWalletToCredit(double amount) async {
+    if (currentWorkerId == null || _isSubmitting) return;
 
     if (_currentWorkerData.walletBalance >= amount) {
-      final creditBefore = _currentWorkerData.creditBalance;
+      _isSubmitting = true;
+      notifyListeners();
 
-      _currentWorkerData.walletBalance -= amount;
-      _currentWorkerData.creditBalance += amount;
+      try {
+        final creditBefore = _currentWorkerData.creditBalance;
 
-      _currentWorkerData.transactions.insert(
-        0,
-        Transaction(
+        // Perform Firestore update first
+        final newWalletBalance = _currentWorkerData.walletBalance - amount;
+        final newCreditBalance = _currentWorkerData.creditBalance + amount;
+
+        await _firestoreService.updateWorkerWallet(
+          currentWorkerId!,
+          newWalletBalance,
+        );
+        await _firestoreService.updateWorkerCredit(
+          currentWorkerId!,
+          newCreditBalance,
+        );
+
+        // Add transaction
+        final txn = Transaction(
           id: 'TXN${DateTime.now().millisecondsSinceEpoch}',
           workerId: currentWorkerId!,
           workerName: currentWorkerName!,
           type: TransactionType.creditTopup,
           amount: amount,
           balanceBefore: creditBefore,
-          balanceAfter: _currentWorkerData.creditBalance,
+          balanceAfter: newCreditBalance,
           description: 'Transferred from Wallet to Credit',
           createdAt: DateTime.now(),
-        ),
-      );
-      notifyListeners();
+        );
+        await _firestoreService.addTransaction(txn);
+
+        // Update local state
+        _currentWorkerData.walletBalance = newWalletBalance;
+        _currentWorkerData.creditBalance = newCreditBalance;
+        _currentWorkerData.transactions.insert(0, txn);
+      } catch (e) {
+        debugPrint('❌ Error in transferWalletToCredit: $e');
+        rethrow;
+      } finally {
+        _isSubmitting = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -1260,29 +1295,26 @@ class AppStateProvider with ChangeNotifier {
     }
   }
 
-  // ✅ CREDIT REQUEST
+  // ✅ CREDIT REQUEST - delegates to FinancialService (includes pending check)
   Future<void> submitCreditRequest(
     double amount,
     String referenceNumber,
   ) async {
-    if (currentWorkerId == null) return;
+    if (currentWorkerId == null || _isSubmitting) return;
 
-    final request = CreditRequest(
-      id: 'CR_${DateTime.now().millisecondsSinceEpoch}',
-      workerId: currentWorkerId!,
-      workerName: currentWorkerName ?? 'Worker',
-      amount: amount,
-      referenceNumber: referenceNumber,
-      status: 'Pending',
-      requestDate: DateTime.now(),
-    );
+    _isSubmitting = true;
+    notifyListeners();
 
     try {
-      await _firestoreService.createCreditRequest(request);
-      debugPrint('✅ Credit Request Submitted: ${request.id}');
-    } catch (e) {
-      debugPrint('❌ Error submitting credit request: $e');
-      rethrow;
+      await _financialService.submitCreditRequest(
+        workerId: currentWorkerId!,
+        workerName: currentWorkerName ?? 'Worker',
+        amount: amount,
+        referenceNumber: referenceNumber,
+      );
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 }

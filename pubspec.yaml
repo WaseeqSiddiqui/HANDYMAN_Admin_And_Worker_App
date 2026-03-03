@@ -2,7 +2,7 @@ name: admin_x_technician_panel
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 8.0.1+13
 
 environment:
   sdk: ^3.9.2
@@ -64,7 +64,6 @@ dependencies:
   flutter_local_notifications: ^19.5.0
   image_picker: ^1.2.1
   connectivity_plus: ^6.1.5
-  internet_connection_checker: ^3.0.1
 
 flutter:
   uses-material-design: true

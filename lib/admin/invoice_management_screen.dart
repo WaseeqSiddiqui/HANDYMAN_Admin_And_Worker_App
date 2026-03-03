@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
 import '/services/invoice_service.dart';
 import '/models/service_invoice_model.dart';
 import '/utils/admin_translations.dart';
@@ -17,8 +19,6 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final invoices = _invoiceService.getAllInvoices();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -26,41 +26,65 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${invoices.length} ${AdminTranslations.split(AdminTranslations.invoices)[0]}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+      ),
+      body: StreamBuilder<List<ServiceInvoice>>(
+        stream: _invoiceService.getInvoicesStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final invoices = snapshot.data ?? [];
+
+          return Column(
+            children: [
+              // Invoices Count Header (Moved from AppBar Actions to Body for cleaner stream handling)
+              if (invoices.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${invoices.length} ${AdminTranslations.split(AdminTranslations.invoices)[0]}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+
+              Expanded(
+                child: invoices.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: invoices.length,
+                        itemBuilder: (context, index) {
+                          final invoice = invoices[index];
+                          return _buildInvoiceCard(invoice);
+                        },
+                      ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
-      body: invoices.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: invoices.length,
-              itemBuilder: (context, index) {
-                final invoice = invoices[index];
-                return _buildInvoiceCard(invoice);
-              },
-            ),
     );
   }
 
@@ -294,6 +318,24 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
   }
 
   void _viewInvoiceDetails(ServiceInvoice invoice) {
+    // FALLBACK ADDRESS LOGIC
+    String displayAddress = invoice.customerAddress;
+    if (displayAddress == 'NA' ||
+        displayAddress.isEmpty ||
+        displayAddress == 'N/A') {
+      try {
+        final appState = Provider.of<AppStateProvider>(context, listen: false);
+        final serviceReq = appState.getServiceById(invoice.serviceId);
+        if (serviceReq != null &&
+            serviceReq.address.isNotEmpty &&
+            serviceReq.address != 'NA') {
+          displayAddress = serviceReq.address;
+        }
+      } catch (e) {
+        debugPrint('Address fallback failed: $e');
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -459,7 +501,7 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
                             AdminTranslations.split(
                               AdminTranslations.address,
                             )[1],
-                            invoice.customerAddress,
+                            displayAddress,
                           ),
                         ],
                       ),
@@ -641,8 +683,49 @@ class _InvoiceManagementScreenState extends State<InvoiceManagementScreen> {
   }
 
   void _downloadInvoice(ServiceInvoice invoice) async {
+    // FALLBACK ADDRESS LOGIC FOR PDF
+    ServiceInvoice invoiceToPrint = invoice;
+    String displayAddress = invoice.customerAddress;
+
+    // Check various forms of 'NA' or empty
+    if (displayAddress == 'NA' ||
+        displayAddress.isEmpty ||
+        displayAddress == 'N/A') {
+      try {
+        final appState = Provider.of<AppStateProvider>(context, listen: false);
+        final serviceReq = appState.getServiceById(invoice.serviceId);
+        if (serviceReq != null &&
+            serviceReq.address.isNotEmpty &&
+            serviceReq.address != 'NA') {
+          // Create a new Service Invoice with the updated address
+          invoiceToPrint = ServiceInvoice(
+            invoiceNumber: invoice.invoiceNumber,
+            serviceRequestId: invoice.serviceRequestId,
+            serviceId: invoice.serviceId,
+            serviceName: invoice.serviceName,
+            customerId: invoice.customerId,
+            customerName: invoice.customerName,
+            customerAddress: serviceReq.address, // UPDATED
+            workerId: invoice.workerId,
+            workerName: invoice.workerName,
+            basePrice: invoice.basePrice,
+            extraCharges: invoice.extraCharges,
+            extraItems: invoice.extraItems,
+            totalAmount: invoice.totalAmount,
+            vat: invoice.vat,
+            commission: invoice.commission,
+            completionDate: invoice.completionDate,
+            paymentMethod: invoice.paymentMethod,
+            status: invoice.status,
+          );
+        }
+      } catch (e) {
+        debugPrint('Address fallback for PDF failed: $e');
+      }
+    }
+
     try {
-      await _invoiceService.downloadInvoicePDF(invoice);
+      await _invoiceService.downloadInvoicePDF(invoiceToPrint);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

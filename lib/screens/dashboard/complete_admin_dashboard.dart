@@ -1,6 +1,7 @@
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '/services/financial_service.dart';
 import '/services/auth_persistence_service.dart';
 import '/providers/app_state_provider.dart';
@@ -109,24 +110,57 @@ class AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
               ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '5',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('notifications')
+                    // Limiting to last 50 to avoid massive reads for a badge,
+                    // ideally we'd have a separate 'unread_counts' collection.
+                    .orderBy('timestamp', descending: true)
+                    .limit(50)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox.shrink();
+
+                  // Filter unread for Admin
+                  final unreadCount = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final targets = List<String>.from(
+                      data['targetUserIds'] ?? [],
+                    );
+                    final isRead = data['isRead'] == true;
+                    // Check if targeted and NOT read
+                    return (targets.contains('admin') ||
+                            targets.contains('All')) &&
+                        !isRead;
+                  }).length;
+
+                  if (unreadCount == 0) return const SizedBox.shrink();
+
+                  return Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        unreadCount > 9 ? '9+' : '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),

@@ -1,31 +1,51 @@
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
 android {
-    namespace = "com.example.admin_x_technician_panel"
+    namespace = "com.handyman.admin_worker"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.admin_x_technician_panel"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = 36
+        // Reverted to original ID to match Firebase
+        applicationId = "com.handyman.admin_worker"
+        
+        minSdk = flutter.minSdkVersion // Android 6.0 (Marshmallow) - Good balance for modern plugins
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val keyPropertiesFile = rootProject.file("key.properties")
+            if (keyPropertiesFile.exists()) {
+                val keyProperties = Properties()
+                keyProperties.load(FileInputStream(keyPropertiesFile))
+                storeFile = file(keyProperties.getProperty("storeFile"))
+                storePassword = keyProperties.getProperty("storePassword")
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            // Use the release signing config
+            signingConfig = signingConfigs.getByName("release")
+            // Disabled R8 minification due to dependency issues; targetSdk 35 remains active
             isMinifyEnabled = false
             isShrinkResources = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 

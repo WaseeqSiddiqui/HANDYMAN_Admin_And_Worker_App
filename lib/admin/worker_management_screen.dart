@@ -636,7 +636,7 @@ class _WorkerManagementScreenState extends State<WorkerManagementScreen> {
                     child: _buildInfoColumn(
                       AdminTranslations.split(AdminTranslations.credit)[0],
                       AdminTranslations.split(AdminTranslations.credit)[1],
-                      'SAR ${(worker['creditBalance'] as double).toStringAsFixed(0)}',
+                      'SAR ${(worker['creditBalance'] as double).toStringAsFixed(2)}',
                       Icons.credit_card,
                       const Color(0xFF005DFF),
                     ),

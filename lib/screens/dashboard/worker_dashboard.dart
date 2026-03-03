@@ -5,6 +5,7 @@
 
 import 'package:admin_x_technician_panel/screens/auth/role_selection.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -89,94 +90,88 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
         return Scaffold(
-          backgroundColor: const Color(
-            0xFFF5F5F5,
-          ), // ✅ CHANGED: Light gray background
+          backgroundColor: const Color(0xFFF5F5F5), // Light gray background
           appBar: _buildAppBar(),
           drawer: _buildDrawer(appState),
-          body: SingleChildScrollView(
-            // ✅ MADE ENTIRE SCREEN SCROLLABLE
-            child: Column(
-              children: [
-                // Top section
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWalletCreditCard(appState),
+          body: DefaultTabController(
+            length: 4,
+            child: NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWalletCreditCard(appState),
 
-                    // Toggle Row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            WorkerTranslations.getBilingual(
-                              'Overview',
-                              'نظرة عامة',
-                            ),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                _showStats = !_showStats;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                Text(
-                                  _showStats
-                                      ? WorkerTranslations.getBilingual(
-                                          'Hide',
-                                          'اخفاء',
-                                        )
-                                      : WorkerTranslations.getBilingual(
-                                          'Show',
-                                          'عرض',
-                                        ),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF3B82F6),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  _showStats
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: const Color(0xFF3B82F6),
-                                  size: 20,
-                                ),
-                              ],
-                            ),
-                          ),
+                        // Toggle Row
+                        _buildStatsToggleRow(),
+
+                        if (_showStats) ...[
+                          _buildQuickStats(appState),
+                          const SizedBox(height: 8),
                         ],
-                      ),
-                    ),
 
-                    if (_showStats) ...[
-                      _buildQuickStats(appState),
-                      const SizedBox(height: 8),
-                    ],
-                  ],
-                ),
-                // Services section
-                _buildServicesSection(appState),
-                const SizedBox(height: 20), // Extra padding at bottom
-              ],
+                        _buildStyledTabBar(),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+              body: _buildTabBarContent(appState),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatsToggleRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            WorkerTranslations.getBilingual('Overview', 'نظرة عامة'),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _showStats = !_showStats;
+              });
+            },
+            child: Row(
+              children: [
+                Text(
+                  _showStats
+                      ? WorkerTranslations.getBilingual('Hide', 'اخفاء')
+                      : WorkerTranslations.getBilingual('Show', 'عرض'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF3B82F6),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  _showStats
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: const Color(0xFF3B82F6),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -224,20 +219,50 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
               ),
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '3', // ✅ FIXED: Only English numbers in notification badge
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
-                ),
-              ),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('notifications')
+                  .orderBy('timestamp', descending: true)
+                  .limit(50)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const SizedBox.shrink();
+
+                final unreadCount = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final targets = List<String>.from(
+                    data['targetUserIds'] ?? [],
+                  );
+                  final isRead = data['isRead'] == true;
+                  // Check if targeted and NOT read
+                  return (targets.contains(_workerId) ||
+                          targets.contains('All')) &&
+                      !isRead;
+                }).length;
+
+                if (unreadCount == 0) return const SizedBox.shrink();
+
+                return Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      unreadCount > 9 ? '9+' : '$unreadCount',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -728,155 +753,112 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     );
   }
 
-  Widget _buildServicesSection(AppStateProvider appState) {
+  Widget _buildStyledTabBar() {
     return Container(
-      // ✅ Dynamic height to take up more space
-      height: MediaQuery.of(context).size.height * 0.75,
-      child: DefaultTabController(
-        length: 4,
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TabBar(
-                labelColor: const Color(0xFF3B82F6),
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFF3B82F6),
-                indicatorWeight: 3,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                tabs: [
-                  Tab(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          WorkerTranslations.getEnglish(
-                            WorkerTranslations.getBilingual(
-                              'Available',
-                              'متاح',
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        Text(
-                          WorkerTranslations.getArabic(
-                            WorkerTranslations.getBilingual(
-                              'Available',
-                              'متاح',
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          WorkerTranslations.getEnglish(
-                            WorkerTranslations.getBilingual('Active', 'نشط'),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        Text(
-                          WorkerTranslations.getArabic(
-                            WorkerTranslations.getBilingual('Active', 'نشط'),
-                          ),
-                          style: const TextStyle(fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          WorkerTranslations.getEnglish(
-                            WorkerTranslations.getBilingual(
-                              'Complete',
-                              'مكتمل',
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        Text(
-                          WorkerTranslations.getArabic(
-                            WorkerTranslations.getBilingual(
-                              'Complete',
-                              'مكتمل',
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          WorkerTranslations.getEnglish(
-                            WorkerTranslations.postpone,
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        Text(
-                          WorkerTranslations.getArabic(
-                            WorkerTranslations.postpone,
-                          ),
-                          style: const TextStyle(fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildServiceList(
-                    appState.availableServices,
-                    'available',
-                    appState,
-                  ),
-                  _buildServiceList(
-                    appState.activeServices,
-                    'active',
-                    appState,
-                  ),
-                  _buildServiceList(
-                    appState.completedServices,
-                    'completed',
-                    appState,
-                  ),
-                  _buildServiceList(
-                    appState.postponedServices,
-                    'postponed',
-                    appState,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
+      child: TabBar(
+        labelColor: const Color(0xFF3B82F6),
+        unselectedLabelColor: Colors.grey,
+        indicatorColor: const Color(0xFF3B82F6),
+        indicatorWeight: 3,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        tabs: [
+          Tab(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.getBilingual('Available', 'متاح'),
+                  ),
+                  style: const TextStyle(fontSize: 11),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.getBilingual('Available', 'متاح'),
+                  ),
+                  style: const TextStyle(fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+          Tab(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.getBilingual('Active', 'نشط'),
+                  ),
+                  style: const TextStyle(fontSize: 11),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.getBilingual('Active', 'نشط'),
+                  ),
+                  style: const TextStyle(fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+          Tab(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(
+                    WorkerTranslations.getBilingual('Complete', 'مكتمل'),
+                  ),
+                  style: const TextStyle(fontSize: 11),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(
+                    WorkerTranslations.getBilingual('Complete', 'مكتمل'),
+                  ),
+                  style: const TextStyle(fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+          Tab(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WorkerTranslations.getEnglish(WorkerTranslations.postpone),
+                  style: const TextStyle(fontSize: 11),
+                ),
+                Text(
+                  WorkerTranslations.getArabic(WorkerTranslations.postpone),
+                  style: const TextStyle(fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBarContent(AppStateProvider appState) {
+    return TabBarView(
+      children: [
+        _buildServiceList(appState.availableServices, 'available', appState),
+        _buildServiceList(appState.activeServices, 'active', appState),
+        _buildServiceList(appState.completedServices, 'completed', appState),
+        _buildServiceList(appState.postponedServices, 'postponed', appState),
+      ],
     );
   }
 

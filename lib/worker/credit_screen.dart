@@ -4,6 +4,7 @@ import '../providers/app_state_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/worker_translations.dart';
 import '../services/firestore_service.dart';
+import '../services/financial_service.dart';
 import '../models/credit_request_model.dart';
 import 'transactions_screen.dart';
 
@@ -17,6 +18,7 @@ class CreditScreen extends StatefulWidget {
 class _CreditScreenState extends State<CreditScreen> {
   final TextEditingController _amountController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FinancialService _financialService = FinancialService();
 
   @override
   Widget build(BuildContext context) {
@@ -335,13 +337,36 @@ class _CreditScreenState extends State<CreditScreen> {
             onTap: () => _topupFromWallet(appState),
           ),
           const SizedBox(height: 12),
-          // Manual Transfer Option
-          _buildTopupOption(
-            icon: Icons.account_balance,
-            title: 'Bank Transfer / STC Pay',
-            subtitle: 'Manual Verification • التحقق اليدوي',
-            color: Colors.blue,
-            onTap: () => _showManualTopupDialog(context, appState),
+          // Manual Transfer Option — disabled if a pending credit request exists
+          Builder(
+            builder: (context) {
+              final hasPendingCreditRequest = _financialService
+                  .getCreditRequests(status: 'Pending')
+                  .any((r) => r.workerId == appState.workerId);
+              return _buildTopupOption(
+                icon: Icons.account_balance,
+                title: hasPendingCreditRequest
+                    ? 'Request Pending • طلبك معلق'
+                    : 'Bank Transfer / STC Pay',
+                subtitle: hasPendingCreditRequest
+                    ? 'Awaiting admin approval • بانتظار موافقة المشرف'
+                    : 'Manual Verification • التحقق اليدوي',
+                color: hasPendingCreditRequest ? Colors.orange : Colors.blue,
+                onTap: hasPendingCreditRequest
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'You already have a pending credit request. Please wait for it to be processed.\nلديك طلب رصيد معلق. يرجى الانتظار حتى تتم معالجته.',
+                            ),
+                            backgroundColor: Colors.orange,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    : () => _showManualTopupDialog(context, appState),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -848,19 +873,19 @@ class _CreditScreenState extends State<CreditScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
+            onPressed: appState.isSubmitting
+                ? null
+                : () async {
+                    Navigator.pop(context);
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    appState.transferWalletToCredit(amount);
 
-              await Future.delayed(const Duration(seconds: 1));
+                    setState(() {
+                      _amountController.clear();
+                    });
 
-              appState.transferWalletToCredit(amount);
-
-              setState(() {
-                _amountController.clear();
-              });
-
-              _showSuccess(WorkerTranslations.creditToppedSuccessfully);
-            },
+                    _showSuccess(WorkerTranslations.creditToppedSuccessfully);
+                  },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -936,44 +961,44 @@ class _CreditScreenState extends State<CreditScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
+            onPressed: appState.isSubmitting
+                ? null
+                : () async {
+                    final amount = double.tryParse(amountController.text) ?? 0;
+                    final ref = refController.text.trim();
+
+                    if (amount <= 0 || ref.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Please enter valid amount and reference number',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context); // Close Dialog
+
+                    try {
+                      await appState.submitCreditRequest(amount, ref);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Request submitted successfully!'),
+                        ),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
             child: const Text('Submit Request'),
-            onPressed: () async {
-              final amount = double.tryParse(amountController.text) ?? 0;
-              final ref = refController.text.trim();
-
-              if (amount <= 0 || ref.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Please enter valid amount and reference number',
-                    ),
-                  ),
-                );
-                return;
-              }
-
-              Navigator.pop(context); // Close Dialog
-
-              try {
-                await appState.submitCreditRequest(amount, ref);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Request submitted successfully!'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
           ),
         ],
       ),
@@ -1015,29 +1040,27 @@ class _CreditScreenState extends State<CreditScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              ...requests
-                  .map(
-                    (r) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Ref: ${r.referenceNumber}',
-                            style: TextStyle(fontSize: 12, color: textColor),
-                          ),
-                          Text(
-                            'SAR ${r.amount}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
+              ...requests.map(
+                (r) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Ref: ${r.referenceNumber}',
+                        style: TextStyle(fontSize: 12, color: textColor),
                       ),
-                    ),
-                  )
-                  .toList(),
+                      Text(
+                        'SAR ${r.amount}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
