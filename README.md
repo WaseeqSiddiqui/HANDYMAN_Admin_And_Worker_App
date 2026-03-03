@@ -1,7 +1,5 @@
 
 
-# 🔧 HANDYMAN: Admin & Worker Management System
-
 <div align="center">
 
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
@@ -97,14 +95,6 @@ lib/
    - Add `google-services.json` to `android/app/`
    - Add `GoogleService-Info.plist` to `ios/Runner/`
    - Run `flutterfire configure` to update `firebase_options.dart`
-
----
-
-## 👥 Contributors
-
-- **Waseeq Siddiqui**
-- **Eiman Fatima** ([eimanfkhan18@gmail.com](mailto:eimanfkhan18@gmail.com))
-- **Uswa**
 
 ---
 
