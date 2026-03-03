@@ -59,3 +59,6 @@ app.*.map.json
 
 # Exclude APK files
 *.apk
+
+# Exclude Firebase configuration
+lib/firebase_options.dart

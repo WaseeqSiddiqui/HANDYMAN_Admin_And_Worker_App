@@ -1,6 +1,6 @@
 # 🔧 HANDYMAN: Admin & Worker Management System
 
-![Banner](assets/images/banner.png)
+# 🔧 HANDYMAN: Admin & Worker Management System
 
 <div align="center">
 
@@ -102,8 +102,9 @@ lib/
 
 ## 👥 Contributors
 
-- **Waseeq Siddiqui** – Lead Architecture & Development
-- **Eiman Fatima** – Core Contributor ([eimanfkhan18@gmail.com](mailto:eimanfkhan18@gmail.com))
+- **Waseeq Siddiqui**
+- **Eiman Fatima** ([eimanfkhan18@gmail.com](mailto:eimanfkhan18@gmail.com))
+- **Uswa**
 
 ---
 
