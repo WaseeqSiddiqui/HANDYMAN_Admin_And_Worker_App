@@ -1,10 +1,10 @@
-## 🚀 Overview
+## Overview
 
 **HANDYMAN** is a dual-application ecosystem designed to streamline service management between administrators, service providers (workers), and customers. Built with **Flutter** and **Firebase**, it delivers real-time synchronization, offline capabilities, and a premium user experience.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### 🛡️ Administrator Panel
 - **Comprehensive Dashboard:** Real-time analytics for revenue, active jobs, and worker performance.
@@ -13,12 +13,12 @@
 - **Service Catalog:** Dynamic management of categories, sub-categories, and pricing models.
 - **Customer Insights:** History-based customer management and interaction tracking.
 
-### 👷 Worker Experience
+### Worker Experience
 - **Personalized Workspace:** Individual dashboards showing earnings, ratings, and job status.
 - **Wallet & Credits:** Direct management of earnings with integrated credit request systems.
 - **Job Lifecycle:** Seamless job acceptance, real-time status updates, and professional invoice generation.
 
-### 🌐 Core Infrastructure
+### Core Infrastructure
 - **Real-time Sync:** Powered by Cloud Firestore for instantaneous data updates across devices.
 - **Smart Notifications:** Deep-linked push notifications via Firebase Cloud Messaging (FCM).
 - **Pro Invoicing:** Automated PDF generation with VAT compliance and professional branding.
@@ -26,7 +26,7 @@
 
 ---
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 The project follows a modular and scalable architecture:
 
@@ -43,7 +43,7 @@ lib/
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **UI Framework:** [Flutter](https://flutter.dev) (v3.9.2+)
 - **State Management:** [Provider](https://pub.dev/packages/provider)
@@ -52,34 +52,3 @@ lib/
 - **Reporting:** [Firebase Analytics & Crashlytics](https://firebase.google.com/docs/analytics)
 
 ---
-
-## 📦 Getting Started
-
-### Prerequisites
-- Flutter SDK `^3.9.2`
-- Firebase Project setup
-- Android Studio / VS Code
-
-### Installation
-
-1. **Clone & Navigate**
-   ```bash
-   git clone https://github.com/WaseeqSiddiqui/HANDYMAN_Admin_And_Worker_App.git
-   cd HANDYMAN_Admin_And_Worker_App
-   ```
-
-2. **Sync Dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Firebase Configuration**
-   - Add `google-services.json` to `android/app/`
-   - Add `GoogleService-Info.plist` to `ios/Runner/`
-   - Run `flutterfire configure` to update `firebase_options.dart`
-
----
-
-<div align="center">
-  <sub>Built with ❤️ by Waseeq Siddiqui. © 2026.</sub>
-</div>
