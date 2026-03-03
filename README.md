@@ -6,7 +6,7 @@
 
 ## Key Features
 
-###Administrator Panel
+### Administrator Panel
 - **Comprehensive Dashboard:** Real-time analytics for revenue, active jobs, and worker performance.
 - **Worker Management:** Onboard, monitor, and manage commission rates for service providers.
 - **Financial Control:** Integrated VAT management, withdrawal request processing, and automated auditing.
