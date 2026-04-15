@@ -3,6 +3,9 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
+import '../dashboard/complete_admin_dashboard.dart';
+import '/services/auth_persistence_service.dart';
+import '/services/notification_service.dart';
 import '/services/firebase_auth_service.dart';
 import '/services/worker_auth_service.dart';
 import '/utils/auth_translations.dart';
@@ -84,6 +87,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         _showError('Unauthorized Access', 'دخول غير مصرح به');
         return;
       }
+      
     }
 
     // WORKER CHECK: If role is Worker, verify worker is registered

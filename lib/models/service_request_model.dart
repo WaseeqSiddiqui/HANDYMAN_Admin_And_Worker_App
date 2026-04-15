@@ -17,6 +17,7 @@ class ServiceRequest {
   final String id;
   final String customerId;
   final String customerName; // ✅ صرف ایک language میں
+  final String customerPhone; // ✅ ADDED
   final String serviceId;
   final String serviceName;
   final String? workerId;
@@ -44,6 +45,7 @@ class ServiceRequest {
     required this.id,
     required this.customerId,
     required this.customerName, // ✅ Single language name
+    required this.customerPhone, // ✅ ADDED
     required this.serviceId,
     required this.serviceName,
     this.workerId,
@@ -101,6 +103,7 @@ class ServiceRequest {
     String? id,
     String? customerId,
     String? customerName,
+    String? customerPhone, // ✅ ADDED
     String? serviceId,
     String? serviceName,
     String? workerId,
@@ -127,6 +130,7 @@ class ServiceRequest {
       id: id ?? this.id,
       customerId: customerId ?? this.customerId,
       customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone, // ✅ ADDED
       serviceId: serviceId ?? this.serviceId,
       serviceName: serviceName ?? this.serviceName,
       workerId: workerId ?? this.workerId,
@@ -158,6 +162,7 @@ class ServiceRequest {
       id: json['id'] ?? '',
       customerId: json['customerId'] ?? '',
       customerName: json['customerName'] ?? '', // ✅ Single language
+      customerPhone: json['customerPhone'] ?? 'N/A', // ✅ ADDED
       serviceId: json['serviceId'] ?? '',
       serviceName: json['serviceName'] ?? '',
       workerId: json['workerId'],
@@ -203,6 +208,7 @@ class ServiceRequest {
       'id': id,
       'customerId': customerId,
       'customerName': customerName, // ✅ Single language
+      'customerPhone': customerPhone, // ✅ ADDED
       'serviceId': serviceId,
       'serviceName': serviceName,
       'workerId': workerId,

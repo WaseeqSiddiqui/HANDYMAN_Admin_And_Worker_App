@@ -60,5 +60,37 @@ app.*.map.json
 # Exclude APK files
 *.apk
 
-# Exclude Firebase configuration
+# Exclude Firebase configuration (contains API keys)
 lib/firebase_options.dart
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Exclude Android signing keys
+*.jks
+*.keystore
+android/key.properties
+
+# Exclude environment variable files
+.env
+.env.*
+*.env
+
+# Node modules (Cloud Functions dependencies)
+**/node_modules/
+
+# Ignore large analysis/build log files
+analysis.txt
+analysis_current.txt
+analysis_final.txt
+analysis_output.txt
+analysis_report.txt
+analysis_report_v2.txt
+analysis_results.txt
+analysis_results_final.txt
+service_analysis.txt
+worker_analysis.txt
+worker_analysis_2.txt
+errors.txt
+errors_2.txt
+errors_3.txt
+build_log*.txt

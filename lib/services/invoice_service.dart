@@ -3,6 +3,8 @@
 // ---------------------------------------------------------
 
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -150,6 +152,15 @@ class InvoiceService {
     String? customPath,
   }) async {
     final pdf = pw.Document();
+
+    // 1. Generate ZATCA QR Data (Base64 TLV)
+    final zatcaQrData = _generateZatcaBase64(
+      sellerName: 'HandyMan Services',
+      vatNumber: VAT_REGISTRATION_NUMBER,
+      timestamp: invoice.completionDate,
+      totalAmount: invoice.totalAmount,
+      vatAmount: invoice.vat,
+    );
 
     // Load Arabic-supporting font
     final font = await PdfGoogleFonts.cairoRegular();
@@ -513,22 +524,51 @@ class InvoiceService {
                     top: pw.BorderSide(color: PdfColors.grey200),
                   ),
                 ),
-                child: pw.Column(
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text(
-                      "Thank you for your business!",
-                      style: pw.TextStyle(
-                        color: primaryColor,
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          "Thank you for your business!",
+                          style: pw.TextStyle(
+                            color: primaryColor,
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          "For queries, contact us at Saudi Arabia, STC Pay: $ADMIN_STC_ACCOUNT",
+                          style: const pw.TextStyle(
+                            color: PdfColors.grey500,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.Text(
+                          "ZATCA Phase 1 Compliant Invoice",
+                          style: const pw.TextStyle(
+                            color: PdfColors.grey400,
+                            fontSize: 8,
+                          ),
+                        ),
+                      ],
                     ),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      "For queries, contact us at support@handyman.com",
-                      style: const pw.TextStyle(
-                        color: PdfColors.grey500,
-                        fontSize: 10,
+                    // ZATCA QR CODE
+                    pw.Container(
+                      width: 80,
+                      height: 80,
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(color: PdfColors.grey100),
+                        borderRadius: pw.BorderRadius.circular(4),
+                      ),
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.BarcodeWidget(
+                        barcode: pw.Barcode.qrCode(),
+                        data: zatcaQrData,
+                        drawText: false,
                       ),
                     ),
                   ],
@@ -735,5 +775,44 @@ class InvoiceService {
     );
 
     await saveInvoice(invoice);
+  }
+
+  // ✅ ZATCA TLV Encoding (Saudi Arabia E-Invoicing Phase 1)
+  String _generateZatcaBase64({
+    required String sellerName,
+    required String vatNumber,
+    required DateTime timestamp,
+    required double totalAmount,
+    required double vatAmount,
+  }) {
+    final BytesBuilder builder = BytesBuilder();
+
+    // Helper to add TLV tag
+    void addTag(int tag, String value) {
+      final List<int> valueBytes = utf8.encode(value);
+      builder.addByte(tag); // Tag
+      builder.addByte(valueBytes.length); // Length
+      builder.add(valueBytes); // Value
+    }
+
+    // Tag 1: Seller's Name
+    addTag(1, sellerName);
+
+    // Tag 2: VAT Registration Number
+    addTag(2, vatNumber);
+
+    // Tag 3: Timestamp (ISO 8601 format including seconds and Z)
+    // ZATCA requires: YYYY-MM-DDTHH:mm:ssZ
+    final timeStr =
+        "${timestamp.toIso8601String().split('.').first}Z"; // Strip millis
+    addTag(3, timeStr);
+
+    // Tag 4: Invoice Total Amount (Incl. VAT)
+    addTag(4, totalAmount.toStringAsFixed(2));
+
+    // Tag 5: VAT Amount
+    addTag(5, vatAmount.toStringAsFixed(2));
+
+    return base64.encode(builder.toBytes());
   }
 }

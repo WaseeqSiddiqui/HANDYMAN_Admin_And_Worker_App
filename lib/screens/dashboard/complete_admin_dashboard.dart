@@ -1180,6 +1180,10 @@ class AdminDashboardState extends State<AdminDashboard> {
                   '${service.workerName} • ${service.customerName}',
                   style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
+                Text(
+                  service.customerPhone ?? '',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF005DFF), fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),

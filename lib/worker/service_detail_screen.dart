@@ -9,6 +9,7 @@ import 'add_extra_items_screen.dart';
 import 'generate_invoice_screen.dart';
 import 'credit_screen.dart';
 import '/utils/worker_translations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServiceRequest service;
@@ -427,55 +428,78 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                           color: Colors.black,
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.phone, size: 14, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text(
+                            service.customerPhone,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
             const Divider(height: 16, color: Colors.grey),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: Color(0xFF005DFF),
-                  size: 18,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        WorkerTranslations.getEnglish(
-                          WorkerTranslations.address,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        WorkerTranslations.getArabic(
-                          WorkerTranslations.address,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        service.address,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
+            InkWell(
+              onTap: () async {
+                final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(service.address)}');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    color: Color(0xFF005DFF),
+                    size: 18,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          WorkerTranslations.getEnglish(
+                            WorkerTranslations.address,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          WorkerTranslations.getArabic(
+                            WorkerTranslations.address,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          service.address,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF005DFF),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const Divider(height: 16, color: Colors.grey),
             Row(

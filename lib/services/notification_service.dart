@@ -65,7 +65,6 @@ class NotificationService {
 
   // ✅ NEW: Direct Firestore Listener (Bypasses Cloud Functions/FCM for active app)
   StreamSubscription? _notificationSubscription;
-
   Future<void> initialize() async {
     // 1. Request Permissions
     await _requestPermission();
@@ -81,7 +80,13 @@ class NotificationService {
 
     // 5. Get and Save Token
     String? token = await _firebaseMessaging.getToken();
-    debugPrint("FCM Token: $token");
+    debugPrint("=========================================");
+    debugPrint("🚀 FCM TOKEN: $token");
+    debugPrint("=========================================");
+
+    // Subscribe to 'all' topic so Cloud Function broadcasts reach this device
+    await _firebaseMessaging.subscribeToTopic('all');
+    debugPrint("✅ Subscribed to FCM topic: all");
     // Token is saved when user logs in via updateUserToken
   }
 

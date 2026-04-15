@@ -152,6 +152,7 @@ class FinancialService {
             paymentMethod: s.paymentMethod?.name ?? 'Cash', // Enum to string
             completionDate: s.completedDate ?? s.updatedAt,
             status: 'completed',
+            customerPhone: s.customerPhone,
           ),
         );
       }
@@ -211,6 +212,7 @@ class FinancialService {
     required double extraCharges,
     required DateTime completionDate,
     required String paymentMethod,
+    String? customerPhone, // ✅ Added optional param
     double? commissionAmount, // ✅ Added optional param
     double? vatAmount, // ✅ Added optional param
   }) async {
@@ -244,6 +246,7 @@ class FinancialService {
         paymentMethod: paymentMethod,
         completionDate: completionDate,
         status: 'completed',
+        customerPhone: customerPhone,
       );
 
       // Remove manual local list updates to avoid duplication with stream listeners

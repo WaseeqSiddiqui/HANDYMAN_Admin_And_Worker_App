@@ -99,10 +99,20 @@ class AppStateProvider with ChangeNotifier {
         for (var service in services) {
           // 1. Check for NEW Service
           if (!_previousServiceIds.contains(service.id)) {
+            // Show local notification for admin currently using the app
             NotificationService().showLocalNotification(
               title: 'New Service Request',
               body:
                   'New request from ${service.customerName}: ${service.serviceName}',
+            );
+            // Also write to Firestore → Cloud Function sends FCM to all admins
+            NotificationService().sendNotification(
+              title: 'New Service Request',
+              body:
+                  'New request from ${service.customerName}: ${service.serviceName}',
+              type: 'service',
+              targetUserIds: ['admin'],
+              relatedId: service.id,
             );
           }
           // 2. Check for STATUS Change (Cancellation)
@@ -919,6 +929,7 @@ class AppStateProvider with ChangeNotifier {
       final updatedService = ServiceRequest(
         id: service.id,
         customerId: service.customerId,
+        customerPhone: service.customerPhone,
         customerName:
             service.customerName, // ✅ Customer کی entered language preserve
         serviceId: service.serviceId,
@@ -1039,6 +1050,7 @@ class AppStateProvider with ChangeNotifier {
       _serviceRequests[serviceIndex] = ServiceRequest(
         id: service.id,
         customerId: service.customerId,
+        customerPhone: service.customerPhone,
         customerName:
             service.customerName, // ✅ Customer کی entered language preserve
         serviceId: service.serviceId,
@@ -1290,6 +1302,16 @@ class AppStateProvider with ChangeNotifier {
       // 2. Update Local State
       _serviceRequests[serviceIndex] = updatedService;
       notifyListeners();
+
+      // 3. Notify the specific customer that their invoice is ready
+      await NotificationService().sendNotification(
+        title: 'Invoice Ready',
+        body:
+            'Your invoice for ${service.serviceName} has been generated. Please review it.',
+        type: 'invoice',
+        targetUserIds: [service.customerId], // Only this customer
+        relatedId: serviceId,
+      );
 
       debugPrint('✅ Invoice marked as generated for service: $serviceId');
     }

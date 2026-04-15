@@ -18,6 +18,7 @@ class FinancialTransaction {
   final String paymentMethod;
   final DateTime completionDate;
   final String status;
+  final String? customerPhone;
 
   FinancialTransaction({
     required this.id,
@@ -36,6 +37,7 @@ class FinancialTransaction {
     required this.paymentMethod,
     required this.completionDate,
     required this.status,
+    this.customerPhone,
   });
 
   Map<String, dynamic> toMap() => {
@@ -55,6 +57,7 @@ class FinancialTransaction {
     'paymentMethod': paymentMethod,
     'completionDate': completionDate.toIso8601String(),
     'status': status,
+    'customerPhone': customerPhone,
   };
 
   factory FinancialTransaction.fromMap(Map<String, dynamic> map) => FinancialTransaction(
@@ -74,5 +77,6 @@ class FinancialTransaction {
     paymentMethod: map['paymentMethod'],
     completionDate: DateTime.parse(map['completionDate']),
     status: map['status'],
+    customerPhone: map['customerPhone'],
   );
 }

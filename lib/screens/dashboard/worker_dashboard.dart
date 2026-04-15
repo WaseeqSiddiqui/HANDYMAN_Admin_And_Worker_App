@@ -26,6 +26,7 @@ import '../../worker/worker_profile_screen.dart';
 import '../../services/notification_service.dart';
 import '../../services/chat_monitor_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WorkerDashboardScreen extends StatefulWidget {
   final String phoneNumber;
@@ -1009,38 +1010,47 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          WorkerTranslations.getEnglish(
-                            WorkerTranslations.address,
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        Text(
-                          service.address,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
+              InkWell(
+                onTap: () async {
+                  final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(service.address)}');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: Color(0xFF005DFF),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            WorkerTranslations.getEnglish(
+                              WorkerTranslations.address,
+                            ),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          Text(
+                            service.address,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF005DFF),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8),
               Row(

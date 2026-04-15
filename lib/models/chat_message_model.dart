@@ -6,6 +6,7 @@ class ChatMessage {
   final String senderName;
   final String role; // 'customer' or 'worker'
   final String message;
+  final String type; // 'text' or 'location'
   final DateTime timestamp;
 
   ChatMessage({
@@ -14,6 +15,7 @@ class ChatMessage {
     required this.senderName,
     required this.role,
     required this.message,
+    this.type = 'text',
     required this.timestamp,
   });
 
@@ -39,6 +41,7 @@ class ChatMessage {
       senderName: map['senderName'] ?? '',
       role: map['role'] ?? '', // Expect 'customer' or 'worker'
       message: content,
+      type: map['type'] ?? 'text',
       timestamp: parseDate(timestamp),
     );
   }
@@ -50,6 +53,7 @@ class ChatMessage {
       'senderName': senderName,
       'role': role,
       'message': message,
+      'type': type,
       'text': message, // Redundant field for compatibility
       'content': message, // Redundant field for compatibility
       'msg': message, // Redundant field for compatibility

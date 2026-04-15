@@ -3,6 +3,7 @@ import '../services/financial_service.dart';
 import '../models/vat_model.dart';
 import '../utils/admin_translations.dart';
 import '../widgets/bilingual_text.dart';
+import '../services/report_pdf_service.dart';
 
 class VATManagementScreen extends StatefulWidget {
   const VATManagementScreen({super.key});
@@ -500,15 +501,38 @@ class VATManagementScreenState extends State<VATManagementScreen> {
     }
   }
 
-  void _exportVATReport() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AdminTranslations.split(AdminTranslations.vatReportExported)[0],
+  Future<void> _exportVATReport() async {
+    final vatRecords = _getFilteredRecords();
+    if (vatRecords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No records to export for the selected period.'),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
+      return;
+    }
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Generating VAT Report PDF...'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 1),
+        ),
+      );
+      // Wait a short moment to allow UI to show snackbar
+      await Future.delayed(const Duration(milliseconds: 500));
+      await ReportPdfService().downloadVATReportPDF(vatRecords, _selectedPeriod);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate report: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

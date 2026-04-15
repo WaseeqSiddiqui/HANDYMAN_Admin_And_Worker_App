@@ -3,6 +3,7 @@ import '../services/financial_service.dart';
 import '../models/commission_record_model.dart';
 import '../utils/admin_translations.dart';
 import '../widgets/bilingual_text.dart';
+import '../services/report_pdf_service.dart';
 
 class CommissionManagementScreen extends StatefulWidget {
   const CommissionManagementScreen({super.key});
@@ -67,6 +68,13 @@ class CommissionManagementScreenState
         ),
         backgroundColor: const Color(0xFF3B82F6),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            onPressed: () => _exportCommissionReport(),
+            tooltip: 'Export Commission Report',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -520,6 +528,40 @@ class CommissionManagementScreenState
       return AdminTranslations.split(AdminTranslations.today)[0];
     } else {
       return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  Future<void> _exportCommissionReport() async {
+    final commissionRecords = _getFilteredRecords();
+    if (commissionRecords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No records to export for the selected period.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Generating Commission Report PDF...'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 1),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 500));
+      await ReportPdfService().downloadCommissionReportPDF(commissionRecords, _selectedPeriod);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate report: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

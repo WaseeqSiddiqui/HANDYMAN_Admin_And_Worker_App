@@ -9,6 +9,7 @@ import '/services/invoice_service.dart';
 import '/models/worker_data_model.dart';
 import '/models/service_request_model.dart';
 import '../../worker/service_detail_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
   final int initialIndex;
@@ -341,6 +342,11 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
               Icons.person,
               service.customerName,
               isArabic: isArabicCustomer,
+            ),
+            _buildInfoRow(
+              Icons.phone,
+              service.customerPhone,
+              isArabic: false,
             ),
 
             // Address - in original entered language with white text
@@ -729,6 +735,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
+            _buildInfoRow(Icons.phone, service.customerPhone, isArabic: false),
             _buildInfoRow(
               Icons.location_on,
               service.address,
@@ -1026,6 +1033,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
+            _buildInfoRow(Icons.phone, service.customerPhone, isArabic: false),
             _buildInfoRow(
               Icons.location_on,
               service.address,
@@ -1264,6 +1272,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
+            _buildInfoRow(Icons.phone, service.customerPhone, isArabic: false),
             _buildInfoRow(
               Icons.engineering,
               service.workerName ??
@@ -1496,6 +1505,7 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
             const SizedBox(height: 12),
 
             _buildInfoRow(Icons.person, service.customerName, isArabic: false),
+            _buildInfoRow(Icons.phone, service.customerPhone, isArabic: false),
             _buildInfoRow(
               Icons.location_on,
               service.address,
@@ -1634,23 +1644,52 @@ class _AdminServiceRequestsScreenState extends State<ServiceRequestsScreen>
   }
 
   Widget _buildInfoRow(IconData icon, String text, {bool isArabic = false}) {
-    return Padding(
+    final isLocation = icon == Icons.location_on;
+    final isPhone = icon == Icons.phone;
+    
+    Widget content = Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
+          Icon(
+            icon, 
+            size: 16, 
+            color: (isLocation || isPhone) ? const Color(0xFF005DFF) : Colors.grey[600]
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 14, 
+                color: (isLocation || isPhone) ? const Color(0xFF005DFF) : Colors.black87,
+                decoration: (isLocation || isPhone) ? TextDecoration.underline : null,
+                fontWeight: isPhone ? FontWeight.w600 : FontWeight.normal,
+              ),
               textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
             ),
           ),
         ],
       ),
     );
+
+    if (isLocation || isPhone) {
+      return InkWell(
+        onTap: () async {
+          final uri = isLocation 
+              ? Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(text)}')
+              : Uri.parse('tel:${text.replaceAll(RegExp(r'[^\d+]'), '')}');
+          
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        },
+        child: content,
+      );
+    }
+    
+    return content;
   }
 
   Widget _buildFinancialRow(

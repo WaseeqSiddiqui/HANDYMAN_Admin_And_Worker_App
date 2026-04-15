@@ -3,6 +3,8 @@ import '../models/service_request_model.dart';
 import '../models/chat_message_model.dart';
 import '../services/firestore_service.dart';
 import '/utils/worker_translations.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatScreen extends StatefulWidget {
   final ServiceRequest serviceRequest;
@@ -165,13 +167,34 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.message,
-                    style: TextStyle(
-                      color: isWorker ? Colors.white : Colors.black87,
-                      fontSize: 15,
+                  if (message.type == 'location')
+                    InkWell(
+                      onTap: () => _openMap(message.message),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_on, size: 20, color: isWorker ? Colors.white : const Color(0xFF005DFF)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'View Location',
+                            style: TextStyle(
+                              color: isWorker ? Colors.white : const Color(0xFF005DFF),
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Text(
+                      message.message,
+                      style: TextStyle(
+                        color: isWorker ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(message.timestamp),
@@ -251,6 +274,11 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.location_on, color: Color(0xFF005DFF), size: 28),
+              onPressed: _sendLocation,
+            ),
+            const SizedBox(width: 8),
             CircleAvatar(
               radius: 24,
               backgroundColor: const Color(0xFF005DFF),
@@ -315,6 +343,89 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+      }
+    }
+  }
+
+  Future<void> _openMap(String locationStr) async {
+    final url = Uri.parse(locationStr);
+    try {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open map.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location services are disabled.')),
+        );
+      }
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')),
+          );
+        }
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permissions are permanently denied, we cannot request permissions.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fetching location...')),
+        );
+      }
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final locationUrl = 'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
+
+      final message = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        senderId: widget.serviceRequest.workerId ?? '',
+        senderName: widget.workerName,
+        role: 'worker',
+        message: locationUrl,
+        type: 'location',
+        timestamp: DateTime.now(),
+      );
+
+      await _firestoreService.sendMessage(widget.serviceRequest.id, message);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send location: $e')),
+        );
       }
     }
   }
