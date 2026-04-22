@@ -2,7 +2,7 @@ name: admin_x_technician_panel
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 8.0.3+17
+version: 8.0.3+19
 
 environment:
   sdk: ^3.9.2

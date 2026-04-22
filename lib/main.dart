@@ -17,7 +17,7 @@ void main() async {
   // Initialize NetworkService
   NetworkService().initialize();
 
-  // Initialize Notifications
+  // Initialize Notification Service
   await NotificationService().initialize();
 
   runApp(const AdminWorkerApp());

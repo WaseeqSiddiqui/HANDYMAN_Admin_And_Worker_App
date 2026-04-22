@@ -84,9 +84,10 @@ class NotificationService {
     debugPrint("🚀 FCM TOKEN: $token");
     debugPrint("=========================================");
 
-    // Subscribe to 'all' topic so Cloud Function broadcasts reach this device
+    // Subscribe to topics
     await _firebaseMessaging.subscribeToTopic('all');
-    debugPrint("✅ Subscribed to FCM topic: all");
+    await _firebaseMessaging.subscribeToTopic('admin_notifications');
+    debugPrint("✅ Subscribed to FCM topics: all, admin_notifications");
     // Token is saved when user logs in via updateUserToken
   }
 
@@ -226,10 +227,13 @@ class NotificationService {
           'targetUserIds',
           arrayContainsAny: [
             userId,
+            'admin',
+            'Admin',
+            'Admins',
             'All',
             'Workers',
             'workers',
-            'Customers', // In case we reuse for customers
+            'Customers',
             'customers',
           ],
         )
@@ -393,15 +397,5 @@ class NotificationService {
     } catch (e) {
       debugPrint("❌ Error creating notification: $e");
     }
-  }
-
-  // 🔥 TEST METHOD
-  Future<void> showTestNotification() async {
-    debugPrint("Showing test notification...");
-    await _showLocalNotificationPayload(
-      'Test Notification',
-      'This is a test notification to verify system tray display.',
-      'test_payload',
-    );
   }
 }
